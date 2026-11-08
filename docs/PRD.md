@@ -58,11 +58,22 @@ trabajo finalizado → historial.
 - Como dispatcher puedo ver agenda diaria, semanal y mensual.
 - Puedo detectar conflictos de horario al asignar un técnico.
 - Puedo reprogramar una visita.
+- Como técnico puedo ver solo mis turnos asignados.
+- Al crear un turno, la orden queda asignada y programada.
+
+### Pagos
+
+- Como dispatcher puedo registrar pagos totales o parciales sobre una orden.
+- Puedo registrar método, fecha, referencia y observaciones.
+- El sistema calcula el saldo pendiente contra los presupuestos aprobados.
+- Puedo anular un pago sin borrar el registro.
+- Un pago registrado manualmente no equivale a una transacción verificada.
 
 ### Dashboard
 
 - Como admin puedo ver órdenes pendientes, presupuestos sin aprobar, trabajos
-  del día, cobros pendientes y clientes nuevos.
+  del día, cobros pendientes, turnos del día y clientes nuevos.
+- El dashboard usa una única consulta de resumen del backend.
 
 ### Aislamiento
 

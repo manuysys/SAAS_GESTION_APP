@@ -108,6 +108,30 @@ Reglas:
 - PDF generado con `reportlab` y servido autenticado.
 - Endpoints públicos en `/api/v1/public/quotes/{token}` sin autenticación ni IDs internos.
 
+## Agenda y técnicos
+
+- Entidad `appointments` vinculada a `work_orders` y `users` (técnico).
+- Estados `scheduled`, `completed`, `cancelled`, `no_show`.
+- Detección de solapamiento por técnico excluyendo turnos cancelados.
+- Al crear turno se asigna técnico y fecha a la orden si está en `new`/`scheduled`.
+- Técnicos listan solo sus turnos; no pueden crear ni editar.
+- Endpoints `/api/v1/appointments` y `/api/v1/technicians`.
+
+## Pagos y saldos
+
+- Entidad `payments` vinculada a `work_orders`; opcionalmente a `quotes`.
+- Métodos permitidos: `cash`, `transfer`, `card`, `mercadopago`, `other`.
+- Estados `registered` y `voided`; anulación recalcula el estado de pago de la orden.
+- `work_orders.payment_status` se recalcula comparando pagos registrados contra presupuestos aprobados: `pending`/`partial`/`paid`.
+- Técnicos y viewers no acceden a pagos.
+- Endpoint `/api/v1/payments`.
+
+## Dashboard
+
+- Resumen operativo y comercial por tenant en `/api/v1/dashboard/summary`.
+- Métricas: clientes, solicitudes, órdenes abiertas, presupuestos pendientes, pagos, saldo pendiente y turnos del día (zona Argentina).
+- Solo roles owner/admin/dispatcher; sin acceso financiero para técnicos ni viewers.
+
 ## Observabilidad
 
 - Logs estructurados JSON con `request_id`, `tenant_id`, `user_id`.

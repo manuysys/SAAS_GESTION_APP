@@ -57,8 +57,9 @@ tenant), `title`, `description`, `service_type`, `commercial_status`,
 `actor_user_id`, `payload` (JSONB), `created_at`. Append-only.
 
 ### appointments
-`id`, `tenant_id`, `work_order_id`, `technician_id`, `starts_at`, `ends_at`,
-`status`, `address_id?`, `notes`, `created_at`, `updated_at`.
+`id`, `tenant_id`, `work_order_id` (CASCADE), `technician_id` (RESTRICT,
+referencia `users.id`), `starts_at`, `ends_at`, `status`, `notes`,
+`created_at`, `updated_at`.
 
 ### technician_profiles
 `id`, `tenant_id`, `user_id`, `phone`, `specialties`, `availability` (JSONB),
@@ -93,8 +94,9 @@ Registra el historial inmutable de cambios de estado del presupuesto
 (creación, envío, aprobación, rechazo) con actor y payload.
 
 ### payments
-`id`, `tenant_id`, `work_order_id`, `quote_id?`, `amount`, `currency`,
-`method`, `status`, `paid_at`, `reference`, `notes`, `created_at`.
+`id`, `tenant_id`, `work_order_id` (RESTRICT), `quote_id?` (SET NULL),
+`amount` (`NUMERIC(14,2)`), `currency`, `method`, `status`, `paid_at`,
+`reference`, `notes`, `created_at`, `updated_at`.
 
 ### attachments
 `id`, `tenant_id`, `entity_type`, `entity_id`, `storage_key`, `filename`,
@@ -143,6 +145,8 @@ tenant 1─N automation_rule 1─N automation_execution
 Índices reales en `quotes`: `tenant_id`, `customer_id`, `work_order_id`,
 `status` (no únicos) y `public_token` (único). En `quote_items`:
 `tenant_id`, `quote_id`. En `quote_events`: `tenant_id`, `quote_id`.
+En `appointments`: `tenant_id`, `work_order_id`, `technician_id`, `starts_at`.
+En `payments`: `tenant_id`, `work_order_id`, `quote_id`.
 
 ## Reglas de dinero y cantidades
 

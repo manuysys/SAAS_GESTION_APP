@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
+import { TechnicianAssignment } from "@/components/orders/technician-assignment";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
@@ -24,6 +25,7 @@ export default function OrderDetailPage() {
   const [notes, setNotes] = useState("");
   const [transitionError, setTransitionError] = useState<string | null>(null);
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
+  const canAssign = ["owner", "admin", "dispatcher"].includes(activeTenant?.role ?? "");
 
   const orderQuery = useQuery({
     queryKey: ["work-order", activeTenantId, orderId],
@@ -41,6 +43,12 @@ export default function OrderDetailPage() {
     queryKey: ["customers", activeTenantId, ""],
     queryFn: () => api.customers.list(activeTenantId ?? ""),
     enabled: Boolean(activeTenantId),
+  });
+
+  const techniciansQuery = useQuery({
+    queryKey: ["technicians", activeTenantId],
+    queryFn: () => api.technicians.list(activeTenantId ?? ""),
+    enabled: Boolean(activeTenantId) && canAssign,
   });
 
   const transitionMutation = useMutation({
@@ -150,6 +158,15 @@ export default function OrderDetailPage() {
           </p>
         )}
       </div>
+
+      {canAssign && (
+        <TechnicianAssignment
+          key={order.id}
+          tenantId={activeTenantId}
+          order={order}
+          technicians={techniciansQuery.data ?? []}
+        />
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-zinc-200 bg-white p-6">

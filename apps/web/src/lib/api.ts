@@ -282,6 +282,103 @@ export type PublicQuote = {
   items: PublicQuoteItem[];
 };
 
+/** Los técnicos son usuarios de la empresa con rol operativo. */
+export type Technician = {
+  id: string;
+  full_name: string;
+  email: string;
+};
+
+/** Asignación parcial de la orden. `assigned_user_id: null` quita el técnico. */
+export type WorkOrderUpdateInput = {
+  title?: string;
+  description?: string | null;
+  priority?: string;
+  assigned_user_id?: string | null;
+  scheduled_at?: string | null;
+};
+
+export type Appointment = {
+  id: string;
+  tenant_id: string;
+  work_order_id: string;
+  technician_id: string;
+  starts_at: string;
+  ends_at: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppointmentListResponse = {
+  items: Appointment[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type AppointmentInput = {
+  work_order_id: string;
+  technician_id: string;
+  /** Instantes en ISO 8601 (UTC). */
+  starts_at: string;
+  ends_at: string;
+  notes?: string;
+};
+
+/**
+ * Importes llegan como string (Decimal serializado).
+ * Nunca convertir a number para cálculos persistidos.
+ */
+export type Payment = {
+  id: string;
+  tenant_id: string;
+  work_order_id: string;
+  quote_id: string | null;
+  amount: string;
+  currency: string;
+  method: string;
+  status: string;
+  paid_at: string;
+  reference: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PaymentListResponse = {
+  items: Payment[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type PaymentInput = {
+  work_order_id: string;
+  quote_id?: string;
+  amount: string;
+  method: string;
+  /** Instante en ISO 8601. Si se omite, el servidor usa el momento actual. */
+  paid_at?: string;
+  reference?: string;
+  notes?: string;
+};
+
+export type DashboardSummary = {
+  customers_total: number;
+  service_requests_total: number;
+  service_requests_new: number;
+  work_orders_total: number;
+  work_orders_open: number;
+  quotes_total: number;
+  quotes_pending: number;
+  payments_total: string;
+  /** Saldo pendiente de cobro. Decimal serializado como string. */
+  pending_balance: string;
+  appointments_today: number;
+};
+
 function tenantHeaders(tenantId: string): HeadersInit {
   return { "X-Tenant-ID": tenantId };
 }
@@ -445,6 +542,13 @@ export const api = {
       request<WorkOrder>(`/api/v1/work-orders/${orderId}`, {
         headers: tenantHeaders(tenantId),
       }),
+    /** Actualiza campos de la orden; usar `assigned_user_id` para asignar o quitar técnico. */
+    update: (tenantId: string, orderId: string, input: WorkOrderUpdateInput) =>
+      request<WorkOrder>(`/api/v1/work-orders/${orderId}`, {
+        method: "PATCH",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
     transition: (tenantId: string, orderId: string, toStatus: string, notes?: string) =>
       request<WorkOrder>(`/api/v1/work-orders/${orderId}/transition`, {
         method: "POST",
@@ -507,6 +611,66 @@ export const api = {
         tenantHeaders(tenantId),
         "No se pudo descargar el PDF",
       ),
+  },
+  technicians: {
+    list: (tenantId: string) =>
+      request<Technician[]>("/api/v1/technicians", { headers: tenantHeaders(tenantId) }),
+  },
+  appointments: {
+    list: (
+      tenantId: string,
+      params?: { start?: string; end?: string; technicianId?: string },
+    ) => {
+      const search = new URLSearchParams();
+      if (params?.start) search.set("start", params.start);
+      if (params?.end) search.set("end", params.end);
+      if (params?.technicianId) search.set("technician_id", params.technicianId);
+      const query = search.toString();
+      return request<AppointmentListResponse>(
+        `/api/v1/appointments${query ? `?${query}` : ""}`,
+        { headers: tenantHeaders(tenantId) },
+      );
+    },
+    create: (tenantId: string, input: AppointmentInput) =>
+      request<Appointment>("/api/v1/appointments", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    update: (tenantId: string, appointmentId: string, input: Partial<AppointmentInput>) =>
+      request<Appointment>(`/api/v1/appointments/${appointmentId}`, {
+        method: "PATCH",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    cancel: (tenantId: string, appointmentId: string) =>
+      request<Appointment>(`/api/v1/appointments/${appointmentId}/cancel`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+  },
+  payments: {
+    list: (tenantId: string) =>
+      request<PaymentListResponse>("/api/v1/payments", { headers: tenantHeaders(tenantId) }),
+    create: (tenantId: string, input: PaymentInput) =>
+      request<Payment>("/api/v1/payments", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    void: (tenantId: string, paymentId: string) =>
+      request<Payment>(`/api/v1/payments/${paymentId}/void`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+  },
+  dashboard: {
+    summary: (tenantId: string) =>
+      request<DashboardSummary>("/api/v1/dashboard/summary", {
+        headers: tenantHeaders(tenantId),
+      }),
   },
   publicQuotes: {
     get: (token: string) => publicRequest<PublicQuote>(`/api/v1/public/quotes/${token}`),

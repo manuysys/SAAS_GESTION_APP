@@ -2,12 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import (
+    appointments,
     auth,
     customers,
+    dashboard,
     health,
+    payments,
     public_quotes,
     quotes,
     service_requests,
+    technicians,
     tenants,
     work_orders,
 )
@@ -35,6 +39,10 @@ app.include_router(service_requests.router, prefix="/api/v1")
 app.include_router(work_orders.router, prefix="/api/v1")
 app.include_router(quotes.router, prefix="/api/v1")
 app.include_router(public_quotes.router, prefix="/api/v1")
+app.include_router(appointments.router, prefix="/api/v1")
+app.include_router(payments.router, prefix="/api/v1")
+app.include_router(technicians.router, prefix="/api/v1")
+app.include_router(dashboard.router, prefix="/api/v1")
 
 
 @app.get("/")

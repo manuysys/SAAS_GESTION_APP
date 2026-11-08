@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-08 — Agenda, técnicos, pagos y dashboard
+
+- Modelos `appointments` y `payments`.
+- Migración `de0e021aa0ca_add_appointments_and_payments`.
+- Agenda con detección de conflictos, reprogramación y cancelación.
+- Asignación de técnicos a órdenes y turnos.
+- Pagos manuales, parciales y anulación con recálculo de `payment_status`.
+- Endpoint `GET /api/v1/technicians` y `GET /api/v1/dashboard/summary`.
+- Frontend: agenda diaria, pagos, asignación de técnico en órdenes y dashboard
+  con métricas reales.
+- Navegación por rol para ocultar módulos financieros a técnicos y viewers.
+- 37 pruebas pytest y 22 pruebas de frontend; flujo completo probado en navegador.
+
 ## 2026-11-08 — Presupuestos, PDF y aprobación pública
 
 - Modelos `quotes`, `quote_items` y `quote_events`.

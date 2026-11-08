@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
+export const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export function cn(...inputs: ClassValue[]) {

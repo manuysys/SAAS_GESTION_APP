@@ -27,10 +27,10 @@
 
 - [x] Presupuestos con conceptos, impuestos y versiones.
 - [x] PDF y enlace seguro de aprobación.
-- [ ] Agenda y visitas.
-- [ ] Asignación de técnicos y detección de conflictos.
-- [ ] Pagos registrados y saldos.
-- [ ] Dashboard operativo.
+- [x] Agenda y visitas.
+- [x] Asignación de técnicos y detección de conflictos.
+- [x] Pagos registrados y saldos.
+- [x] Dashboard operativo.
 
 ## Hito 3 — Experiencia móvil
 

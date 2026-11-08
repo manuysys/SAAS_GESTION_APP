@@ -103,6 +103,7 @@ Estas credenciales son solo para desarrollo local. No usarlas en producción.
 - [Seguridad](docs/SECURITY.md)
 - [Seguridad multi-tenant](docs/TENANT_SECURITY.md)
 - [Presupuestos](docs/QUOTES.md)
+- [Agenda y pagos](docs/AGENDA_PAYMENTS.md)
 - [Despliegue](docs/DEPLOYMENT.md)
 
 ## Convenciones

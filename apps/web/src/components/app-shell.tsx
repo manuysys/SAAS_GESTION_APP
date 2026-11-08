@@ -9,6 +9,7 @@ import {
   Loader2,
   LogOut,
   Users,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,12 +19,28 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+  {
+    href: "/dashboard",
+    label: "Panel",
+    icon: LayoutDashboard,
+    roles: ["owner", "admin", "dispatcher"],
+  },
   { href: "/customers", label: "Clientes", icon: Users },
   { href: "/requests", label: "Solicitudes", icon: Inbox },
   { href: "/orders", label: "Órdenes", icon: ClipboardList },
-  { href: "/quotes", label: "Presupuestos", icon: FileText },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays, disabled: true },
+  {
+    href: "/quotes",
+    label: "Presupuestos",
+    icon: FileText,
+    roles: ["owner", "admin", "dispatcher"],
+  },
+  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  {
+    href: "/payments",
+    label: "Pagos",
+    icon: Wallet,
+    roles: ["owner", "admin", "dispatcher"],
+  },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -55,6 +72,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
+  const role = activeTenant?.role ?? "";
+  const visibleNavigation = navigation.filter(
+    (item) => !item.roles || item.roles.includes(role),
+  );
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -70,24 +91,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-2">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const active = isActivePath(pathname, item.href);
             const Icon = item.icon;
-            if (item.disabled) {
-              return (
-                <span
-                  key={item.href}
-                  className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-400"
-                  title="Próximamente"
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                  <span className="ml-auto rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
-                    Pronto
-                  </span>
-                </span>
-              );
-            }
             return (
               <Link
                 key={item.href}
@@ -151,10 +157,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <nav className="flex gap-1 overflow-x-auto px-4 pb-2 md:hidden">
-            {navigation.map((item) => {
+            {visibleNavigation.map((item) => {
               const active = isActivePath(pathname, item.href);
               const Icon = item.icon;
-              if (item.disabled) return null;
               return (
                 <Link
                   key={item.href}
