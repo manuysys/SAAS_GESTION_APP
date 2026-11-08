@@ -18,7 +18,8 @@ frontend Next.js consume la API FastAPI contra PostgreSQL 17.
 - [x] OpenCode: 10 agentes, 8 skills, 8 comandos, Context7 MCP conectado.
 - [x] Node 24.22.2 vía `fnm`, Python 3.12.13 vía `uv`.
 - [x] PostgreSQL 17.11 portable en `127.0.0.1:55432` con bases `saas_gestion_dev` y `saas_gestion_test`.
-- [x] `gh` instalado (autenticación pendiente).
+- [x] `gh` instalado. El push funciona con la credencial de Windows; `gh`
+  requiere un token con `read:org` para completar su login.
 
 ### Backend
 
@@ -63,7 +64,7 @@ clientes → alta de cliente, y recarga de sesión con refresh token.
 
 ## Pendiente
 
-- [ ] Autenticar GitHub y hacer el primer push.
+- [x] Primer push a GitHub (`main`).
 - [ ] Órdenes de trabajo, estados y auditoría.
 - [ ] Solicitudes y conversión a orden.
 - [ ] Presupuestos, PDF y aprobación.
@@ -74,14 +75,16 @@ clientes → alta de cliente, y recarga de sesión con refresh token.
 
 ## Próximo paso concreto
 
-1. Autenticar GitHub y pushear `main`.
-2. Implementar el módulo de solicitudes + órdenes de trabajo con transiciones
+1. Implementar el módulo de solicitudes + órdenes de trabajo con transiciones
    de estado y eventos de auditoría.
-3. Agregar pruebas de aislamiento para órdenes.
+2. Agregar pruebas de aislamiento para órdenes.
+3. Incorporar presupuestos y agenda.
 
 ## Limitaciones conocidas
 
-- GitHub CLI sin sesión; el push está bloqueado hasta autenticar.
+- `gh` no completó su login porque el token existente no tiene `read:org`.
+  `git push` funciona con la credencial de Windows; para usar `gh` con todas
+  sus funciones hay que autorizar un token con ese scope.
 - Docker no operativo (sin WSL/Hyper-V); se usa PostgreSQL portable.
 - Ollama disponible pero limitado por hardware.
 - No hay credenciales de WhatsApp, pagos ni proveedores de IA.

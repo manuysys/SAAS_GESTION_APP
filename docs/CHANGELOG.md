@@ -13,6 +13,7 @@
 - Vitest, ESLint, TypeScript estricto y build de producción.
 - `scripts/verify.ps1` pasa completo.
 - Prueba manual en navegador del flujo registro → dashboard → alta de cliente.
+- Primer push a `https://github.com/manuysys/SAAS_GESTION_APP` (`main`).
 
 ## 2026-11-07 — Preparación del entorno
 

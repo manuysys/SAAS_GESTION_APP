@@ -2,8 +2,10 @@
 
 ## Entorno
 
-- **GitHub CLI sin autenticar.** `gh` está instalado pero no hay sesión. El push
-  a `origin` requiere `gh auth login` o un PAT.
+- **GitHub CLI parcialmente autenticado.** `gh` está instalado y el push a
+  `origin` funciona con la credencial de Windows, pero `gh auth login` no se
+  completó porque el token existente no tiene el scope `read:org`. Para usar
+  todas las funciones de `gh` hay que autorizar un token con ese scope.
 - **Docker no operativo.** Docker Desktop está instalado, pero no hay WSL/Hyper-V
   activo. El desarrollo usa PostgreSQL portable, no contenedores.
 - **Node 26 global en `Downloads`.** Se instaló Node 24 LTS con `fnm` para el
