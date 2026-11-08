@@ -1,0 +1,21 @@
+{
+  "name": "SaaS Gestión · Técnicos",
+  "short_name": "Técnicos",
+  "description": "Órdenes asignadas, notas, materiales y fotos de trabajo para técnicos de campo.",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "start_url": "/tech",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fafafa",
+  "theme_color": "#18181b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

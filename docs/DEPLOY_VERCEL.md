@@ -125,6 +125,29 @@ Si se usa un dominio propio para ambos (por ejemplo `app.midominio.com` y
 4. Verificar el link público del presupuesto.
 5. Revisar logs de la función en Vercel si hay errores 500.
 
+## Demo temporal sin base administrada
+
+Si no se puede provisionar Neon todavía, se puede mostrar el frontend en Vercel
+apuntando a la API local mediante un túnel HTTPS:
+
+```powershell
+# API local en 8000
+.local\bin\cloudflared.exe tunnel --url http://127.0.0.1:8000 --no-autoupdate
+```
+
+Luego:
+
+1. Copiar la URL `https://*.trycloudflare.com`.
+2. Configurar `NEXT_PUBLIC_API_URL` en Vercel con esa URL.
+3. Reiniciar la API local con:
+   - `API_CORS_ORIGINS=["https://<proyecto>.vercel.app"]`
+   - `COOKIE_SECURE=true`
+   - `COOKIE_SAMESITE=none`
+4. Deployar el frontend con `vercel --prod`.
+
+Esta modalidad depende de que la máquina y el túnel sigan activos. No es
+producción y no tiene garantía de uptime.
+
 ## Limitaciones del plan gratuito
 
 - La función serverless puede tener cold starts.

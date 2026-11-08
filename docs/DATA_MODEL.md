@@ -56,6 +56,22 @@ tenant), `title`, `description`, `service_type`, `commercial_status`,
 `id`, `tenant_id`, `work_order_id`, `event_type`, `from_state`, `to_state`,
 `actor_user_id`, `payload` (JSONB), `created_at`. Append-only.
 
+### work_order_materials
+`id`, `tenant_id`, `work_order_id` (CASCADE), `description`, `quantity`
+(`NUMERIC(12,3)`), `unit`, `created_by_user_id` (SET NULL), `created_at`,
+`updated_at`.
+
+Materiales consumidos en la orden de trabajo. La cantidad usa `NUMERIC(12,3)`.
+La FK a la orden es CASCADE (los materiales no sobreviven sin su orden).
+
+### work_order_attachments
+`id`, `tenant_id`, `work_order_id` (CASCADE), `filename`, `mime_type`,
+`size_bytes`, `data` (BYTEA vía `LargeBinary`), `uploaded_by_user_id`
+(SET NULL), `created_at`, `updated_at`.
+
+Adjuntos binarios de la orden de trabajo. El contenido se persiste como BYTEA;
+la FK a la orden es CASCADE.
+
 ### appointments
 `id`, `tenant_id`, `work_order_id` (CASCADE), `technician_id` (RESTRICT,
 referencia `users.id`), `starts_at`, `ends_at`, `status`, `notes`,
@@ -129,6 +145,8 @@ work_order 1─N quote 1─N quote_item
 quote 1─N quote_event
 work_order 1─N payment
 work_order 1─N work_order_event
+work_order 1─N work_order_material
+work_order 1─N work_order_attachment
 customer 1─N communication
 tenant 1─N automation_rule 1─N automation_execution
 ```
@@ -147,6 +165,8 @@ tenant 1─N automation_rule 1─N automation_execution
 `tenant_id`, `quote_id`. En `quote_events`: `tenant_id`, `quote_id`.
 En `appointments`: `tenant_id`, `work_order_id`, `technician_id`, `starts_at`.
 En `payments`: `tenant_id`, `work_order_id`, `quote_id`.
+En `work_order_materials`: `tenant_id`, `work_order_id`.
+En `work_order_attachments`: `tenant_id`, `work_order_id`.
 
 ## Reglas de dinero y cantidades
 

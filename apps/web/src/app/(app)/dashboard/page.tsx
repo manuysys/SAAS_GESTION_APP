@@ -22,15 +22,14 @@ export default function DashboardPage() {
   const { user, activeTenantId, tenants } = useAuth();
   const router = useRouter();
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
-  const canViewDashboard = ["owner", "admin", "dispatcher"].includes(
-    activeTenant?.role ?? "",
-  );
+  const role = activeTenant?.role ?? "";
+  const canViewDashboard = ["owner", "admin", "dispatcher"].includes(role);
+  const isTechnician = role === "technician";
 
   useEffect(() => {
-    if (activeTenant && !canViewDashboard) {
-      router.replace("/orders");
-    }
-  }, [activeTenant, canViewDashboard, router]);
+    if (!activeTenant || canViewDashboard) return;
+    router.replace(isTechnician ? "/tech" : "/orders");
+  }, [activeTenant, canViewDashboard, isTechnician, router]);
 
   const summaryQuery = useQuery({
     queryKey: ["dashboard-summary", activeTenantId],

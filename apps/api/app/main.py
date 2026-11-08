@@ -11,6 +11,7 @@ from app.api.routes import (
     public_quotes,
     quotes,
     service_requests,
+    technician,
     technicians,
     tenants,
     work_orders,
@@ -42,6 +43,7 @@ app.include_router(public_quotes.router, prefix="/api/v1")
 app.include_router(appointments.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(technicians.router, prefix="/api/v1")
+app.include_router(technician.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 
 

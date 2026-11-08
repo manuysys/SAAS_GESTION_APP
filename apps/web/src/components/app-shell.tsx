@@ -10,6 +10,7 @@ import {
   LogOut,
   Users,
   Wallet,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +19,17 @@ import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
+/**
+ * Módulos financieros (panel, presupuestos, pagos) solo para roles de gestión.
+ * Los técnicos usan /tech, fuera de este shell.
+ */
 const navigation = [
+  {
+    href: "/tech",
+    label: "Mis trabajos",
+    icon: Wrench,
+    roles: ["technician"],
+  },
   {
     href: "/dashboard",
     label: "Panel",
@@ -73,9 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
   const role = activeTenant?.role ?? "";
-  const visibleNavigation = navigation.filter(
-    (item) => !item.roles || item.roles.includes(role),
-  );
+  const visibleNavigation = navigation.filter((item) => !item.roles || item.roles.includes(role));
 
   return (
     <div className="min-h-screen bg-zinc-50">

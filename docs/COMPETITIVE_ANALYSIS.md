@@ -1,50 +1,266 @@
 # Análisis competitivo
 
-**Estado:** pendiente de verificación en fuentes oficiales (2026-11-07).
-Los valores de este documento son antecedentes del relevamiento previo y **no
-deben usarse como precios vigentes** hasta confirmarlos.
+**Fecha de verificación:** 2026-11-08
+**Estado:** verificado en fuentes públicas oficiales de cada competidor al 2026-11-08.
+**Nota metodológica:** no se crearon cuentas de prueba ni se ejecutaron flujos autenticados en los sistemas de terceros durante esta sesión; por lo tanto, ninguna funcionalidad de competidores se marca como **probado**. Toda la evidencia se clasifica estrictamente en:
 
-## Metodología
+- **Probado:** verificado ejecutando la función dentro del producto (ninguno en este relevamiento sin login).
+- **Documentado:** detallado en manuales de uso, guías paso a paso, preguntas frecuentes técnicas o artefactos públicos verificables de la aplicación (manifest PWA, instaladores, APK, bundles públicos).
+- **Anunciado:** afirmado en la página comercial / landing sin documentación técnica o manual público que detalle su implementación.
+- **No documentado:** no se encontró mención en el sitio oficial ni en su documentación pública (no implica que no exista).
 
-Para cada competidor:
+> **Nota sobre estrategia de marca (`docs/BRAND_STRATEGY.md`):** en este documento se utiliza el nombre interno provisional **SaaS Gestión** (o **Proyecto SaaS**). No se utiliza el nombre descartado ni se afirma disponibilidad legal marcaria sobre denominaciones de terceros sin búsqueda oficial en INPI.
 
-1. Visitar el sitio oficial y relevantar planes, precios y límites.
-2. Registrar fecha, URL y captura de evidencia.
-3. Revisar documentación, manuales y videos.
-4. Identificar integraciones (WhatsApp, IA, facturación, GPS).
-5. Distinguir función anunciada de función probada.
-6. Anotar limitaciones y oportunidades de diferenciación.
+---
 
-## Competidores a investigar
+## 1. Tabla maestra por competidor y plan (formato canónico)
 
-| Competidor | Enfoque | Sitio |
-|---|---|---|
-| Ordion | Servicios técnicos a domicilio | https://app.ordion.com.ar/ |
-| AppTec | Técnicos a domicilio | https://apptec.com.ar/ |
-| OrdenSoft | Talleres de reparación | https://ordensoft.com.ar/ |
-| GestiónPro | Talleres de reparación | https://trgestion.com/ |
-| STApp | Gestión de servicios | por verificar |
-| Nixora CRM | CRM | por verificar |
-| Mecaris | Gestión de talleres | por verificar |
-| TallerOS | Talleres | por verificar |
+| Competidor | Plan | Precio vigente (2026-11-08) | Límites | Integraciones | IA | WhatsApp | App móvil | Online / Offline | Fuente | Fecha | Observaciones |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Ordion** | Emprendedor | AR$ 25.000/mes (ciclo anual anunciado en selector, monto anual no expuesto sin interactividad) | 3 técnicos, 1 admin, 1 sucursal, 5 GB archivos; 14 días de prueba gratis | Mercado Pago para cobro de suscripción (**documentado** en bundle de billing). Otras integraciones: **no documentado** | **No documentado** | **No documentado** como automatización; solo campo de contacto comercial en presupuestos (**documentado** en módulo de presupuestos) | Web responsive + PWA `standalone` con `manifest.webmanifest` (**documentado**); app nativa en tiendas: **no documentado** | Online en la nube (**anunciado**); modo offline: **no documentado** | `https://app.ordion.com.ar/` y `https://app.ordion.com.ar/manifest.webmanifest` | 2026-11-08 | Dominio `https://ordion.com.ar/` arroja error de transporte; opera en `https://app.ordion.com.ar/`. Incluye módulos de órdenes, calendario, clientes, técnicos, sucursales, vehículos/flota, presupuestos y auditoría (**documentado**). |
+| **Ordion** | Profesional | AR$ 45.000/mes | 10 técnicos, 3 admins, 3 sucursales, 25 GB archivos; 14 días de prueba | Igual a Emprendedor | **No documentado** | **No documentado** | PWA `standalone` (**documentado**) | Online (**anunciado**); offline **no documentado** | `https://app.ordion.com.ar/` | 2026-11-08 | Apunta a empresas de servicios técnicos en crecimiento con mayor trazabilidad (**anunciado**). |
+| **Ordion** | Empresa | AR$ 75.000/mes | 30 técnicos, 10 admins, 10 sucursales, 100 GB archivos; 14 días de prueba | Igual a Emprendedor | **No documentado** | **No documentado** | PWA `standalone` (**documentado**) | Online (**anunciado**); offline **no documentado** | `https://app.ordion.com.ar/` | 2026-11-08 | Para operaciones multi-sucursal (**anunciado**). |
+| **Ordion** | Corporativo | AR$ 150.000/mes | Técnicos, admins y sucursales sin límite; 500 GB archivos; 30 días de prueba | "Integraciones a medida" (**anunciado**) | **No documentado** | **No documentado** | PWA `standalone` (**documentado**) | Online (**anunciado**); offline **no documentado** | `https://app.ordion.com.ar/` | 2026-11-08 | Incluye soporte dedicado (**anunciado**). |
+| **AppTec** | Gratis | AR$ 0/mes (IVA incl.) | 1 admin, 1 técnico, 20 órdenes/mes, stock básico hasta 10 productos (7 días de prueba de Enterprise al registrarse) | Cobro por Mercado Pago (**documentado**). Sin integración ERP/ISP en este plan | **No documentado** | Envío manual de link público de seguimiento (válido 48 h) por WhatsApp o email (**documentado** en Guía) | Panel web (`apptec.metrowl.com.ar`) + APK Android nativo de descarga directa (`/download/apptec.apk`) obligatorio para técnicos (**documentado**) | 100 % en la nube / online en tiempo real (**documentado**); operación offline: **no documentado** | `https://apptec.com.ar/` y `https://apptec.com.ar/guia.html` | 2026-11-08 | Desarrollado en Córdoba (CUIT 20-26896714-2). El técnico solo opera desde el APK Android fuera de Google Play (requiere habilitar "fuentes desconocidas"). |
+| **AppTec** | Starter | AR$ 49.000/mes (IVA incl.) | 2 admins, 3 técnicos, órdenes ilimitadas, stock con N° de serie | ISPCube (clásico y Sanctum) y MikroWisp con auto-sync cada 24 h (**documentado** en Guía) | **No documentado** | Link de seguimiento manual por WhatsApp (**documentado**); notificaciones push en app Android (**documentado**) | Web admin + APK Android (**documentado**) | Online (**documentado**); offline **no documentado** | `https://apptec.com.ar/` y `https://apptec.com.ar/guia.html` | 2026-11-08 | Fuerte orientación a ISPs y telecomunicaciones (ONUs, módems, integración ISPCube/MikroWisp). |
+| **AppTec** | Pro | AR$ 65.000/mes (IVA incl.) | 2 admins, 20 técnicos, órdenes ilimitadas, hasta 4 fotos por orden | ISPCube y MikroWisp (**documentado**) | **No documentado** | Link de seguimiento + copia de link de acceso al portal de clientes para enviar por WhatsApp (**documentado**) | Web admin + APK Android con escáner de código de barras, notas de voz y firma digital (**documentado**) | Online (**documentado**); offline **no documentado** | `https://apptec.com.ar/` y `https://apptec.com.ar/guia.html` | 2026-11-08 | Suma portal de clientes con marca propia, alertas de stock mínimo, historial de movimientos y categorías de órdenes (**documentado**). |
+| **AppTec** | Enterprise | AR$ 85.000/mes (IVA incl.) | 4 admins, 50+ técnicos, órdenes ilimitadas | ISPCube, MikroWisp y Google Maps para navegación (**documentado**) | **No documentado** | Link de seguimiento con mapa GPS en vivo del técnico compartido por WhatsApp/email (**documentado**) | Web admin + APK Android con GPS en segundo plano y hoja de ruta optimizada (**documentado**) | Online (**documentado**); offline **no documentado** | `https://apptec.com.ar/` y `https://apptec.com.ar/guia.html` | 2026-11-08 | Incluye hoja de ruta optimizada, seguimiento GPS en vivo para el cliente y reportes exportables a PDF (**documentado**). |
+| **OrdenSoft** | Básico | AR$ 24.000/mes (o AR$ 19.200/mes en pago anual de AR$ 230.400/año) | 1 usuario (sin multi-usuario), órdenes ilimitadas, 3 fotos por orden; 7 días de prueba gratis | Conversión automática USD/ARS para repuestos (**anunciado**); impresión A4 y térmica 58/80 mm (**anunciado**) | Asistente IA (capacidad base 1×) para consultar métricas del taller sobre datos propios (**anunciado**) | Link de seguimiento web compartido con "un solo toque" por WhatsApp (**anunciado**; no documenta API oficial ni envío desatendido) | Web 100 % responsive desde navegador móvil (**documentado** en FAQ); app nativa: **no documentado** | 100 % en la nube, requiere internet ("Solo necesitás internet", **documentado** en FAQ); sin modo offline | `https://ordensoft.com/` | 2026-11-08 | El dominio `ordensoft.com.ar` no responde (error de transporte); el sitio oficial vigente es `https://ordensoft.com/`. |
+| **OrdenSoft** | Profesional | AR$ 35.000/mes (o AR$ 28.000/mes en pago anual de AR$ 336.000/año) | Múltiples usuarios (técnicos sin tope numérico explícito), órdenes ilimitadas, 10 fotos HD por orden; 7 días de prueba | Igual a Básico + POS integrado e inventario con stock (**anunciado**) | Asistente IA con 4× capacidad (**anunciado**) | Link de seguimiento por WhatsApp con un toque (**anunciado**) | Web responsive (**documentado** en FAQ) | Online, requiere internet (**documentado** en FAQ) | `https://ordensoft.com/` | 2026-11-08 | Suma permisos avanzados, POS, control de stock y soporte prioritario (**anunciado**). |
+| **OrdenSoft** | Empresarial | AR$ 49.000/mes (o AR$ 39.200/mes en pago anual de AR$ 470.400/año) | Múltiples usuarios y múltiples sucursales; "50 fotos HD por orden" y "Cantidad de fotos ilimitada" (contradicción en la misma tarjeta de precios) | Facturación electrónica ARCA (facturas y notas de crédito, **documentado** en FAQ) | Asistente IA con 10× capacidad (**anunciado**) | Link de seguimiento por WhatsApp con un toque (**anunciado**) | Web responsive (**documentado** en FAQ) | Online, requiere internet (**documentado** en FAQ) | `https://ordensoft.com/` | 2026-11-08 | Suma facturación ARCA, servicios recurrentes, multi-sucursal y capacitación personalizada (**anunciado**). |
+| **GestiónPro** | Taller | USD 22/mes — se debitan AR$ 34.500/mes (o USD 220/año = AR$ 345.500/año) | Órdenes y productos ilimitados, Multi-PC en red local; 15 días de prueba gratis (30 días con código de folleto) | Facturación ARCA, publicación sincronizada en Mercado Libre, importación CSV/Excel, cobro por Mercado Pago (**anunciado**) | Asistente con IA por texto o voz para diagnóstico técnico y consultas del negocio (**anunciado**) | "WhatsApp automático" en cada cambio de estado con PDF listo para adjuntar y pedido de reseña de Google al entregar (**anunciado**; en sección Taller también dice "WhatsApp al cliente con un clic") | App de escritorio Windows 10/11 (`TR_Gestion_Setup.exe`, ~210 MB, **documentado**) + web app móvil en `trgestion.com.ar/app` sin instalar (**anunciado**) | Funciona **offline** con datos en PC local y respaldo en la nube (**anunciado**) | `https://trgestion.com.ar/` | 2026-11-08 | `trgestion.com` pertenece a otra empresa (Time Report / Infotema S.A.). El sitio real de GestiónPro es `https://trgestion.com.ar/` (TecnoRed Service Reparaciones, Córdoba). Las 3 tarjetas de planes listan exactamente los mismos bullets en la web. |
+| **GestiónPro** | Taller + Stock | USD 35/mes — se debitan AR$ 55.000/mes (o USD 350/año = AR$ 549.500/año) | Órdenes y productos ilimitados, Multi-PC en red | ARCA, Mercado Libre, Excel/CSV, Mercado Pago (**anunciado**) | Asistente IA diagnóstico y negocio por texto/voz (**anunciado**) | WhatsApp en cambios de estado + solicitud de reseñas Google (**anunciado**) | Windows `.exe` (**documentado**) + web móvil `trgestion.com.ar/app` (**anunciado**) | Offline en PC local + respaldo nube (**anunciado**) | `https://trgestion.com.ar/` | 2026-11-08 | Orientado a "los que también venden", aunque la tabla comparativa repite el mismo listado de funciones que el plan Taller. |
+| **GestiónPro** | Max | USD 55/mes — se debitan AR$ 86.500/mes (o USD 550/año = AR$ 863.500/año) | Órdenes y productos ilimitados, Multi-PC (hasta 3 PCs en tarjeta) y multi-sucursal en servidor de GestiónPro | ARCA, Mercado Libre, Excel/CSV, Mercado Pago (**anunciado**) | Asistente IA diagnóstico y negocio por texto/voz (**anunciado**) | WhatsApp en cambios de estado + solicitud de reseñas Google (**anunciado**) | Windows `.exe` (**documentado**) + web móvil `trgestion.com.ar/app` (**anunciado**) | Datos en servidor cloud para sincronizar sucursales en tiempo real; consulta offline con última información (**anunciado**) | `https://trgestion.com.ar/` | 2026-11-08 | Permite operar varias sucursales sin dejar una PC encendida como servidor (**anunciado**). |
+| **STApp** | Free | AR$ 0/mes (USD 0/mes), permanente | Contradicción interna: la tarjeta dice "Hasta 30 reparaciones/mes", pero el FAQ de `/precios` dice "hasta 15 órdenes/mes, 1 técnico, hasta 30 clientes y 100 MB" | Impresión térmica 58/80 mm y A4, importación/exportación Excel/CSV (**documentado** en Manual). Emite remitos internos **no fiscales** (no factura en AFIP/ARCA, **documentado** en Manual) | Chatbot "Santi" para ayuda in-app y captura de leads en web (**documentado** en Manual) | Contradicción entre canales: en Manual (`Configuración > WhatsApp`) menciona vincular "WhatsApp Business API", pero en `Órdenes` y `FAQ` explica que es envío "con un solo clic" que descarga el PDF y abre el chat para adjuntarlo (**documentado**) | Web responsive + PWA instalable + APK Android nativo en `/descargar/android` (requiere "Orígenes desconocidos"); iOS en camino (**documentado**) | Online en navegador + "acceso básico sin conexión a internet" con sincronización posterior en la app móvil/PWA (**documentado** en Manual) | `https://stapp.com.ar/`, `https://stapp.com.ar/precios` y `https://stapp.com.ar/ayuda/manual` | 2026-11-08 | Incluye 30 días de prueba del plan Profesional sin tarjeta. Roles: `ADMIN`, `TECNICO` (con opción de tomar órdenes sin asignar) y `VENDEDOR`. Soporta 2FA (**documentado**). |
+| **STApp** | Profesional | AR$ 19.999/mes (USD 14/mes) o ~AR$ 12.500/mes con pago anual (-37 %) | Reparaciones, técnicos, vendedores y clientes ilimitados; hasta 3 sucursales; 30 días de prueba gratis | Mercado Pago (suscripción), Excel/CSV, impresora térmica 58/80 mm, kiosco de seguimiento para tablet en mostrador (**documentado**) | Chatbot "Santi" para captura y gestión de leads (`NUEVO`, `CONTACTADO`, `CALIFICADO`, `CONVERTIDO`, `DESCARTADO`) y ayuda in-app (**documentado**) | Plantillas WhatsApp configurables + envío a un clic / integración WhatsApp Business según sección del Manual (**documentado**) | Web + PWA + APK Android (**documentado**) | Online + acceso básico offline en PWA/app (**documentado**) | `https://stapp.com.ar/precios` y `https://stapp.com.ar/ayuda/manual` | 2026-11-08 | Incluye presupuestos con aprobación online y firma digital en pantalla, caja diaria con arqueo, snapshot de costo de mercadería y cuenta corriente (**documentado**). |
+| **Nixora CRM** | Demo | AR$ 0 (sin vencimiento) | Hasta 15 clientes, hasta 10 casos/mes | Ninguna externa en Demo (pago de planes superiores solo por transferencia bancaria subiendo comprobante, **documentado** en FAQ) | No incluida en Demo (exclusiva de Pro) | No incluido en bullets de Demo | Web responsive desde navegador en PC o celular ("Sin instalar nada", **documentado** en FAQ); sin app nativa | 100 % online en navegador (**documentado**); offline: **no documentado** | `https://www.nixoralab.com.ar/crm` | 2026-11-08 | Desarrollado por Nixora Lab (Córdoba). Incluye tablero operativo, presupuestos básicos, caja con cobros parciales y talones en PDF. |
+| **Nixora CRM** | Básico | AR$ 19.900/mes (o AR$ 199.000/año con 2 meses gratis) | Hasta 50 casos/mes, clientes ilimitados, 1 usuario | Exportación a Excel (**anunciado**). Sin facturación ARCA en Básico | No incluida en Básico | "Mensajes de WhatsApp listos para cada estado del caso" enviados "con un toque" junto a enlace privado de seguimiento (**documentado** en FAQ: es disparo manual con plantilla, no API desatendida) | Web navegador en PC o celular (**documentado**) | Online en navegador (**documentado**); offline **no documentado** | `https://www.nixoralab.com.ar/crm` | 2026-11-08 | Incluye PDF con logo propio, seguimiento online con fotos para el cliente, caja completa, POS, inventario, agenda y mantenimientos. |
+| **Nixora CRM** | Pro | AR$ 49.900/mes (o AR$ 499.000/año con 2 meses gratis) | Casos y clientes ilimitados, hasta 5 usuarios (técnicos internos y asignación) | Facturación electrónica ARCA (facturas A, B y C con CAE, notas de crédito y débito con CUIT propio, **documentado** en FAQ) + exportación Excel | "Asistente con IA para diagnósticos y mensajes" (**anunciado**) | Mensajes de WhatsApp listos por estado enviados con un toque + envío de factura por WhatsApp (**documentado** en FAQ) | Web navegador en PC o celular (**documentado**) | Online en navegador (**documentado**); offline **no documentado** | `https://www.nixoralab.com.ar/crm` | 2026-11-08 | Suma módulo "Plan Canje" (toma de equipos usados con IMEI, costos de reacondicionamiento y ganancia real) y etiquetas para equipos (**anunciado**). |
+| **Mecaris** | Plan Base (+ módulos opcionales) | Plan Base: AR$ 28.000/mes. Módulos extra: Inventario (+AR$ 8.000/mes), Finanzas (+AR$ 8.000/mes). Total con ambos: AR$ 44.000/mes. Plan Sitio web solo: AR$ 10.000/mes | Sin cobro por usuario ni por cantidad de órdenes; roles dueño, mostrador y mecánicos; 14 días de prueba sin tarjeta | Servicios de pago único aparte: Google Maps (AR$ 45.000), Página web (AR$ 180.000), Dominio `.com.ar` 1er año (AR$ 35.000) o Promo Arranque (AR$ 180.000 los 3), Desarrollo a medida (desde AR$ 80.000). Facturación electrónica listada como "Próximamente" (**documentado**) | **No documentado** | "Avisos al cliente" por WhatsApp listado explícitamente como **"Próximamente (no se vende todavía)"** (**documentado** en `/precios` y `/producto`) | Aplicación web SaaS accesible desde navegador (**documentado**); app móvil nativa: **no documentado** | SaaS web online (**documentado**); modo offline: **no documentado** | `https://mecaris.ar/precios`, `https://mecaris.ar/producto` y `https://mecaris.ar/funciones` | 2026-11-08 | Especializado en talleres mecánicos (búsqueda por patente). Transparencia alta en su web: aclara qué módulos existen hoy (Base, Inventario, Finanzas) y cuáles no están disponibles aún (Facturación, Avisos WhatsApp, Reportes). |
+| **TallerOS (`talleros.ar`)** | PRO Mensual / Anual | AR$ 45.000/mes (o PRO Anual AR$ 495.000/año = AR$ 41.250/mes) | Presupuestos y usuarios ilimitados, 1 sucursal; 21 días de prueba gratis sin tarjeta | QR de historial por vehículo, llavero con QR, Marketplace de talleres (**anunciado**) | Dictado por voz para mecánicos (**anunciado**). El asistente IA "Tall" no está incluido en este plan | "WhatsApp automático" vinculando el WhatsApp del taller mediante escaneo de QR para enviar avisos de auto listo, recordatorios de service, turnos y presupuestos (**documentado** en `/funciones/recordatorios-whatsapp`) | App Android publicada en Google Play (`ar.com.tusventas.talleros`) + vista web móvil ("Panel del mecánico", **documentado**) | 100 % en la nube (**anunciado**); modo offline: **no documentado** | `https://talleros.ar/`, `https://talleros.ar/precios` y `https://talleros.ar/funciones` | 2026-11-08 | Coincide con el antecedente de AR$ 45.000/mes del relevamiento previo. Registro DNDA RL-2026-74929617-APN-DNDA#MJ. Incluye actas con firma digital y liquidación de sueldos/comisiones de mecánicos (**anunciado**). |
+| **TallerOS (`talleros.ar`)** | PRO + Turnos | AR$ 55.000/mes | Presupuestos y usuarios ilimitados; 21 días de prueba | Igual a PRO Mensual + cartel QR de reserva de turnos online con cupos y recordatorios por email (**anunciado**) | Dictado por voz (**anunciado**); sin asistente "Tall" | WhatsApp automático por vinculación QR (**documentado**) | App Android en Google Play + web (**documentado**) | 100 % en la nube (**anunciado**) | `https://talleros.ar/precios` | 2026-11-08 | Enfocado en automatizar la recepción de turnos en mostrador/online mediante QR. |
+| **TallerOS (`talleros.ar`)** | PRO + Turnos + Facturador | AR$ 65.000/mes | Presupuestos y usuarios ilimitados; 21 días de prueba | Igual a PRO + Turnos + Facturador electrónico ARCA con CAE real y CUIT propio (**anunciado**) | Asistente IA **"Tall"** (consultas en lenguaje natural de solo lectura sobre caja, deudas, stock y lectura OCR de facturas de proveedores por foto/PDF) (**documentado** en `/funciones/asistente-ia`) | WhatsApp automático por vinculación QR (**documentado**) | App Android en Google Play + web (**documentado**) | 100 % en la nube (**anunciado**) | `https://talleros.ar/precios` y `https://talleros.ar/funciones/asistente-ia` | 2026-11-08 | Plan "Más elegido" según su web. Aclara que "Tall" corre en servidores propios y es estrictamente de **solo lectura** (no cobra, borra ni modifica datos). |
+| **TallerOS (`talleros.ar`)** | Multisucursal | AR$ 150.000/mes | Hasta 5 sucursales, usuarios y presupuestos ilimitados; 21 días de prueba | Todo PRO + Turnos + Facturador ARCA + panel consolidado entre sucursales (**anunciado**) | Asistente IA "Tall" + lectura de facturas de proveedores por foto (**documentado**) | WhatsApp automático por vinculación QR (**documentado**) | App Android en Google Play + web (**documentado**) | 100 % en la nube (**anunciado**) | `https://talleros.ar/precios` | 2026-11-08 | Permite usuarios que operan en más de una sucursal y comparativa consolidada. |
+| **TallerOS (`talleros.io`)** *(homónimo)* | Gratuito / Starter / Profesional | Gratis: AR$ 0 · Starter: AR$ 18.000/mes · Profesional: AR$ 35.000/mes (2 meses gratis en anual; 30 días de prueba en pagos) | Gratis: 1 usuario, 60 reparaciones, 30 clientes, 50 repuestos, 10 servicios (el tope cuenta registros creados aunque se borren). Starter: 5 usuarios, 2.000 clientes, 6.000 reparaciones. Profesional: 15 usuarios, ilimitado | Cobro por Mercado Pago (Argentina) y Polar como Merchant of Record en USD/UE (**documentado** en FAQ); importación CSV/Excel (desde Starter); bot de Telegram de solo lectura (en Profesional) | **No documentado** (solo bot de consulta por Telegram en plan Profesional, sin IA anunciada) | Disparo manual que abre WhatsApp del usuario con plantillas propias (hasta 5 en Starter, 30 en Profesional). El FAQ aclara: *"TallerOS no manda mensajes solo ni programa recordatorios automáticos"* (**documentado**) | 100 % navegador web ("sin instalar nada", **documentado** en FAQ); sin app móvil nativa | 100 % en la nube con respaldo automático (**documentado**); offline: **no documentado** | `https://talleros.io/` | 2026-11-08 | Producto homónimo distinto de `talleros.ar`, enfocado en talleres multi-rubro (electrónica, mecánica, celulares, línea blanca). |
 
-## Antecedentes no verificados
+---
 
-El contexto menciona precios observados anteriormente (Ordion AR$ 25.000–150.000,
-AppTec AR$ 0–85.000, OrdenSoft AR$ 24.000–49.000, GestiónPro AR$ 34.500–86.500,
-STApp ~AR$ 19.999, Nixora ~AR$ 19.900–49.900, Mecaris ~AR$ 28.000, TallerOS
-~AR$ 45.000). **No están confirmados y pueden haber cambiado.**
+## 2. Detalle y evidencia por competidor
 
-## Oportunidades de diferenciación
+### 2.1. Ordion (`https://app.ordion.com.ar/`)
 
-- Automatización de extremo a extremo del circuito comercial y operativo.
-- IA integrada con datos reales y acciones supervisadas.
-- Historial centralizado por cliente, equipo e instalación.
-- Configuración por rubro sin duplicar el núcleo.
-- Experiencia móvil simple para técnicos.
-- Precio accesible con costos variables controlados.
+- **Enfoque:** SaaS en la nube para empresas de servicios técnicos a domicilio e instalaciones (instaladores, electricistas, seguridad, redes y mantenimiento).
+- **Sitio oficial verificado:** `https://app.ordion.com.ar/` (el dominio raíz `https://ordion.com.ar/` dio error de conexión al 2026-11-08).
+- **Planes y precios vigentes (confirmados al 2026-11-08):**
+  - **Emprendedor:** AR$ 25.000/mes (3 técnicos, 1 administrador, 1 sucursal, 5 GB de archivos, 14 días de prueba).
+  - **Profesional:** AR$ 45.000/mes (10 técnicos, 3 administradores, 3 sucursales, 25 GB de archivos, 14 días de prueba).
+  - **Empresa:** AR$ 75.000/mes (30 técnicos, 10 administradores, 10 sucursales, 100 GB de archivos, 14 días de prueba).
+  - **Corporativo:** AR$ 150.000/mes (técnicos, administradores y sucursales sin límite, 500 GB de archivos, 30 días de prueba).
+- **Funciones verificadas en artefactos públicos de la aplicación (`assets/*.js`):**
+  - Órdenes de trabajo, calendario operativo, clientes, asignación de técnicos y sucursales (**anunciado** en landing y **documentado** en módulos JS).
+  - Gestión de flota de vehículos por patente y modelo (`assets/vehicles-8603oqgZ.js`, **documentado**).
+  - Editor y generador de presupuestos en ARS/USD con estados `borrador`, `enviado`, `aprobado`, `rechazado`, `vencido`, descuentos, impuestos y cargos adicionales (`assets/quote-document-CiN49a7u.js`, **documentado**).
+  - Suscripciones integradas con Mercado Pago, manejo de mora (`past_due`), período de cortesía (`grace_ends_at`) y auditoría (`assets/billing-labels-BQnd0Chc.js`, **documentado**).
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** **no documentado** como canal de notificaciones ni automatización; únicamente figura como dato de contacto en el encabezado del presupuesto.
+  - **IA:** **no documentado**.
+  - **App móvil:** PWA instalable (`display: "standalone"` en `manifest.webmanifest`, **documentado**). No documenta app nativa en Google Play ni App Store.
+  - **Online/Offline:** 100 % en la nube (**anunciado**); operación offline **no documentada**.
 
-## Próxima actualización
+### 2.2. AppTec (`https://apptec.com.ar/`)
 
-Un subagente de investigación debe completar la tabla con fuentes, fechas,
-capturas y precios verificados. No completar con datos inventados.
+- **Enfoque:** gestión de técnicos en campo / a domicilio, con fuerte especialización en ISPs (proveedores de internet) y servicio técnico domiciliario.
+- **Sitio oficial y documentación:** `https://apptec.com.ar/` y manual completo en `https://apptec.com.ar/guia.html` (titular publicado: Marcos Manuel Ordoñez, CUIT 20-26896714-2, Córdoba).
+- **Planes y precios vigentes (IVA incluido, cobro vía Mercado Pago):**
+  - **Gratis:** AR$ 0/mes (1 admin, 1 técnico, 20 órdenes/mes, stock básico hasta 10 productos; ofrece 7 días de prueba del plan Enterprise por correo al registrarse).
+  - **Starter:** AR$ 49.000/mes (2 admins, 3 técnicos, órdenes ilimitadas, stock con N° de serie, notificaciones push, integración ISPCube y MikroWisp).
+  - **Pro:** AR$ 65.000/mes (2 admins, 20 técnicos, portal de clientes con marca propia, hasta 4 fotos por orden, notas de voz, firma digital del cliente, alertas de stock mínimo, historial de movimientos, categorías de órdenes, escáner de código de barras).
+  - **Enterprise:** AR$ 85.000/mes (4 admins, 50+ técnicos, hoja de ruta optimizada con mapa interactivo, seguimiento GPS en vivo del técnico para el cliente, reportes avanzados exportables a PDF).
+- **Funciones destacadas (**documentadas** en `guia.html`):**
+  - Reserva de materiales por número de serie al asignarlos a una orden abierta y flujo de devolución de materiales no utilizados en campo sin descontar stock.
+  - Control granular de visibilidad del costo de la orden (toggles separados `"Visible al técnico"` y `"Visible al cliente"`).
+  - Dos mecanismos de seguimiento para el cliente: enlace temporal válido por 48 horas (sin login, incluye mapa GPS en vivo en Enterprise) y Portal de Clientes persistente con usuario y contraseña (planes Pro y Enterprise).
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** **documentado** como envío manual del link de seguimiento (48 h) o del link al portal de clientes; las alertas al técnico son notificaciones push nativas. No tiene bot ni envío automático por WhatsApp.
+  - **IA:** **no documentado**.
+  - **App móvil:** requiere que los técnicos instalen un archivo APK Android descargado directamente desde `https://www.apptec.com.ar/download/apptec.apk` habilitando "fuentes desconocidas" (**documentado**). No tiene app para iOS y el técnico no puede operar desde la web.
+  - **Online/Offline:** 100 % en la nube y en tiempo real (**documentado**); modo offline **no documentado**.
+
+### 2.3. OrdenSoft (`https://ordensoft.com/`)
+
+- **Enfoque:** software en la nube para talleres de reparación (celulares, informática, electrónica).
+- **Sitio oficial verificado:** `https://ordensoft.com/` (el dominio `https://ordensoft.com.ar/` arroja error de conexión al 2026-11-08).
+- **Planes y precios vigentes (con 7 días de prueba gratis sin tarjeta y 20 % de descuento anual):**
+  - **Básico:** AR$ 24.000/mes o AR$ 19.200/mes anual (AR$ 230.400/año). 1 solo usuario (sin multi-usuario), órdenes ilimitadas, clientes, seguimiento web, presupuestos y cobros, Asistente IA (1×), impresión A4 y térmica 58/80 mm, hasta 3 fotos por orden.
+  - **Profesional:** AR$ 35.000/mes o AR$ 28.000/mes anual (AR$ 336.000/año). Múltiples usuarios (técnicos) con permisos avanzados, 4× capacidad de Asistente IA, punto de venta (POS), inventario con control de stock y conversión automática USD/ARS, 10 fotos HD por orden.
+  - **Empresarial:** AR$ 49.000/mes o AR$ 39.200/mes anual (AR$ 470.400/año). Múltiples sucursales, facturación electrónica ARCA, servicios recurrentes, 10× capacidad de Asistente IA, capacitación personalizada. *(Observación: la tarjeta del plan Empresarial lista simultáneamente "50 fotos HD por orden" y "Cantidad de fotos ilimitada").*
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** link de seguimiento compartido con el cliente "con un solo toque" (**anunciado**). No documenta integración con WhatsApp Business API oficial.
+  - **IA:** Asistente IA para consultar métricas financieras y operativas del taller en lenguaje natural, escalado por cuota (1×, 4×, 10× según plan, **anunciado**).
+  - **App móvil:** interfaz web 100 % responsive desde navegador móvil (**documentado** en FAQ); sin app nativa.
+  - **Online/Offline:** exclusivamente online ("Solo necesitás internet", **documentado** en FAQ).
+
+### 2.4. GestiónPro (`https://trgestion.com.ar/`)
+
+- **Enfoque:** software híbrido (escritorio Windows + web móvil complementaria) para talleres de reparación de electrónica, electrodomésticos, TV, microondas y línea blanca.
+- **Sitio oficial verificado:** `https://trgestion.com.ar/` (TecnoRed Service Reparaciones, Córdoba). *Aclaración importante:* la URL `https://trgestion.com/` que figuraba como referencia previa pertenece a otro sistema ajeno al rubro ("Time Report" de Infotema S.A.).
+- **Planes y precios vigentes (fijados en USD y debitados en ARS vía Mercado Pago; 15 días de prueba gratis o 30 días con código de folleto):**
+  - **Taller:** USD 22/mes (se debitan **AR$ 34.500/mes**) o USD 220/año (AR$ 345.500/año, "pagás 10 meses, usás 12").
+  - **Taller + Stock:** USD 35/mes (se debitan **AR$ 55.000/mes**) o USD 350/año (AR$ 549.500/año).
+  - **Max:** USD 55/mes (se debitan **AR$ 86.500/mes**) o USD 550/año (AR$ 863.500/año). Sincronización multi-sucursal en servidor cloud mantenido por GestiónPro.
+  - *Observación sobre los planes:* en la página oficial actual, las tres tarjetas (`Taller`, `Taller + Stock` y `Max`) muestran exactamente los mismos ítems incluidos (órdenes y productos ilimitados, clientes, PDF, stock, caja diaria, factura electrónica ARCA, publicación en Mercado Libre, asistente IA, Multi-PC y app móvil).
+- **Funciones diferenciales (**anunciadas**):**
+  - Publicación directa de repuestos y equipos en **Mercado Libre** con sincronización de stock desde el programa.
+  - Trazabilidad de desguace de equipos sin reparación para reutilizar o vender sus repuestos.
+  - Solicitud automática de reseña en Google Maps al entregar el equipo reparado.
+  - Herramientas técnicas integradas (ley de Ohm, código de colores de resistencias, tabla de presión/temperatura de refrigerantes).
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** anuncia "WhatsApp automático" en cada cambio de estado con el comprobante PDF listo para adjuntar y botón de "WhatsApp al cliente con un clic" (**anunciado**).
+  - **IA:** asistente con IA por texto o por voz para diagnóstico técnico de fallas y consultas de negocio (**anunciado**).
+  - **App móvil:** programa principal instalable en Windows 10/11 (`/static/descargas/TR_Gestion_Setup.exe`, ~210 MB, **documentado**) complementado por una web app móvil en `trgestion.com.ar/app` para ver órdenes, visitas del día, stock, usar el asistente IA y subir fotos con la cámara (**anunciado**).
+  - **Online/Offline:** funciona **offline** en la PC local del taller con respaldo en la nube; en el plan Max opera contra un servidor cloud para vincular sucursales manteniendo consulta local ante cortes (**anunciado**).
+
+### 2.5. STApp (`https://stapp.com.ar/`)
+
+- **Enfoque:** software en la nube para talleres de reparación de celulares, computadoras, tablets, consolas y electrónica.
+- **Sitio oficial y documentación:** `https://stapp.com.ar/`, `https://stapp.com.ar/precios`, `https://stapp.com.ar/ayuda/manual` y `https://stapp.com.ar/descargar/android`.
+- **Planes y precios vigentes (30 días de prueba gratis del plan Profesional sin tarjeta):**
+  - **Free:** AR$ 0/mes (USD 0/mes) permanente. *Inconsistencia detectada en el sitio oficial:* la tarjeta superior de `/precios` indica "Hasta 30 reparaciones por mes" e incluye avisos por WhatsApp, pero el FAQ de la misma página `/precios` indica "hasta 15 órdenes por mes, 1 técnico, hasta 30 clientes, inventario básico y 100 MB de almacenamiento".
+  - **Profesional:** AR$ 19.999/mes (USD 14/mes). Con descuento anual del 37 % queda en **AR$ 12.500/mes** (valor promocionado en el hero de la portada como "Desde $12.500/mes"). Incluye reparaciones, técnicos, vendedores y clientes ilimitados, hasta 3 sucursales, presupuestos con aprobación online y firma digital en pantalla, caja diaria con arqueo, POS con garantías, kiosco de seguimiento para mostrador y más de 15 reportes.
+- **Limitación fiscal importante (**documentada** en Manual > Comprobantes):**
+  - Aunque el pie de página menciona la palabra "facturación", el Manual de Uso aclara textualmente: *"Importante: STApp emite documentos no fiscales... No reemplaza la factura electrónica de AFIP — para eso seguís usando tu sistema fiscal."*
+- **WhatsApp, IA, App móvil y Offline (**documentados** en Manual de Uso):**
+  - **WhatsApp:** presenta una contradicción documental importante. En `Configuración > Integración WhatsApp` menciona vincular "WhatsApp Business API para enviar notificaciones automáticas", pero en las secciones operativas (`Órdenes de servicio`, `Comprobantes` y `FAQ` de portada) detalla que el envío es **"con un solo clic"** y que en computadora *"se descarga el PDF y se abre el chat del cliente para que lo adjuntes"*.
+  - **IA:** incluye el chatbot con IA **"Santi"**, orientado a dos funciones: responder dudas de uso dentro de la plataforma y actuar como chatbot en el sitio web del taller para capturar leads y clasificarlos (`NUEVO`, `CONTACTADO`, `CALIFICADO`, `CONVERTIDO`, `DESCARTADO`). No es un agente operativo sobre órdenes ni diagnóstico técnico.
+  - **App móvil:** ofrece 3 modalidades (**documentadas**): navegador web responsive, PWA instalable y APK Android descargable desde `stapp.com.ar/descargar/android` (fuera de Play Store, requiere habilitar "Orígenes desconocidos"). Versión iOS anunciada "en camino".
+  - **Online/Offline:** aplicación web online; el Manual documenta que la PWA / app móvil permite *"acceso básico sin conexión a internet"* con sincronización al recuperar la conexión.
+
+### 2.6. Nixora CRM (`https://www.nixoralab.com.ar/crm`)
+
+- **Enfoque:** sistema web para servicios técnicos y talleres de reparación de celulares, PC, notebooks, electrónica y electrodomésticos. Desarrollado por Nixora Lab (Córdoba).
+- **Sitio oficial verificado:** `https://www.nixoralab.com.ar/crm` (aplicación en `https://crm.nixoralab.com.ar/`).
+- **Planes y precios vigentes (precios finales en ARS; pago exclusivamente por transferencia bancaria subiendo comprobante, sin débito automático):**
+  - **Demo:** AR$ 0, sin vencimiento (hasta 15 clientes, hasta 10 casos/mes, tablero operativo, presupuestos básicos, caja con cobros parciales y talones PDF).
+  - **Básico:** AR$ 19.900/mes o AR$ 199.000/año (2 meses gratis). Hasta 50 casos/mes, clientes ilimitados, 1 usuario, presupuestos/remitos PDF con logo, seguimiento online con fotos para el cliente, mensajes de WhatsApp por estado, caja completa, POS, inventario, agenda, mantenimientos y exportación a Excel.
+  - **Pro:** AR$ 49.900/mes o AR$ 499.000/año (2 meses gratis). Casos y clientes ilimitados, hasta 5 usuarios (técnicos internos y asignación de casos), **facturación electrónica ARCA** (facturas A, B y C con CAE y notas de crédito/débito), módulo **Plan Canje** (recepción de equipos usados con IMEI, costos de reparación y cálculo de ganancia real), etiquetas para equipos y asistente con IA.
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** plantillas de mensajes listas para cada estado del caso que se envían **"con un toque"** abriendo WhatsApp con el enlace privado de seguimiento (**documentado** en FAQ). No es envío desatendido por API.
+  - **IA:** "Asistente con IA para diagnósticos y mensajes" incluido únicamente en el plan Pro (**anunciado**).
+  - **App móvil:** 100 % web desde el navegador en computadora o celular, sin instalar nada (**documentado** en FAQ).
+  - **Online/Offline:** online en navegador (**documentado**); operación offline **no documentada**.
+
+### 2.7. Mecaris (`https://mecaris.ar/`)
+
+- **Enfoque:** SaaS web para talleres mecánicos chicos y medianos en Argentina (gestión por patente, órdenes, presupuestos y roles).
+- **Sitio oficial verificado:** `https://mecaris.ar/` (`https://mecaris.ar/precios`, `https://mecaris.ar/producto`, `https://mecaris.ar/funciones`; última actualización publicada en su web: `2026-09-04`).
+- **Planes, módulos y precios vigentes (14 días de prueba gratis sin tarjeta):**
+  - **Plan Base:** AR$ 28.000/mes. Sin límite de usuarios ni de órdenes. Incluye clientes, vehículos por patente e historial, órdenes de trabajo, presupuestos (pendiente, aprobado, rechazado) y roles (dueño, mostrador y mecánicos). Incluye gratis el hosting de la página web del taller si se contrata el armado web.
+  - **Módulo Inventario (opcional):** +AR$ 8.000/mes sobre el plan base (AR$ 36.000/mes total). Altas, stock de repuestos, consumo vinculado a la orden y alertas de faltantes.
+  - **Módulo Finanzas (opcional):** +AR$ 8.000/mes sobre el plan base (AR$ 44.000/mes con Inventario + Finanzas). Ingresos, egresos, margen básico por orden y resumen mensual. Aclara expresamente: *"No es facturación electrónica"*.
+  - **Plan Sitio (solo web, sin sistema):** AR$ 10.000/mes.
+  - **Servicios de pago único (capa agencia):** perfil de Google Maps (AR$ 45.000), página web del taller (AR$ 180.000), dominio `.com.ar` primer año (AR$ 35.000), **Promo Arranque** (Maps + web + dominio por AR$ 180.000 en los primeros 30 días), y desarrollos a medida (desde AR$ 80.000).
+- **Módulos listados como "Próximamente" (no disponibles hoy, **documentado** en `/precios`):**
+  - Facturación electrónica, Avisos al cliente por WhatsApp y Reportes del taller.
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** **no disponible actualmente** en el producto (transparentado como "Próximamente" en la página de precios).
+  - **IA:** **no documentado**.
+  - **App móvil:** aplicación web accesible desde navegador (**documentado**); sin app móvil nativa.
+  - **Online/Offline:** SaaS web online (**documentado**); modo offline **no documentado**.
+
+### 2.8. TallerOS (`https://talleros.ar/` y homónimo `https://talleros.io/`)
+
+Durante la verificación se detectaron **dos plataformas SaaS argentinas distintas** que operan bajo el nombre **TallerOS**:
+
+#### A) TallerOS — `https://talleros.ar/` (también `tallerosapp.com`, Registro DNDA RL-2026-74929617-APN-DNDA#MJ)
+
+Es el competidor que coincide con el antecedente del relevamiento previo ("desde AR$ 45.000/mes"), enfocado en talleres mecánicos, lubricentros, gomerías y talleres de motos.
+
+- **Planes y precios vigentes (21 días de prueba gratis sin tarjeta en todos los planes):**
+  - **PRO Mensual:** AR$ 45.000/mes (presupuestos y usuarios ilimitados, stock, mantenimientos, reportes avanzados, aparición en Marketplace de talleres).
+  - **PRO Anual:** AR$ 495.000/año (equivale a AR$ 41.250/mes, 1 mes gratis, pago por transferencia vía WhatsApp).
+  - **PRO + Turnos:** AR$ 55.000/mes (suma cartel QR para reserva de turnos online con cupos, estados y recordatorios por email).
+  - **PRO + Turnos + Facturador:** AR$ 65.000/mes (suma Facturador electrónico ARCA con CAE real y el asistente con IA **Tall** + carga de facturas de proveedores con foto).
+  - **Multisucursal:** AR$ 150.000/mes (hasta 5 sucursales, panel consolidado, comparativa entre locales y todas las funciones de PRO + Turnos + Facturador + IA).
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** envío automático vinculando el WhatsApp del taller mediante **escaneo de código QR** desde el celular del taller (**documentado** en `/funciones/recordatorios-whatsapp`). Envía avisos de auto listo, recordatorios de service, confirmación de turnos, presupuestos aprobables con un toque y saldos de cuenta corriente dentro de una franja horaria configurable. *(Riesgo técnico: la vinculación por escaneo de QR corresponde a sesiones tipo WhatsApp Web / API no oficial, expuestas a desconexiones o bloqueos de Meta, a diferencia de WhatsApp Business Platform oficial).*
+  - **IA:** asistente **"Tall"** (disponible desde el plan de AR$ 65.000/mes) para consultas en lenguaje natural sobre facturación, caja, deudas, stock y precios, más extracción OCR de renglones y costos desde fotos/PDF de facturas de proveedores (**documentado** en `/funciones/asistente-ia`). Aclara expresamente que es **solo consulta** (nunca cobra, borra ni modifica datos) y dictado por voz para mecánicos (**anunciado**).
+  - **App móvil:** app Android nativa publicada en Google Play (`https://play.google.com/store/apps/details?id=ar.com.tusventas.talleros`) + vista web móvil simplificada ("Panel del mecánico", **documentado**).
+  - **Online/Offline:** 100 % en la nube (**anunciado**); modo offline **no documentado**.
+
+#### B) TallerOS — `https://talleros.io/` (producto homónimo en beta)
+
+Plataforma SaaS multi-rubro (electrónica, mecánica, celulares, informática/SAT, línea blanca) comercializada en Argentina (Mercado Pago) e internacionalmente (vía Polar como Merchant of Record).
+
+- **Planes y precios vigentes (30 días de prueba en planes pagos; 2 meses gratis en pago anual):**
+  - **Gratuito:** AR$ 0 (1 usuario, hasta 60 reparaciones, 30 clientes, 50 repuestos y 10 servicios; el tope contabiliza registros creados aunque luego se eliminen; presupuestos PDF con o sin orden de trabajo y link de seguimiento).
+  - **Starter:** AR$ 18.000/mes (hasta 5 usuarios, 2.000 clientes y 6.000 reparaciones, logo propio, agenda de turnos, portal de historial del cliente, hasta 5 plantillas de WhatsApp, alertas de stock e importación CSV/Excel).
+  - **Profesional:** AR$ 35.000/mes (hasta 15 usuarios, clientes/reparaciones/repuestos ilimitados, hasta 30 plantillas de WhatsApp, soporte en <4 h hábiles y **bot de Telegram de solo lectura** para consultar el taller desde el celular).
+- **WhatsApp, IA, App móvil y Offline:**
+  - **WhatsApp:** envío manual asistido; su FAQ aclara textualmente: *"Los avisos de 'listo para retirar' y de turno se abren en tu WhatsApp: TallerOS no manda mensajes solo ni programa recordatorios automáticos"* (**documentado**).
+  - **IA:** **no documentado** (ofrece un bot de Telegram de solo lectura en el plan Profesional).
+  - **App móvil:** 100 % navegador web, sin app nativa (**documentado**).
+  - **Online/Offline:** 100 % en la nube (**documentado**); modo offline **no documentado**.
+
+---
+
+## 3. Tabla comparativa sintética (2026-11-08)
+
+| Competidor | Segmento principal | Precio entrada pago (ARS/mes) | Plan techo (ARS/mes) | Plan Gratis / Prueba | Límite de técnicos / usuarios | WhatsApp real | Capacidad IA | App para técnicos | Offline |
+|---|---|---|---|---|---|---|---:|---|---|
+| **Ordion** | Servicios técnicos a domicilio / instalaciones | $25.000 | $150.000 | Sin plan free · 14 a 30 días de prueba | 3 técn. + 1 admin (Emprendedor) hasta ilimitado (Corporativo) | **No documentado** (solo dato en presupuesto) | **No documentado** | PWA `standalone` (**documentado**) | **No documentado** |
+| **AppTec** | Técnicos a domicilio e ISPs | $49.000 | $85.000 | Plan Gratis ($0, 20 órd./mes, 1 técn.) + 7 días prueba Enterprise | 1 técn. (Gratis), 3 (Starter), 20 (Pro), 50+ (Enterprise) | Manual: comparte link de seguimiento (48 h) o link al portal (**documentado**) | **No documentado** | APK Android fuera de Play Store (obligatorio para técnicos, **documentado**) | **No documentado** |
+| **OrdenSoft** | Talleres de reparación | $24.000 ($19.200 anual) | $49.000 ($39.200 anual) | Sin plan free · 7 días de prueba | 1 usuario en Básico; multi-usuario desde Profesional ($35.000) | Manual ("con un solo toque" abre link de seguimiento, **anunciado**) | Asistente IA de consulta de datos del taller (1×, 4×, 10×, **anunciado**) | Web 100 % responsive (**documentado**) | No ("Solo necesitás internet", **documentado**) |
+| **GestiónPro** | Talleres de electrónica / línea blanca | $34.500 (USD 22) | $86.500 (USD 55) | Sin plan free · 15 días de prueba (30 con código) | Multi-PC en red (hasta 3 PCs en Max); sin tope de órdenes | Anuncia WhatsApp automático en cambios de estado + reseña Google (**anunciado**) | Asistente IA voz/texto para diagnóstico y negocio (**anunciado**) | Windows `.exe` + web móvil en `trgestion.com.ar/app` (**anunciado**) | Sí, en PC local Windows (**anunciado**) |
+| **STApp** | Talleres de celulares / electrónica | $19.999 ($12.500 anual) | $19.999 (hasta 3 sucursales) | Plan Free permanente (15–30 órd./mes, 1 técn.) + 30 días prueba Pro | 1 técn. en Free; ilimitados en Profesional | Contradicción en manual: menciona API pero describe envío "con un clic" adjuntando PDF (**documentado**) | Chatbot "Santi" para ayuda in-app y captura de leads web (**documentado**) | Web + PWA + APK Android fuera de Play Store (**documentado**) | Acceso básico offline en PWA/app (**documentado**) |
+| **Nixora CRM** | Talleres de celulares / PC / electrónica | $19.900 | $49.900 | Plan Demo sin vencimiento (15 clientes, 10 casos/mes) | 1 usuario en Básico (50 casos/mes); hasta 5 usuarios en Pro | Manual ("con un toque" abre mensaje y link por estado, **documentado**) | Asistente IA para diagnósticos y mensajes solo en Pro ($49.900, **anunciado**) | Web navegador en PC o celular (**documentado**) | **No documentado** |
+| **Mecaris** | Talleres mecánicos | $28.000 (+$8.000 c/módulo) | $44.000 (Base + Inventario + Finanzas) | Sin plan free · 14 días de prueba | Usuarios y órdenes sin límite en Plan Base | Listado como "Próximamente" (no disponible hoy, **documentado**) | **No documentado** | Web navegador (**documentado**) | **No documentado** |
+| **TallerOS (`talleros.ar`)** | Talleres mecánicos / lubricentros | $45.000 ($41.250 anual) | $150.000 (Multisucursal, 5 locales) | Sin plan free · 21 días de prueba | Usuarios y presupuestos ilimitados desde PRO Mensual | Automático vinculando WhatsApp del taller por escaneo de QR (**documentado**) | Asistente "Tall" (solo lectura + OCR facturas compra) desde plan de $65.000 (**documentado**) | App Android en Google Play + Panel web del mecánico (**documentado**) | **No documentado** |
+| **TallerOS (`talleros.io`)** | Talleres multi-rubro | $18.000 | $35.000 | Plan Gratuito permanente (1 usuario, 60 rep. históricas) + 30 días prueba | 1 (Gratis), 5 (Starter), 15 (Profesional) | Manual con plantillas (5 a 30); aclara que **no** envía mensajes solo (**documentado**) | Sin IA (tiene bot de Telegram de solo lectura en Profesional, **documentado**) | Web navegador (**documentado**) | **No documentado** |
+
+---
+
+## 4. Hallazgos clave y oportunidades de diferenciación accionables para SaaS Gestión
+
+### 4.1. Brecha crítica en el segmento de servicios técnicos a domicilio (Field Service)
+
+1. **Poca oferta especializada en campo frente a la saturación en talleres de mostrador:**
+   - De los 8 competidores relevados, **6 están diseñados alrededor del equipo que ingresa a un mostrador** (OrdenSoft, GestiónPro, STApp, Nixora CRM, Mecaris y TallerOS). Solo **Ordion** y **AppTec** atacan de forma nativa el flujo de servicios técnicos a domicilio (visitas, cuadrillas, agenda en calle).
+   - **Oportunidad accionable:** posicionar el flujo principal de **SaaS Gestión** en torno a la **coordinación de visitas a domicilio, historial por domicilio/instalación y aprobación pública del presupuesto antes o durante la visita**, manteniendo el modelo de datos extensible a taller sin diluir la UX de campo.
+
+2. **Fricción en la experiencia móvil del técnico de campo (APK desconocido vs. PWA instantánea):**
+   - **AppTec** obliga a los técnicos a descargar un APK fuera de Google Play (`apptec.apk`) habilitando "orígenes desconocidos" en Android, y bloquea el uso web para técnicos (dejando afuera iPhones o teléfonos corporativos restringidos). **STApp** también distribuye su APK fuera de Play Store.
+   - **Ordion** tiene un manifest PWA básico, pero no documenta flujo específico de cierre de visita en campo con fotos, firma/conformidad y cobro en el domicilio.
+   - **Oportunidad accionable (Hito 3 inmediato):** construir en **SaaS Gestión** una **PWA para técnicos sin fricción de instalación**, que funcione en Android e iOS desde el primer segundo, enfocada exclusivamente en: agenda del día del técnico, dirección con apertura rápida en mapas, carga de fotos de la instalación/reparación, checklist/observaciones técnicas y cierre de la visita con registro de cobro o saldo pendiente.
+
+3. **Escalón de precio abrupto para PyMEs de 2 a 5 técnicos a domicilio:**
+   - En **AppTec**, pasar de 1 técnico (Gratis, 20 órdenes) a 2–3 técnicos exige saltar directamente a **AR$ 49.000/mes** (Starter), y si el negocio necesita subir fotos en las órdenes debe pagar **AR$ 65.000/mes** (Pro).
+   - En **Ordion**, el plan inicial de AR$ 25.000/mes incluye hasta 3 técnicos y 1 admin, pero no incluye automatización de comunicación con clientes ni aprobación pública de presupuestos con seguimiento comercial automatizado.
+   - **Oportunidad accionable:** ofrecer en **SaaS Gestión** un escalón de entrada competitivo (rango AR$ 22.000–32.000/mes validado en entrevistas) para equipos pequeños de 1 a 5 técnicos donde **las fotos en la orden, el enlace público de aprobación de presupuesto (`/q/[token]`) y la agenda sin solapamientos estén disponibles desde el primer plan pago**, sin obligar a pagar AR$ 65.000/mes para adjuntar una foto del trabajo.
+
+4. **WhatsApp: entre el "botón manual", la contradicción documental y el riesgo de bloqueo por QR:**
+   - **Nixora CRM**, **OrdenSoft**, **AppTec** y **TallerOS (`talleros.io`)** solo abren `wa.me` con un texto prearmado (requiere intervención humana en cada aviso).
+   - **STApp** se contradice entre su landing ("avisos automáticos") y su manual operativo ("con un solo clic... se descarga el PDF y se abre el chat para que lo adjuntes").
+   - **TallerOS (`talleros.ar`)** automatiza el envío vinculando el celular del taller por **escaneo de QR** (sesión no oficial), lo que expone al comercio al bloqueo del número por parte de Meta.
+   - **Mecaris** directamente lista los avisos por WhatsApp como "Próximamente".
+   - **Oportunidad accionable:** estructurar la comunicación de **SaaS Gestión** en dos capas transparentes y seguras:
+     1. **Capa inmediata sin costo variable (MVP):** plantillas inteligentes con enlace público de presupuesto/orden (`/q/[token]`) y registro en auditoría de cuándo se envió y cuándo el cliente abrió/aprobó el presupuesto, más recordatorios internos de presupuestos vencidos o sin respuesta.
+     2. **Capa automatizada oficial (Hito 4):** integración mediante **WhatsApp Business Platform (API oficial)** con plantillas transaccionales aprobadas (confirmación de visita, técnico en camino, presupuesto listo para aprobar, recordatorio de mantenimiento preventivo) y cuotas controladas por plan para proteger el margen bruto.
+
+5. **IA orientada a ejecutar procesos supervisados, no solo un "chat de consultas":**
+   - Los competidores que hoy anuncian IA la limitan a: un chatbot de soporte/leads web (**STApp "Santi"**), consultas de solo lectura sobre cuánto se facturó (**OrdenSoft**, **TallerOS "Tall"**) o redacción/diagnóstico básico en planes caros (**Nixora Pro** a AR$ 49.900/mes, **TallerOS** a AR$ 65.000/mes).
+   - **Oportunidad accionable:** diseñar el módulo de IA de **SaaS Gestión** conectado a herramientas internas con confirmación humana (*human-in-the-loop*) para resolver dolores operativos concretos de servicios a domicilio:
+     - Transformar un audio o mensaje desordenado del cliente en una **solicitud de servicio tipificada** con dirección, equipo y falla sugerida.
+     - Generar un **borrador de presupuesto con ítems históricos** a partir de las notas del técnico en la visita.
+     - Detectar **presupuestos enviados sin respuesta próximos a vencer** y proponer el mensaje de seguimiento comercial listo para enviar.
+
+6. **Transparencia comercial y migración sin fricción desde Excel/cuaderno:**
+   - Varios competidores presentan contradicciones visibles en sus páginas de precios (STApp entre 15 y 30 órdenes en Free; OrdenSoft entre 50 fotos e ilimitadas en Empresarial; GestiónPro con tres planes de distinto precio y los mismos bullets). En contraste, competidores como **Mecaris** e **hitos de importación CSV** en STApp/GestiónPro muestran que el cliente valora reglas claras y migración asistida.
+   - **Oportunidad accionable:** incluir en **SaaS Gestión** un **importador guiado de clientes e historial desde CSV/Excel con vista previa** y mantener una página de precios 100 % consistente donde los topes de técnicos, órdenes, almacenamiento y cuotas de IA/WhatsApp sean explícitos y auditables.
+
+---
+
+## 5. Riesgos competitivos y de mercado identificados
+
+1. **Guerra de precios en el segmento de talleres pequeños:** STApp (AR$ 19.999/mes o AR$ 12.500/mes anual), TallerOS `.io` (AR$ 18.000/mes) y Nixora Básico (AR$ 19.900/mes) presionan a la baja el precio de entrada para talleres unipersonales de electrónica/celulares. **Mitigación:** no competir por precio en talleres unipersonales de mostrador; enfocar la propuesta de valor en empresas de servicios técnicos a domicilio con 2 a 20 técnicos, donde el costo de una sola visita fallida o un presupuesto olvidado supera el abono mensual del software.
+2. **Expectativa de facturación electrónica ARCA en planes medios/altos:** OrdenSoft ($49.000), Nixora Pro ($49.900), TallerOS `.ar` ($65.000) y GestiónPro ($34.500) ya ofrecen o anuncian facturación ARCA integrada. **Mitigación:** mantener fuera del MVP la contabilidad completa (según restricciones de alcance), pero validar en las 10 entrevistas cuán determinante es la emisión de factura C/B vía webservice de ARCA frente al flujo operativo de órdenes, presupuestos y cobros.
+3. **Confusión marcaria en el mercado ("TallerOS"):** la coexistencia de `talleros.ar` y `talleros.io` en Argentina demuestra el riesgo real de lanzar sin búsqueda marcaria y de dominios completa, reforzando la directriz de `docs/BRAND_STRATEGY.md`.

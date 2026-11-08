@@ -379,6 +379,46 @@ export type DashboardSummary = {
   appointments_today: number;
 };
 
+/**
+ * Vista de orden para técnicos: sin datos financieros (commercial_status,
+ * payment_status) y con datos mínimos del cliente.
+ */
+export type TechnicianWorkOrder = Omit<WorkOrder, "commercial_status" | "payment_status"> & {
+  customer_name: string | null;
+  customer_phone: string | null;
+};
+
+export type TechnicianWorkOrderListResponse = {
+  items: TechnicianWorkOrder[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+/** Cantidades llegan como string (Decimal serializado). */
+export type WorkOrderMaterial = {
+  id: string;
+  work_order_id: string;
+  description: string;
+  quantity: string;
+  unit: string;
+  created_at: string;
+};
+
+export type WorkOrderMaterialInput = {
+  description: string;
+  quantity: string;
+  unit: string;
+};
+
+export type WorkOrderAttachment = {
+  id: string;
+  filename: string;
+  mime_type: string;
+  size_bytes: number;
+  created_at: string;
+};
+
 function tenantHeaders(tenantId: string): HeadersInit {
   return { "X-Tenant-ID": tenantId };
 }
@@ -415,6 +455,24 @@ async function publicRequest<T>(path: string, options: RequestInit = {}): Promis
     throw new ApiError(response.status, errorDetail(body));
   }
   return body as T;
+}
+
+/**
+ * Envío multipart. No se fija Content-Type: el navegador agrega el boundary.
+ */
+async function requestForm<T>(path: string, body: FormData, headers: HeadersInit): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: authHeaders(headers),
+    body,
+    credentials: "include",
+  });
+
+  const json: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new ApiError(response.status, errorDetail(json));
+  }
+  return json as T;
 }
 
 async function requestBlob(path: string, headers: HeadersInit, fallback: string): Promise<Blob> {
@@ -617,19 +675,15 @@ export const api = {
       request<Technician[]>("/api/v1/technicians", { headers: tenantHeaders(tenantId) }),
   },
   appointments: {
-    list: (
-      tenantId: string,
-      params?: { start?: string; end?: string; technicianId?: string },
-    ) => {
+    list: (tenantId: string, params?: { start?: string; end?: string; technicianId?: string }) => {
       const search = new URLSearchParams();
       if (params?.start) search.set("start", params.start);
       if (params?.end) search.set("end", params.end);
       if (params?.technicianId) search.set("technician_id", params.technicianId);
       const query = search.toString();
-      return request<AppointmentListResponse>(
-        `/api/v1/appointments${query ? `?${query}` : ""}`,
-        { headers: tenantHeaders(tenantId) },
-      );
+      return request<AppointmentListResponse>(`/api/v1/appointments${query ? `?${query}` : ""}`, {
+        headers: tenantHeaders(tenantId),
+      });
     },
     create: (tenantId: string, input: AppointmentInput) =>
       request<Appointment>("/api/v1/appointments", {
@@ -671,6 +725,62 @@ export const api = {
       request<DashboardSummary>("/api/v1/dashboard/summary", {
         headers: tenantHeaders(tenantId),
       }),
+  },
+  technicianWorkOrders: {
+    list: (tenantId: string) =>
+      request<TechnicianWorkOrderListResponse>("/api/v1/technician/work-orders", {
+        headers: tenantHeaders(tenantId),
+      }),
+    get: (tenantId: string, orderId: string) =>
+      request<TechnicianWorkOrder>(`/api/v1/technician/work-orders/${orderId}`, {
+        headers: tenantHeaders(tenantId),
+      }),
+    transition: (tenantId: string, orderId: string, toStatus: string, notes?: string) =>
+      request<TechnicianWorkOrder>(`/api/v1/technician/work-orders/${orderId}/transition`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ to_status: toStatus, notes }),
+      }),
+    note: (tenantId: string, orderId: string, notes: string) =>
+      request<void>(`/api/v1/technician/work-orders/${orderId}/notes`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ notes }),
+      }),
+    materials: {
+      list: (tenantId: string, orderId: string) =>
+        request<WorkOrderMaterial[]>(`/api/v1/technician/work-orders/${orderId}/materials`, {
+          headers: tenantHeaders(tenantId),
+        }),
+      create: (tenantId: string, orderId: string, input: WorkOrderMaterialInput) =>
+        request<WorkOrderMaterial>(`/api/v1/technician/work-orders/${orderId}/materials`, {
+          method: "POST",
+          headers: tenantHeaders(tenantId),
+          body: JSON.stringify(input),
+        }),
+    },
+    attachments: {
+      list: (tenantId: string, orderId: string) =>
+        request<WorkOrderAttachment[]>(`/api/v1/technician/work-orders/${orderId}/attachments`, {
+          headers: tenantHeaders(tenantId),
+        }),
+      upload: (tenantId: string, orderId: string, file: File) => {
+        const body = new FormData();
+        body.append("file", file);
+        return requestForm<WorkOrderAttachment>(
+          `/api/v1/technician/work-orders/${orderId}/attachments`,
+          body,
+          tenantHeaders(tenantId),
+        );
+      },
+      /** Descarga con Authorization; devuelve el Blob para disparar la descarga en el cliente. */
+      download: (tenantId: string, orderId: string, attachmentId: string) =>
+        requestBlob(
+          `/api/v1/technician/work-orders/${orderId}/attachments/${attachmentId}`,
+          tenantHeaders(tenantId),
+          "No se pudo descargar el archivo",
+        ),
+    },
   },
   publicQuotes: {
     get: (token: string) => publicRequest<PublicQuote>(`/api/v1/public/quotes/${token}`),

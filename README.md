@@ -106,6 +106,7 @@ Estas credenciales son solo para desarrollo local. No usarlas en producción.
 - [Agenda y pagos](docs/AGENDA_PAYMENTS.md)
 - [Despliegue](docs/DEPLOYMENT.md)
 - [Despliegue en Vercel + Neon](docs/DEPLOY_VERCEL.md)
+- [Demo pública](docs/DEMO.md)
 
 ## Convenciones
 
