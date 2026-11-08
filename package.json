@@ -1,0 +1,14 @@
+{
+  "name": "saas-gestion",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "build:web": "pnpm --dir apps/web build",
+    "lint:web": "pnpm --dir apps/web lint",
+    "typecheck:web": "pnpm --dir apps/web typecheck",
+    "test:web": "pnpm --dir apps/web test",
+    "format:web": "pnpm --dir apps/web format",
+    "verify": "powershell -ExecutionPolicy Bypass -File scripts/verify.ps1"
+  }
+}

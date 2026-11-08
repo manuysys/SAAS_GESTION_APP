@@ -4,8 +4,9 @@ Plataforma SaaS B2B de gestión, automatización e inteligencia para empresas de
 servicios técnicos: CRM, solicitudes, órdenes de trabajo, presupuestos, agenda,
 pagos, comunicaciones y automatizaciones en un solo lugar.
 
-> **Estado:** entorno en preparación. Todavía no hay aplicación ejecutable.
-> La fuente de verdad del avance es [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
+> **Estado:** vertical slice funcionando en local: registro, login, empresa,
+> multi-tenancy y CRUD de clientes. La fuente de verdad del avance es
+> [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 ## Stack
 
@@ -33,23 +34,28 @@ pagos, comunicaciones y automatizaciones en un solo lugar.
 ## Inicio rápido
 
 ```powershell
-# 1. Dependencias de Node
-fnm use
+# 1. Dependencias del frontend
+cd apps/web
 pnpm install
+cd ../..
 
 # 2. Backend
 cd apps/api
 uv sync
+uv run alembic upgrade head
+cd ../..
 
 # 3. Base de datos local
-cd ../..
-.\scripts\db-start.ps1
-cd apps/api
-uv run alembic upgrade head
+.\scripts\db-init.ps1
 
-# 4. Desarrollo
-cd ../..
+# 4. Desarrollo (API + web en ventanas separadas)
 .\scripts\dev.ps1
+```
+
+Verificación completa:
+
+```powershell
+.\scripts\verify.ps1
 ```
 
 La aplicación web queda en `http://localhost:3000` y la API en
@@ -59,14 +65,32 @@ La aplicación web queda en `http://localhost:3000` y la API en
 
 ```text
 apps/
-  web/          Frontend Next.js
-  api/          Backend FastAPI
+  web/          Frontend Next.js 16
+  api/          Backend FastAPI (Python 3.12)
 docs/           Producto, arquitectura, seguridad y operación
-scripts/        Automatización local
+scripts/        Automatización local (PowerShell)
 infra/          Despliegue y CI
 .opencode/      Agentes, skills, comandos y MCP del proyecto
-.local/         Entorno local no versionado
+.local/         PostgreSQL portable y archivos locales (no versionado)
 ```
+
+## API
+
+Con el servidor levantado:
+
+- Web: `http://localhost:3000`
+- API: `http://localhost:8000`
+- OpenAPI: `http://localhost:8000/docs`
+- Health: `http://localhost:8000/api/v1/health/live`
+
+## Credenciales locales
+
+- PostgreSQL: `127.0.0.1:55432`
+- Usuario: `saas`
+- Password: `saas_dev_password`
+- Bases: `saas_gestion_dev` y `saas_gestion_test`
+
+Estas credenciales son solo para desarrollo local. No usarlas en producción.
 
 ## Documentación
 

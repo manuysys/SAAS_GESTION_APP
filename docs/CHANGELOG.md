@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-11-08 — Vertical slice inicial
+
+- Backend FastAPI con autenticación self-hosted (Argon2id + JWT + refresh rotativo).
+- Multi-tenancy por `X-Tenant-ID` validado contra membresías.
+- CRUD de clientes con aislamiento entre tenants.
+- Migración inicial Alembic con `tenants`, `users`, `memberships`,
+  `refresh_tokens` y `customers`.
+- 8 pruebas pytest (health, auth, clientes, aislamiento).
+- Frontend Next.js 16 con landing, registro, login, dashboard y clientes.
+- Contexto de autenticación con refresh automático y selector de empresa.
+- Vitest, ESLint, TypeScript estricto y build de producción.
+- `scripts/verify.ps1` pasa completo.
+- Prueba manual en navegador del flujo registro → dashboard → alta de cliente.
+
 ## 2026-11-07 — Preparación del entorno
 
 - Lectura completa del contexto maestro.

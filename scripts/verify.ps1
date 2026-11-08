@@ -4,6 +4,12 @@ $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent $PSScriptRoot
 $failures = @()
 
+# Prefer the Node version pinned for this project when fnm is available.
+$node24 = Join-Path $env:APPDATA 'fnm\node-versions\v24.22.2\installation'
+if (Test-Path (Join-Path $node24 'node.exe')) {
+    $env:Path = "$node24;$env:Path"
+}
+
 function Check-Command($name, $command) {
     $cmd = Get-Command $command -ErrorAction SilentlyContinue
     if ($cmd) {
@@ -65,7 +71,7 @@ if (Test-Path (Join-Path $web 'package.json')) {
     if ($LASTEXITCODE -ne 0) { $failures += 'eslint' }
     pnpm typecheck
     if ($LASTEXITCODE -ne 0) { $failures += 'tsc' }
-    pnpm test -- --run
+    pnpm test
     if ($LASTEXITCODE -ne 0) { $failures += 'vitest' }
     pnpm build
     if ($LASTEXITCODE -ne 0) { $failures += 'next-build' }

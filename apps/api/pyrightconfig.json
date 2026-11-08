@@ -1,0 +1,13 @@
+{
+  "include": ["app", "tests"],
+  "exclude": ["**/__pycache__", ".venv"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic",
+  "reportMissingTypeStubs": false,
+  "reportUnannotatedClassAttribute": false,
+  "reportCallInDefaultInitializer": false,
+  "reportUnusedCallResult": false,
+  "reportExplicitAny": false,
+  "reportAny": false,
+  "reportUnknownMemberType": false
+}
