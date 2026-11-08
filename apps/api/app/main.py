@@ -5,6 +5,8 @@ from app.api.routes import (
     auth,
     customers,
     health,
+    public_quotes,
+    quotes,
     service_requests,
     tenants,
     work_orders,
@@ -31,6 +33,8 @@ app.include_router(tenants.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
 app.include_router(service_requests.router, prefix="/api/v1")
 app.include_router(work_orders.router, prefix="/api/v1")
+app.include_router(quotes.router, prefix="/api/v1")
+app.include_router(public_quotes.router, prefix="/api/v1")
 
 
 @app.get("/")

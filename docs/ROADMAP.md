@@ -5,8 +5,8 @@
 - [x] Lectura del contexto maestro.
 - [x] Auditoría del entorno.
 - [x] Repositorio y documentación base.
-- [ ] Toolchain local (Node 24, Python 3.12, PostgreSQL 17 portable).
-- [ ] OpenCode: MCP, agentes, skills y comandos.
+- [x] Toolchain local (Node 24, Python 3.12, PostgreSQL 17 portable).
+- [x] OpenCode: MCP, agentes, skills y comandos.
 - [ ] Investigación competitiva con fuentes oficiales.
 - [ ] Entrevistas a potenciales clientes (5–10).
 - [ ] Decisión de segmento inicial.
@@ -14,9 +14,9 @@
 
 ## Hito 1 — Núcleo operativo
 
-- [ ] Registro, login, refresh y logout.
-- [ ] Creación de empresa y membresías.
-- [ ] Multi-tenancy y roles (owner, admin, dispatcher, technician, viewer).
+- [x] Registro, login, refresh y logout.
+- [x] Creación de empresa y membresías.
+- [x] Multi-tenancy y roles (owner, admin, dispatcher, technician, viewer).
 - [x] Clientes y direcciones.
 - [x] Solicitudes de servicio.
 - [x] Órdenes de trabajo, estados y transiciones.
@@ -25,8 +25,8 @@
 
 ## Hito 2 — Gestión comercial
 
-- [ ] Presupuestos con conceptos, impuestos y versiones.
-- [ ] PDF y enlace seguro de aprobación.
+- [x] Presupuestos con conceptos, impuestos y versiones.
+- [x] PDF y enlace seguro de aprobación.
 - [ ] Agenda y visitas.
 - [ ] Asignación de técnicos y detección de conflictos.
 - [ ] Pagos registrados y saldos.

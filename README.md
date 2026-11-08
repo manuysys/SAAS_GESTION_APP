@@ -102,6 +102,7 @@ Estas credenciales son solo para desarrollo local. No usarlas en producción.
 - [Modelo de datos](docs/DATA_MODEL.md)
 - [Seguridad](docs/SECURITY.md)
 - [Seguridad multi-tenant](docs/TENANT_SECURITY.md)
+- [Presupuestos](docs/QUOTES.md)
 - [Despliegue](docs/DEPLOYMENT.md)
 
 ## Convenciones

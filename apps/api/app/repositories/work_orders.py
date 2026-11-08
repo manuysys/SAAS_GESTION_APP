@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import WorkOrder, WorkOrderEvent
+from app.models import Tenant, WorkOrder, WorkOrderEvent
 
 
 async def list_work_orders(
@@ -44,6 +44,8 @@ async def get_work_order(db: AsyncSession, *, tenant_id: UUID, order_id: UUID) -
 
 
 async def next_work_order_code(db: AsyncSession, *, tenant_id: UUID) -> str:
+    # Serializa la numeración por tenant dentro de la transacción actual.
+    await db.execute(select(Tenant.id).where(Tenant.id == tenant_id).with_for_update())
     year = datetime.now(UTC).year
     prefix = f"WO-{year}-"
     result = await db.execute(

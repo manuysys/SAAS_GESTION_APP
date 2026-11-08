@@ -37,12 +37,21 @@ trabajo finalizado → historial.
 
 ### Presupuestos
 
-- Como dispatcher puedo crear un presupuesto con conceptos, cantidades, precios,
-  descuentos e impuestos.
-- El sistema calcula subtotal, impuestos y total con `Decimal`.
-- Como dispatcher puedo generar un PDF y compartir un enlace seguro.
-- Como cliente puedo aprobar o rechazar un presupuesto.
-- El presupuesto guarda una copia histórica de sus ítems.
+- Como dispatcher puedo crear un presupuesto asociado a un cliente y,
+  opcionalmente, a una orden de trabajo.
+- Puedo agregar conceptos con descripción, cantidad, precio unitario, descuento
+  porcentual e IVA porcentual.
+- El sistema calcula línea, subtotal, descuentos, impuestos y total con
+  `Decimal`/`Numeric`, nunca `float`.
+- Como dispatcher puedo editar un presupuesto mientras está en borrador.
+- Como dispatcher puedo enviarlo, lo que genera un enlace público seguro.
+- Como cliente puedo ver el presupuesto en el enlace público y aprobarlo o
+  rechazarlo sin iniciar sesión.
+- Como dispatcher puedo descargar un PDF con el detalle y los totales.
+- El presupuesto guarda una copia histórica de sus ítems, aunque el catálogo de
+  servicios cambie después.
+- Al enviar, aprobar o rechazar, se actualiza el estado comercial de la orden
+  asociada.
 
 ### Agenda
 
@@ -80,10 +89,10 @@ trabajo finalizado → historial.
 5. Se registra una solicitud.
 6. Se genera una orden.
 7. Se cambia el estado con validación.
-8. Se crea un presupuesto con conceptos.
-9. Los totales se calculan correctamente.
-10. Se genera un PDF.
-11. Se registra aprobación del presupuesto.
+8. Se crea un presupuesto con conceptos, cantidades, descuentos e impuestos.
+9. Los totales se calculan correctamente con `Decimal`.
+10. Se genera un PDF y un enlace público seguro.
+11. El cliente aprueba o rechaza el presupuesto desde el enlace público.
 12. Se programa una visita.
 13. Se asigna un técnico.
 14. El técnico consulta su trabajo desde el celular.

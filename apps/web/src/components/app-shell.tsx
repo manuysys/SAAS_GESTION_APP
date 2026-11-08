@@ -22,9 +22,13 @@ const navigation = [
   { href: "/customers", label: "Clientes", icon: Users },
   { href: "/requests", label: "Solicitudes", icon: Inbox },
   { href: "/orders", label: "Órdenes", icon: ClipboardList },
-  { href: "/quotes", label: "Presupuestos", icon: FileText, disabled: true },
+  { href: "/quotes", label: "Presupuestos", icon: FileText },
   { href: "/agenda", label: "Agenda", icon: CalendarDays, disabled: true },
 ];
+
+function isActivePath(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, tenants, activeTenantId, setActiveTenant, logout, loading } = useAuth();
@@ -67,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 space-y-1 px-3 py-2">
           {navigation.map((item) => {
-            const active = pathname === item.href;
+            const active = isActivePath(pathname, item.href);
             const Icon = item.icon;
             if (item.disabled) {
               return (
@@ -148,7 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <nav className="flex gap-1 overflow-x-auto px-4 pb-2 md:hidden">
             {navigation.map((item) => {
-              const active = pathname === item.href;
+              const active = isActivePath(pathname, item.href);
               const Icon = item.icon;
               if (item.disabled) return null;
               return (

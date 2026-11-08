@@ -95,3 +95,27 @@ modelos según la tarea.
 
 **Consecuencias:** trabajo paralelo con archivos disjuntos; revisión cruzada;
 mayor consumo de tokens, controlado por modelos económicos en tareas mecánicas.
+
+## ADR-008 — Presupuestos con ítems históricos y aprobación pública
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Contexto:** el presupuesto debe conservar precios y conceptos aunque cambie
+el catálogo, y el cliente debe poder aprobarlo sin crear una cuenta.
+
+**Decisión:**
+
+- `quotes` guarda totales calculados con `Decimal`/`Numeric(14,2)`.
+- `quote_items` guarda una copia histórica de descripción, cantidad, precio,
+  descuento, impuesto y total de línea.
+- El número es `QT-YYYY-0001`, único por tenant.
+- Cada presupuesto tiene un `public_token` URL-safe aleatorio.
+- Los endpoints públicos `/api/v1/public/quotes/{token}` no requieren auth y
+  solo exponen los datos del presupuesto, sin IDs internos.
+- Estados: `draft → sent → approved/rejected`; no se aprueba un borrador.
+- Al enviar/aprobar/rechazar se actualiza `work_orders.commercial_status`.
+- El PDF se genera con `reportlab` y se sirve autenticado.
+
+**Consecuencias:** el enlace público es un bearer secreto; no debe compartirse
+públicamente. El PDF no reemplaza la aprobación registrada en el sistema.

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-11-08 — Presupuestos, PDF y aprobación pública
+
+- Modelos `quotes`, `quote_items` y `quote_events`.
+- Migración `50e8c050aada_add_quotes_and_quote_items`.
+- Cálculos con `Decimal`/`Numeric`, ítems históricos y numeración `QT-YYYY-0001`.
+- Endpoints internos de presupuestos: alta, edición en borrador, envío,
+  aprobación, rechazo, eventos y PDF.
+- Endpoints públicos por token para consultar, aprobar o rechazar.
+- Actualización automática del estado comercial de la orden asociada.
+- Frontend: listado, alta con ítems dinámicos, detalle, PDF, link público y
+  página pública `/q/[token]`.
+- Dashboard con presupuestos pendientes.
+- Endurecimiento: `viewer` sin acceso, bloqueo de fila para decisiones
+  concurrentes, vencimiento, límites de importes y validación cliente–orden.
+- 23 pruebas pytest y 9 pruebas de frontend; flujo completo probado en navegador.
+
 ## 2026-11-08 — Solicitudes y órdenes de trabajo
 
 - Modelos `service_requests`, `work_orders` y `work_order_events`.

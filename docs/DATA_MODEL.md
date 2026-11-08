@@ -65,15 +65,32 @@ tenant), `title`, `description`, `service_type`, `commercial_status`,
 `status`, `created_at`, `updated_at`.
 
 ### quotes
-`id`, `tenant_id`, `work_order_id?`, `service_request_id?`, `customer_id`,
-`number` (único por tenant), `status`, `currency`, `subtotal`, `discount_total`,
-`tax_total`, `total`, `valid_until`, `sent_at`, `approved_at`, `rejected_at`,
+`id`, `tenant_id`, `customer_id` (NOT NULL), `work_order_id?` (SET NULL),
+`number` (único por tenant, formato `QT-YYYY-0001`), `status`, `currency`,
+`subtotal`, `discount_total`, `tax_total`, `total`, `notes`, `valid_until`,
+`sent_at`, `approved_at`, `rejected_at`, `public_token` (único, URL-safe),
 `created_at`, `updated_at`.
 
+- Estados: `draft → sent → approved/rejected`.
+- `public_token` es un bearer secreto para el enlace de aprobación pública;
+  no expone IDs internos.
+- Los totales se recalculan con `Decimal` al modificar los ítems.
+
 ### quote_items
-`id`, `tenant_id`, `quote_id`, `description`, `quantity`, `unit_price`,
-`discount_rate`, `tax_rate`, `line_total`, `sort_order`, `snapshot` (JSONB).
-Los ítems son copia histórica: no referencian el catálogo vivo.
+`id`, `tenant_id`, `quote_id` (CASCADE), `description`, `quantity`
+(`NUMERIC(12,3)`), `unit_price` (`NUMERIC(14,2)`), `discount_rate`
+(`NUMERIC(5,2)`), `tax_rate` (`NUMERIC(5,2)`), `line_total` (`NUMERIC(14,2)`),
+`sort_order`, `created_at`.
+
+Los ítems son copia histórica: guardan descripción, cantidad, precio, descuento,
+impuesto y total de línea; no referencian el catálogo vivo.
+
+### quote_events
+`id`, `tenant_id`, `quote_id` (CASCADE), `event_type`, `actor_user_id?`
+(SET NULL), `payload` (JSONB), `created_at`. Append-only.
+
+Registra el historial inmutable de cambios de estado del presupuesto
+(creación, envío, aprobación, rechazo) con actor y payload.
 
 ### payments
 `id`, `tenant_id`, `work_order_id`, `quote_id?`, `amount`, `currency`,
@@ -107,6 +124,7 @@ tenant 1─N customer 1─N customer_address
 customer 1─N service_request 1─N work_order
 work_order 1─N appointment
 work_order 1─N quote 1─N quote_item
+quote 1─N quote_event
 work_order 1─N payment
 work_order 1─N work_order_event
 customer 1─N communication
@@ -121,6 +139,23 @@ tenant 1─N automation_rule 1─N automation_execution
 - `(tenant_id, scheduled_at)` en visitas.
 - `(tenant_id, email)` único parcial en clientes cuando se use email.
 - `code` único por tenant en órdenes y presupuestos.
+
+Índices reales en `quotes`: `tenant_id`, `customer_id`, `work_order_id`,
+`status` (no únicos) y `public_token` (único). En `quote_items`:
+`tenant_id`, `quote_id`. En `quote_events`: `tenant_id`, `quote_id`.
+
+## Reglas de dinero y cantidades
+
+- Todos los importes se almacenan en `NUMERIC(14,2)` (decimal exacto, nunca
+  `float`): `subtotal`, `discount_total`, `tax_total`, `total` en `quotes` y
+  `unit_price`, `line_total` en `quote_items`.
+- Cantidades: `NUMERIC(12,3)` (`quote_items.quantity`).
+- Tasas porcentuales: `NUMERIC(5,2)` (`discount_rate`, `tax_rate`), aptas para
+  valores de 0.00 a 999.99 %.
+- El cálculo `subtotal - discount_total + tax_total = total` se hace en
+  `Decimal` en la capa de servicio; los totales quedan persistidos como copia
+  histórica en el presupuesto.
+- La moneda es `currency` (`String(3)`, default `ARS`).
 
 ## Aislamiento
 

@@ -1,7 +1,15 @@
 ﻿"use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ClipboardList, Inbox, Users, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  ClipboardList,
+  FileText,
+  Inbox,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 import { api } from "@/lib/api";
@@ -30,11 +38,32 @@ export default function DashboardPage() {
     enabled: Boolean(activeTenantId),
   });
 
+  const quotesQuery = useQuery({
+    queryKey: ["quotes", activeTenantId, ""],
+    queryFn: () => api.quotes.list(activeTenantId ?? ""),
+    enabled: Boolean(activeTenantId),
+  });
+
+  const pendingQuotesQuery = useQuery({
+    queryKey: ["quotes", activeTenantId, "sent"],
+    queryFn: () => api.quotes.list(activeTenantId ?? "", "sent"),
+    enabled: Boolean(activeTenantId),
+  });
+
   const totalCustomers = customersQuery.data?.total ?? 0;
   const totalOrders = ordersQuery.data?.total ?? 0;
   const totalRequests = requestsQuery.data?.total ?? 0;
+  const totalQuotes = quotesQuery.data?.total ?? 0;
+  const pendingQuotes = pendingQuotesQuery.data?.total ?? 0;
 
-  const cards = [
+  const cards: {
+    label: string;
+    value: string;
+    icon: LucideIcon;
+    href?: string;
+    hint: string;
+    detail?: string;
+  }[] = [
     {
       label: "Clientes",
       value: customersQuery.isLoading ? "…" : String(totalCustomers),
@@ -57,6 +86,16 @@ export default function DashboardPage() {
       hint: "Ver solicitudes",
     },
     {
+      label: "Presupuestos",
+      value: quotesQuery.isLoading ? "…" : String(totalQuotes),
+      icon: FileText,
+      href: "/quotes",
+      hint: "Ver presupuestos",
+      detail: pendingQuotesQuery.isLoading
+        ? undefined
+        : `${pendingQuotes} ${pendingQuotes === 1 ? "pendiente" : "pendientes"} de respuesta`,
+    },
+    {
       label: "Pendiente de cobro",
       value: formatCurrency(0),
       icon: Wallet,
@@ -75,7 +114,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {cards.map((card) => {
           const Icon = card.icon;
           return (
@@ -85,6 +124,7 @@ export default function DashboardPage() {
                 <Icon className="h-4 w-4 text-zinc-400" />
               </div>
               <p className="mt-2 text-2xl font-semibold">{card.value}</p>
+              {card.detail && <p className="mt-1 text-xs text-zinc-500">{card.detail}</p>}
               {card.href ? (
                 <Link
                   href={card.href}
@@ -125,7 +165,13 @@ export default function DashboardPage() {
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-300 text-[10px] font-bold text-zinc-700">
                 3
               </span>
-              Presupuestos, agenda y cobros
+              Presupuestos para aprobación del cliente
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-zinc-50 px-3 py-2 text-zinc-700">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-300 text-[10px] font-bold text-zinc-700">
+                4
+              </span>
+              Agenda y cobros
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -134,6 +180,13 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700"
             >
               Clientes
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/quotes"
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+            >
+              Presupuestos
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link

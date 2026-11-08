@@ -99,6 +99,15 @@ Reglas:
 - Reglas: trigger, condiciones, acciones, estado, historial.
 - n8n solo como orquestador externo opcional.
 
+## Presupuestos
+
+- Entidades `quotes`, `quote_items`, `quote_events`; totales en `Decimal`/`NUMERIC(14,2)`.
+- Número `QT-YYYY-0001` único por tenant; token público URL-safe para aprobación externa.
+- Estados `draft → sent → approved/rejected`; solo `draft` es editable.
+- Envío/aprobación/rechazo actualiza `work_orders.commercial_status`.
+- PDF generado con `reportlab` y servido autenticado.
+- Endpoints públicos en `/api/v1/public/quotes/{token}` sin autenticación ni IDs internos.
+
 ## Observabilidad
 
 - Logs estructurados JSON con `request_id`, `tenant_id`, `user_id`.

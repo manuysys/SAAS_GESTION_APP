@@ -175,8 +175,167 @@ export type WorkOrderEvent = {
   created_at: string;
 };
 
+/**
+ * Importes y cantidades llegan como string (Decimal serializado por Pydantic).
+ * Nunca convertir a number para cálculos persistidos.
+ */
+export type QuoteItem = {
+  id: string;
+  description: string;
+  quantity: string;
+  unit_price: string;
+  discount_rate: string;
+  tax_rate: string;
+  line_total: string;
+  sort_order: number;
+};
+
+export type Quote = {
+  id: string;
+  tenant_id: string;
+  customer_id: string;
+  work_order_id: string | null;
+  number: string;
+  status: string;
+  currency: string;
+  subtotal: string;
+  discount_total: string;
+  tax_total: string;
+  total: string;
+  notes: string | null;
+  valid_until: string | null;
+  sent_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  public_token: string | null;
+  items: QuoteItem[];
+};
+
+export type QuoteSummary = {
+  id: string;
+  tenant_id: string;
+  customer_id: string;
+  work_order_id: string | null;
+  number: string;
+  status: string;
+  currency: string;
+  total: string;
+  valid_until: string | null;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type QuoteListResponse = {
+  items: QuoteSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type QuoteItemInput = {
+  description: string;
+  quantity: string;
+  unit_price: string;
+  discount_rate: string;
+  tax_rate: string;
+};
+
+export type QuoteInput = {
+  customer_id: string;
+  work_order_id?: string;
+  /** Fecha en formato YYYY-MM-DD. */
+  valid_until?: string;
+  notes?: string;
+  items: QuoteItemInput[];
+};
+
+export type QuoteEvent = {
+  id: string;
+  quote_id: string;
+  event_type: string;
+  from_status: string | null;
+  to_status: string | null;
+  actor_user_id: string | null;
+  payload: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export type PublicQuoteItem = Pick<
+  QuoteItem,
+  "description" | "quantity" | "unit_price" | "discount_rate" | "tax_rate" | "line_total"
+>;
+
+/** Vista pública del presupuesto: sin IDs internos ni datos de otros tenants. */
+export type PublicQuote = {
+  tenant_name: string;
+  customer_name: string;
+  number: string;
+  status: string;
+  currency: string;
+  subtotal: string;
+  discount_total: string;
+  tax_total: string;
+  total: string;
+  valid_until: string | null;
+  notes: string | null;
+  items: PublicQuoteItem[];
+};
+
 function tenantHeaders(tenantId: string): HeadersInit {
   return { "X-Tenant-ID": tenantId };
+}
+
+function authHeaders(headers?: HeadersInit): Headers {
+  const result = new Headers(headers);
+  if (accessToken) {
+    result.set("Authorization", `Bearer ${accessToken}`);
+  }
+  return result;
+}
+
+function errorDetail(body: unknown, fallback = "Error inesperado del servidor"): string {
+  if (typeof body === "object" && body !== null && "detail" in body) {
+    const { detail } = body;
+    if (typeof detail === "string") return detail;
+  }
+  return fallback;
+}
+
+/** Request sin credenciales ni token: para endpoints públicos por token. */
+async function publicRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: "omit",
+  });
+
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new ApiError(response.status, errorDetail(body));
+  }
+  return body as T;
+}
+
+async function requestBlob(path: string, headers: HeadersInit, fallback: string): Promise<Blob> {
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: authHeaders(headers),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    throw new ApiError(response.status, errorDetail(body, fallback));
+  }
+  return response.blob();
+}
+
+/** Devuelve un mensaje legible para mostrar al usuario a partir de un error de mutación. */
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.detail : fallback;
 }
 
 let refreshPromise: Promise<{
@@ -295,6 +454,71 @@ export const api = {
     events: (tenantId: string, orderId: string) =>
       request<WorkOrderEvent[]>(`/api/v1/work-orders/${orderId}/events`, {
         headers: tenantHeaders(tenantId),
+      }),
+  },
+  quotes: {
+    list: (tenantId: string, status?: string) =>
+      request<QuoteListResponse>(
+        `/api/v1/quotes${status ? `?status=${encodeURIComponent(status)}` : ""}`,
+        { headers: tenantHeaders(tenantId) },
+      ),
+    create: (tenantId: string, input: QuoteInput) =>
+      request<Quote>("/api/v1/quotes", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    get: (tenantId: string, quoteId: string) =>
+      request<Quote>(`/api/v1/quotes/${quoteId}`, {
+        headers: tenantHeaders(tenantId),
+      }),
+    update: (tenantId: string, quoteId: string, input: Partial<QuoteInput>) =>
+      request<Quote>(`/api/v1/quotes/${quoteId}`, {
+        method: "PATCH",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    send: (tenantId: string, quoteId: string) =>
+      request<Quote>(`/api/v1/quotes/${quoteId}/send`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+    approve: (tenantId: string, quoteId: string) =>
+      request<Quote>(`/api/v1/quotes/${quoteId}/approve`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+    reject: (tenantId: string, quoteId: string) =>
+      request<Quote>(`/api/v1/quotes/${quoteId}/reject`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+    events: (tenantId: string, quoteId: string) =>
+      request<QuoteEvent[]>(`/api/v1/quotes/${quoteId}/events`, {
+        headers: tenantHeaders(tenantId),
+      }),
+    /** Descarga el PDF con Authorization; devuelve el Blob para disparar la descarga en el cliente. */
+    pdf: (tenantId: string, quoteId: string) =>
+      requestBlob(
+        `/api/v1/quotes/${quoteId}/pdf`,
+        tenantHeaders(tenantId),
+        "No se pudo descargar el PDF",
+      ),
+  },
+  publicQuotes: {
+    get: (token: string) => publicRequest<PublicQuote>(`/api/v1/public/quotes/${token}`),
+    approve: (token: string) =>
+      publicRequest<PublicQuote>(`/api/v1/public/quotes/${token}/approve`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      }),
+    reject: (token: string) =>
+      publicRequest<PublicQuote>(`/api/v1/public/quotes/${token}/reject`, {
+        method: "POST",
+        body: JSON.stringify({}),
       }),
   },
 };
