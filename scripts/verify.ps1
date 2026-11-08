@@ -21,6 +21,12 @@ Check-Command 'pnpm' 'pnpm'
 Check-Command 'python' 'python'
 Check-Command 'uv' 'uv'
 
+$fnm = Get-Command fnm -ErrorAction SilentlyContinue
+if ($fnm) {
+    Write-Host "--- Node via fnm ---"
+    & $fnm.Source exec --using=24 -- node --version
+}
+
 Write-Host ""
 Write-Host "=== PostgreSQL ==="
 $pgIsReady = Join-Path $root '.local\pgsql\bin\pg_isready.exe'
