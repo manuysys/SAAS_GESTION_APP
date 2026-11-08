@@ -1,0 +1,60 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+apps/web/.next/
+apps/web/out/
+apps/web/.turbo/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+htmlcov/
+.coverage
+.coverage.*
+uv.lock.bak
+
+# Entorno local
+.local/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Base de datos local
+pgdata/
+*.sqlite
+*.sqlite3
+*.db
+
+# Herramientas
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Tests y artefactos
+playwright-report/
+test-results/
+blob-report/
+apps/web/playwright/.cache/
+apps/api/.pytest_cache/
+*.log
+
+# OpenCode local
+.opencode/*.local.json
+.lane/
