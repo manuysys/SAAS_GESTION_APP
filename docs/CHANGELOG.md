@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-08 — Solicitudes y órdenes de trabajo
+
+- Modelos `service_requests`, `work_orders` y `work_order_events`.
+- Migración `ba3b1d3acd4d_add_service_requests_and_work_orders`.
+- Endpoints de solicitudes: listado, alta, edición y conversión a orden.
+- Endpoints de órdenes: listado, alta, edición, transición de estado y eventos.
+- Reglas de transición y permisos especiales para técnicos.
+- Frontend: listado/alta de solicitudes, conversión a orden, listado de órdenes
+  y detalle con transiciones e historial.
+- Dashboard con métricas de clientes, solicitudes y órdenes.
+- 11 pruebas pytest y flujo completo probado en navegador.
+
 ## 2026-11-08 — Vertical slice inicial
 
 - Backend FastAPI con autenticación self-hosted (Argon2id + JWT + refresh rotativo).

@@ -8,6 +8,21 @@ from app.schemas.auth import (
 )
 from app.schemas.common import MessageResponse, ORMModel
 from app.schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
+from app.schemas.service_request import (
+    ServiceRequestConvert,
+    ServiceRequestCreate,
+    ServiceRequestListResponse,
+    ServiceRequestResponse,
+    ServiceRequestUpdate,
+)
+from app.schemas.work_order import (
+    WorkOrderCreate,
+    WorkOrderEventResponse,
+    WorkOrderListResponse,
+    WorkOrderResponse,
+    WorkOrderTransition,
+    WorkOrderUpdate,
+)
 
 __all__ = [
     "CustomerCreate",
@@ -18,7 +33,18 @@ __all__ = [
     "MessageResponse",
     "ORMModel",
     "RegisterRequest",
+    "ServiceRequestConvert",
+    "ServiceRequestCreate",
+    "ServiceRequestListResponse",
+    "ServiceRequestResponse",
+    "ServiceRequestUpdate",
     "TenantResponse",
     "TokenResponse",
     "UserResponse",
+    "WorkOrderCreate",
+    "WorkOrderEventResponse",
+    "WorkOrderListResponse",
+    "WorkOrderResponse",
+    "WorkOrderTransition",
+    "WorkOrderUpdate",
 ]

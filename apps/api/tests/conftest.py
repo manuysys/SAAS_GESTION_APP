@@ -54,6 +54,12 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
         yield ac
 
 
+@pytest_asyncio.fixture
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
+    async with TestSessionLocal() as session:
+        yield session
+
+
 @pytest.fixture
 def register_payload() -> dict[str, str]:
     return {

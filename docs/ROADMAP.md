@@ -17,11 +17,11 @@
 - [ ] Registro, login, refresh y logout.
 - [ ] Creación de empresa y membresías.
 - [ ] Multi-tenancy y roles (owner, admin, dispatcher, technician, viewer).
-- [ ] Clientes y direcciones.
-- [ ] Solicitudes de servicio.
-- [ ] Órdenes de trabajo, estados y transiciones.
-- [ ] Historial de eventos y auditoría.
-- [ ] Pruebas de aislamiento multi-tenant.
+- [x] Clientes y direcciones.
+- [x] Solicitudes de servicio.
+- [x] Órdenes de trabajo, estados y transiciones.
+- [x] Historial de eventos y auditoría.
+- [x] Pruebas de aislamiento multi-tenant.
 
 ## Hito 2 — Gestión comercial
 

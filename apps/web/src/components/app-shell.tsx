@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileText,
+  Inbox,
   LayoutDashboard,
   Loader2,
   LogOut,
@@ -19,7 +20,8 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
   { href: "/customers", label: "Clientes", icon: Users },
-  { href: "/orders", label: "Órdenes", icon: ClipboardList, disabled: true },
+  { href: "/requests", label: "Solicitudes", icon: Inbox },
+  { href: "/orders", label: "Órdenes", icon: ClipboardList },
   { href: "/quotes", label: "Presupuestos", icon: FileText, disabled: true },
   { href: "/agenda", label: "Agenda", icon: CalendarDays, disabled: true },
 ];

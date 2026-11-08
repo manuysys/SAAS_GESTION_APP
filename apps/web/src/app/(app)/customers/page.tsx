@@ -1,4 +1,5 @@
 ﻿"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Trash2, X } from "lucide-react";
@@ -11,10 +12,10 @@ import { useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/utils";
 
 const customerSchema = z.object({
-  name: z.string().min(2, "IngresÃ¡ el nombre del cliente"),
-  phone: z.string().max(40, "TelÃ©fono demasiado largo").optional(),
-  email: z.union([z.string().email("Email invÃ¡lido"), z.literal("")]).optional(),
-  notes: z.string().max(2000, "MÃ¡ximo 2000 caracteres").optional(),
+  name: z.string().min(2, "Ingresá el nombre del cliente"),
+  phone: z.string().max(40, "Teléfono demasiado largo").optional(),
+  email: z.union([z.string().email("Email inválido"), z.literal("")]).optional(),
+  notes: z.string().max(2000, "Máximo 2000 caracteres").optional(),
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -68,7 +69,7 @@ export default function CustomersPage() {
   if (!activeTenantId) {
     return (
       <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
-        No hay una empresa activa. CerrÃ¡ sesiÃ³n y volvÃ© a ingresar.
+        No hay una empresa activa. Cerrá sesión y volvé a ingresar.
       </div>
     );
   }
@@ -124,7 +125,7 @@ export default function CustomersPage() {
             </div>
             <div>
               <label htmlFor="phone" className="mb-1 block text-sm font-medium">
-                TelÃ©fono
+                Teléfono
               </label>
               <input
                 id="phone"
@@ -186,7 +187,7 @@ export default function CustomersPage() {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por nombre, telÃ©fono o email"
+            placeholder="Buscar por nombre, teléfono o email"
             className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400"
           />
         </div>
@@ -197,9 +198,9 @@ export default function CustomersPage() {
           <p className="p-6 text-sm text-red-600">No se pudieron cargar los clientes.</p>
         ) : customers.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-800">TodavÃ­a no hay clientes</p>
+            <p className="text-sm font-medium text-zinc-800">Todavía no hay clientes</p>
             <p className="mt-1 text-sm text-zinc-500">
-              CreÃ¡ el primero para empezar a construir el historial.
+              Creá el primero para empezar a construir el historial.
             </p>
           </div>
         ) : (
@@ -226,8 +227,8 @@ export default function CustomersPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-zinc-600">
-                      <p>{customer.phone ?? "â€”"}</p>
-                      <p className="text-xs">{customer.email ?? "â€”"}</p>
+                      <p>{customer.phone ?? "—"}</p>
+                      <p className="text-xs">{customer.email ?? "—"}</p>
                     </td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
@@ -241,7 +242,7 @@ export default function CustomersPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          if (window.confirm(`Â¿Archivar a ${customer.name}?`)) {
+                          if (window.confirm(`¿Archivar a ${customer.name}?`)) {
                             deleteMutation.mutate(customer.id);
                           }
                         }}

@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, customers, health, tenants
+from app.api.routes import (
+    auth,
+    customers,
+    health,
+    service_requests,
+    tenants,
+    work_orders,
+)
 from app.core.config import settings
 
 app = FastAPI(
@@ -22,6 +29,8 @@ app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(tenants.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
+app.include_router(service_requests.router, prefix="/api/v1")
+app.include_router(work_orders.router, prefix="/api/v1")
 
 
 @app.get("/")

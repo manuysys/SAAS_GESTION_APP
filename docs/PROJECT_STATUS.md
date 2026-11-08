@@ -1,12 +1,13 @@
 # Estado del proyecto
 
 **Última actualización:** 2026-11-08
-**Fase:** Hito 1 — Núcleo operativo (vertical slice inicial funcionando)
+**Fase:** Hito 1 — Núcleo operativo (solicitudes y órdenes funcionando)
 
 ## Resumen
 
-La aplicación ya corre de punta a punta en local: registro, login, refresh de
-sesión, creación de empresa, aislamiento por tenant y CRUD de clientes. El
+La aplicación corre de punta a punta en local: registro, login, refresh de
+sesión, creación de empresa, aislamiento por tenant, clientes, solicitudes y
+órdenes de trabajo con transiciones de estado e historial de eventos. El
 frontend Next.js consume la API FastAPI contra PostgreSQL 17.
 
 ## Hecho y verificado
@@ -24,15 +25,21 @@ frontend Next.js consume la API FastAPI contra PostgreSQL 17.
 ### Backend
 
 - [x] FastAPI + SQLAlchemy 2 async + Pydantic v2 + Alembic.
-- [x] Modelos: `tenants`, `users`, `memberships`, `refresh_tokens`, `customers`.
-- [x] Migración inicial `84e62c6788cb_initial_schema`.
+- [x] Modelos: `tenants`, `users`, `memberships`, `refresh_tokens`, `customers`,
+  `service_requests`, `work_orders`, `work_order_events`.
+- [x] Migraciones `84e62c6788cb_initial_schema` y
+  `ba3b1d3acd4d_add_service_requests_and_work_orders`.
 - [x] `POST /api/v1/auth/register`, `/login`, `/refresh`, `/logout`, `GET /me`.
 - [x] Argon2id para contraseñas; JWT de acceso; refresh rotativo con hash en base.
 - [x] Cookies `HttpOnly` para refresh token.
 - [x] `GET/POST/PATCH/DELETE /api/v1/customers` con `X-Tenant-ID` validado contra membresía.
+- [x] `GET/POST/PATCH /api/v1/service-requests` y conversión a orden.
+- [x] `GET/POST/PATCH /api/v1/work-orders`, transiciones y eventos.
+- [x] Reglas de transición por estado y permisos especiales para técnicos.
 - [x] Roles iniciales y dependencia `require_roles`.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 8 pruebas pytest: health, auth, CRUD y aislamiento entre tenants.
+- [x] 11 pruebas pytest: health, auth, clientes, solicitudes, órdenes,
+  transiciones y aislamiento entre tenants.
 
 ### Frontend
 
@@ -40,8 +47,10 @@ frontend Next.js consume la API FastAPI contra PostgreSQL 17.
 - [x] Landing page en español.
 - [x] Registro, login y cierre de sesión.
 - [x] Contexto de autenticación con refresh automático y selector de empresa.
-- [x] Dashboard con métricas reales de clientes y placeholders de módulos futuros.
+- [x] Dashboard con métricas reales de clientes, solicitudes y órdenes.
 - [x] Listado, búsqueda, alta y archivado de clientes.
+- [x] Listado y alta de solicitudes, con conversión a orden.
+- [x] Listado de órdenes y detalle con transiciones de estado e historial.
 - [x] Cliente API tipado, TanStack Query, React Hook Form + Zod.
 - [x] Vitest con 2 pruebas de utilidades.
 
@@ -50,23 +59,24 @@ frontend Next.js consume la API FastAPI contra PostgreSQL 17.
 ```text
 scripts/verify.ps1  -> Todo OK
 ruff check          -> All checks passed
-ruff format --check -> 33 files already formatted
+ruff format --check -> 45 files already formatted
 basedpyright        -> 0 errors, 0 warnings
-pytest              -> 8 passed
+pytest              -> 11 passed
 pnpm lint           -> sin errores
 pnpm typecheck      -> sin errores
 pnpm test           -> 2 passed
-pnpm build          -> 8 rutas generadas
+pnpm build          -> 10 rutas generadas
 ```
 
 También se probó el flujo completo en navegador: registro → dashboard →
-clientes → alta de cliente, y recarga de sesión con refresh token.
+clientes → solicitud → conversión a orden → programada → en ejecución →
+finalizada, con historial de eventos y recarga de sesión con refresh token.
 
 ## Pendiente
 
 - [x] Primer push a GitHub (`main`).
-- [ ] Órdenes de trabajo, estados y auditoría.
-- [ ] Solicitudes y conversión a orden.
+- [x] Solicitudes y conversión a orden.
+- [x] Órdenes de trabajo, estados y auditoría.
 - [ ] Presupuestos, PDF y aprobación.
 - [ ] Agenda y asignación de técnicos.
 - [ ] PWA para técnicos.
@@ -75,10 +85,10 @@ clientes → alta de cliente, y recarga de sesión con refresh token.
 
 ## Próximo paso concreto
 
-1. Implementar el módulo de solicitudes + órdenes de trabajo con transiciones
-   de estado y eventos de auditoría.
-2. Agregar pruebas de aislamiento para órdenes.
-3. Incorporar presupuestos y agenda.
+1. Implementar presupuestos con conceptos, totales en `Decimal`, PDF y
+   aprobación del cliente.
+2. Incorporar agenda y asignación de técnicos con detección de conflictos.
+3. Agregar pagos registrados y saldos pendientes.
 
 ## Limitaciones conocidas
 
