@@ -22,6 +22,10 @@ class ProviderError(Exception):
         super().__init__(message)
 
 
+class ProviderRateLimitError(ProviderError):
+    """Raised when the external provider rejects the request due to quota/rate limits."""
+
+
 def _estimate_tokens(text: str) -> int:
     """Rough token estimator used when providers do not return usage data."""
     return max(1, len(text) // 4)
@@ -199,10 +203,14 @@ class OpenAICompatibleProvider(BaseAIProvider):
                         "model": self.model,
                         "messages": payload_messages,
                         "temperature": 0.2,
-                        "max_tokens": 600,
+                        "max_tokens": 800,
                     },
                 )
+                if response.status_code == 429:
+                    raise ProviderRateLimitError("External AI quota exceeded")
                 response.raise_for_status()
+        except ProviderRateLimitError:
+            raise
         except httpx.HTTPStatusError as exc:
             raise ProviderError("External AI service returned an error") from exc
         except httpx.RequestError as exc:
@@ -210,6 +218,8 @@ class OpenAICompatibleProvider(BaseAIProvider):
 
         data = response.json()
         text = data["choices"][0]["message"]["content"]
+        if not isinstance(text, str) or not text.strip():
+            raise ProviderError("External AI service returned an empty response")
         usage = data.get("usage") or {}
         input_tokens = usage.get("prompt_tokens")
         output_tokens = usage.get("completion_tokens")

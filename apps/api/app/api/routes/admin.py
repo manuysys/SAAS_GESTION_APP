@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_platform_admin
+from app.api.deps import get_client_ip, require_platform_admin
 from app.core.db import get_db
 from app.models import Membership
 from app.schemas.billing import (
@@ -12,7 +12,7 @@ from app.schemas.billing import (
     AdminTenantListResponse,
     SubscriptionResponse,
 )
-from app.services import billing_service
+from app.services import audit_service, billing_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -40,9 +40,26 @@ async def get_metrics(
 async def update_tenant_subscription(
     tenant_id: UUID,
     payload: AdminSubscriptionUpdate,
+    request: Request,
     membership: Membership = Depends(require_platform_admin),
     db: AsyncSession = Depends(get_db),
 ) -> SubscriptionResponse:
-    return await billing_service.admin_update_subscription(
+    subscription = await billing_service.admin_update_subscription(
         db, tenant_id, payload.plan_code, payload.status
     )
+    await audit_service.record(
+        db,
+        action="admin_subscription_changed",
+        entity_type="subscription",
+        entity_id=str(subscription.id),
+        tenant_id=tenant_id,
+        actor_user_id=membership.user_id,
+        metadata={
+            "plan_code": payload.plan_code,
+            "status": payload.status,
+        },
+        ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    await db.commit()
+    return subscription

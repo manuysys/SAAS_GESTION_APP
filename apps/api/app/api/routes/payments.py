@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_roles
+from app.api.deps import get_client_ip, require_roles
 from app.core.db import get_db
 from app.models import Membership
 from app.schemas.payment import (
@@ -11,7 +11,7 @@ from app.schemas.payment import (
     PaymentListResponse,
     PaymentResponse,
 )
-from app.services import payment_service
+from app.services import audit_service, payment_service
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -44,6 +44,7 @@ async def list_payments(
 @router.post("", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def create_payment(
     payload: PaymentCreate,
+    request: Request,
     membership: Membership = Depends(require_roles(*READ_WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> PaymentResponse:
@@ -52,12 +53,29 @@ async def create_payment(
         tenant_id=membership.tenant_id,
         payload=payload,
     )
+    await audit_service.record(
+        db,
+        action="payment_created",
+        entity_type="payment",
+        entity_id=str(payment.id),
+        tenant_id=membership.tenant_id,
+        actor_user_id=membership.user_id,
+        metadata={
+            "amount": str(payment.amount),
+            "method": payment.method,
+            "work_order_id": str(payment.work_order_id),
+        },
+        ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    await db.commit()
     return PaymentResponse.model_validate(payment)
 
 
 @router.post("/{payment_id}/void", response_model=PaymentResponse)
 async def void_payment(
     payment_id: UUID,
+    request: Request,
     membership: Membership = Depends(require_roles(*READ_WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> PaymentResponse:
@@ -66,4 +84,16 @@ async def void_payment(
         tenant_id=membership.tenant_id,
         payment_id=payment_id,
     )
+    await audit_service.record(
+        db,
+        action="payment_voided",
+        entity_type="payment",
+        entity_id=str(payment.id),
+        tenant_id=membership.tenant_id,
+        actor_user_id=membership.user_id,
+        metadata={"work_order_id": str(payment.work_order_id)},
+        ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    await db.commit()
     return PaymentResponse.model_validate(payment)

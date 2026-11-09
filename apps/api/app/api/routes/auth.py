@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_client_ip, get_current_user, validate_cookie_origin
 from app.core.config import settings
 from app.core.db import get_db
 from app.models import User
@@ -42,10 +42,14 @@ def _clear_refresh_cookie(response: Response) -> None:
 async def register(
     payload: RegisterRequest,
     response: Response,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> AuthResponse:
     _user, tenant, access_token, expires_in, refresh_token = await auth_service.register(
-        db, payload
+        db,
+        payload,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
     )
     _set_refresh_cookie(response, refresh_token)
     return AuthResponse(
@@ -66,10 +70,15 @@ async def register(
 async def login(
     payload: LoginRequest,
     response: Response,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> AuthResponse:
     user, access_token, expires_in, refresh_token = await auth_service.login(
-        db, str(payload.email), payload.password
+        db,
+        str(payload.email),
+        payload.password,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
     )
     _, memberships = await auth_service.get_me(db, user)
     _set_refresh_cookie(response, refresh_token)
@@ -91,16 +100,21 @@ async def login(
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
     response: Response,
+    request: Request,
     refresh_token: str | None = Cookie(default=None, alias=REFRESH_COOKIE),
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    validate_cookie_origin(request)
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing refresh token",
         )
     _, access_token, expires_in, new_refresh = await auth_service.rotate_refresh_token(
-        db, refresh_token
+        db,
+        refresh_token,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
     )
     _set_refresh_cookie(response, new_refresh)
     return TokenResponse(access_token=access_token, expires_in=expires_in)
@@ -109,11 +123,18 @@ async def refresh(
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     response: Response,
+    request: Request,
     refresh_token: str | None = Cookie(default=None, alias=REFRESH_COOKIE),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
+    validate_cookie_origin(request)
     if refresh_token:
-        await auth_service.revoke_refresh_token(db, refresh_token)
+        await auth_service.revoke_refresh_token(
+            db,
+            refresh_token,
+            client_ip=get_client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+        )
     _clear_refresh_cookie(response)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response

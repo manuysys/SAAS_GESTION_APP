@@ -19,6 +19,7 @@ from app.services.ai_providers import (
     OpenAICompatibleProvider,
     ProviderConfigError,
     ProviderError,
+    ProviderRateLimitError,
 )
 
 _ARGENTINA_TZ = "America/Argentina/Buenos_Aires"
@@ -99,11 +100,21 @@ async def chat(db: AsyncSession, membership: Membership, message: str) -> dict[s
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="IA externa no configurada",
         ) from exc
+    except ProviderRateLimitError:
+        # La cuota externa se agotó: respondemos con el proveedor local y lo
+        # informamos explícitamente para no simular una respuesta del LLM.
+        provider_name = "deterministic-fallback"
+        model = "deterministic"
+        provider = DeterministicProvider(snapshot)
+        reply, input_tokens, output_tokens, _model = await provider.generate(messages)
+        reply = "Modo local (la cuota de IA externa se agotó):\n\n" + reply
     except ProviderError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Error al contactar el proveedor de IA",
         ) from exc
+    else:
+        provider_name = settings.ai_provider
 
     input_cost = Decimal(str(settings.ai_input_cost_per_1k))
     output_cost = Decimal(str(settings.ai_output_cost_per_1k))
@@ -114,7 +125,7 @@ async def chat(db: AsyncSession, membership: Membership, message: str) -> dict[s
     log = AIUsageLog(
         tenant_id=membership.tenant_id,
         user_id=membership.user_id,
-        provider=settings.ai_provider,
+        provider=provider_name,
         model=model,
         feature="chat",
         input_tokens=input_tokens,
@@ -126,7 +137,7 @@ async def chat(db: AsyncSession, membership: Membership, message: str) -> dict[s
 
     return {
         "reply": reply,
-        "provider": settings.ai_provider,
+        "provider": provider_name,
         "model": model,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,

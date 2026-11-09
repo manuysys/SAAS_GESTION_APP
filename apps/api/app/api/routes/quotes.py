@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_roles
+from app.api.deps import get_client_ip, require_roles
 from app.core.db import get_db
 from app.models import Membership
 from app.schemas.quote import (
@@ -14,7 +14,7 @@ from app.schemas.quote import (
     QuoteSummaryResponse,
     QuoteUpdate,
 )
-from app.services import quote_service
+from app.services import audit_service, quote_service
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
 
@@ -91,9 +91,31 @@ async def update_quote(
     return QuoteResponse.model_validate(quote)
 
 
+async def _audit_quote_action(
+    db: AsyncSession,
+    request: Request,
+    membership: Membership,
+    quote: QuoteResponse,
+    action: str,
+) -> None:
+    await audit_service.record(
+        db,
+        action=action,
+        entity_type="quote",
+        entity_id=str(quote.id),
+        tenant_id=membership.tenant_id,
+        actor_user_id=membership.user_id,
+        metadata={"number": quote.number},
+        ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    await db.commit()
+
+
 @router.post("/{quote_id}/send", response_model=QuoteResponse)
 async def send_quote(
     quote_id: UUID,
+    request: Request,
     membership: Membership = Depends(require_roles(*WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> QuoteResponse:
@@ -103,12 +125,16 @@ async def send_quote(
         quote_id=quote_id,
         actor_user_id=membership.user_id,
     )
+    await _audit_quote_action(
+        db, request, membership, QuoteResponse.model_validate(quote), "quote_sent"
+    )
     return QuoteResponse.model_validate(quote)
 
 
 @router.post("/{quote_id}/approve", response_model=QuoteResponse)
 async def approve_quote(
     quote_id: UUID,
+    request: Request,
     membership: Membership = Depends(require_roles(*WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> QuoteResponse:
@@ -118,12 +144,16 @@ async def approve_quote(
         quote_id=quote_id,
         actor_user_id=membership.user_id,
     )
+    await _audit_quote_action(
+        db, request, membership, QuoteResponse.model_validate(quote), "quote_approved"
+    )
     return QuoteResponse.model_validate(quote)
 
 
 @router.post("/{quote_id}/reject", response_model=QuoteResponse)
 async def reject_quote(
     quote_id: UUID,
+    request: Request,
     membership: Membership = Depends(require_roles(*WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> QuoteResponse:
@@ -132,6 +162,9 @@ async def reject_quote(
         tenant_id=membership.tenant_id,
         quote_id=quote_id,
         actor_user_id=membership.user_id,
+    )
+    await _audit_quote_action(
+        db, request, membership, QuoteResponse.model_validate(quote), "quote_rejected"
     )
     return QuoteResponse.model_validate(quote)
 

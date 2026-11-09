@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import (
@@ -25,7 +25,7 @@ from app.repositories.tenants import (
 )
 from app.repositories.users import create_user, get_user_by_email
 from app.schemas.auth import RegisterRequest
-from app.services import billing_service
+from app.services import audit_service, billing_service, security_service
 
 
 def slugify(value: str) -> str:
@@ -55,7 +55,11 @@ async def _issue_refresh_token(db: AsyncSession, user_id: UUID) -> str:
 
 
 async def register(
-    db: AsyncSession, payload: RegisterRequest
+    db: AsyncSession,
+    payload: RegisterRequest,
+    *,
+    client_ip: str | None = None,
+    user_agent: str | None = None,
 ) -> tuple[User, Tenant, str, int, str]:
     existing = await get_user_by_email(db, payload.email)
     if existing is not None:
@@ -79,19 +83,44 @@ async def register(
     await billing_service.create_trial_subscription(db, tenant.id)
     refresh_raw = await _issue_refresh_token(db, user.id)
     access_token, expires_in = create_access_token(str(user.id))
+    await audit_service.record(
+        db,
+        action="user_registered",
+        entity_type="user",
+        entity_id=str(user.id),
+        tenant_id=tenant.id,
+        actor_user_id=user.id,
+        metadata={"email_domain": payload.email.split("@")[-1]},
+        ip=client_ip,
+        user_agent=user_agent,
+    )
     await db.commit()
     await db.refresh(user)
     await db.refresh(tenant)
     return user, tenant, access_token, expires_in, refresh_raw
 
 
-async def login(db: AsyncSession, email: str, password: str) -> tuple[User, str, int, str]:
+async def login(
+    db: AsyncSession,
+    email: str,
+    password: str,
+    *,
+    client_ip: str | None = None,
+    user_agent: str | None = None,
+) -> tuple[User, str, int, str]:
+    if await security_service.is_login_locked_out(db, email=email, ip=client_ip):
+        raise security_service.LockoutError
+
     user = await get_user_by_email(db, email)
     if user is None or not verify_password(password, user.password_hash):
+        await security_service.record_auth_attempt(db, email=email, ip=client_ip, success=False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+
+    await security_service.record_auth_attempt(db, email=email, ip=client_ip, success=True)
+
     if user.status != "active":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -100,17 +129,62 @@ async def login(db: AsyncSession, email: str, password: str) -> tuple[User, str,
 
     refresh_raw = await _issue_refresh_token(db, user.id)
     access_token, expires_in = create_access_token(str(user.id))
+    await audit_service.record(
+        db,
+        action="user_login",
+        entity_type="user",
+        entity_id=str(user.id),
+        actor_user_id=user.id,
+        ip=client_ip,
+        user_agent=user_agent,
+    )
     await db.commit()
     return user, access_token, expires_in, refresh_raw
 
 
-async def rotate_refresh_token(db: AsyncSession, raw_token: str) -> tuple[User, str, int, str]:
+async def _revoke_all_user_refresh_tokens(db: AsyncSession, user_id: UUID) -> None:
+    now = datetime.now(UTC)
+    await db.execute(
+        update(RefreshToken)
+        .where(
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked_at.is_(None),
+        )
+        .values(revoked_at=now)
+    )
+
+
+async def rotate_refresh_token(
+    db: AsyncSession,
+    raw_token: str,
+    *,
+    client_ip: str | None = None,
+    user_agent: str | None = None,
+) -> tuple[User, str, int, str]:
     token_hash = hash_refresh_token(raw_token)
     result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     stored = result.scalar_one_or_none()
     now = datetime.now(UTC)
 
-    if stored is None or stored.revoked_at is not None or stored.expires_at <= now:
+    if stored is None or stored.expires_at <= now:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+    if stored.revoked_at is not None:
+        await _revoke_all_user_refresh_tokens(db, stored.user_id)
+        await audit_service.record(
+            db,
+            action="refresh_token_reuse_detected",
+            entity_type="refresh_token",
+            entity_id=str(stored.id),
+            actor_user_id=stored.user_id,
+            metadata={"family_revoked": True},
+            ip=client_ip,
+            user_agent=user_agent,
+        )
+        await db.commit()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
@@ -133,16 +207,40 @@ async def rotate_refresh_token(db: AsyncSession, raw_token: str) -> tuple[User, 
     stored.replaced_by = new_token.id
 
     access_token, expires_in = create_access_token(str(user.id))
+    await audit_service.record(
+        db,
+        action="token_refreshed",
+        entity_type="user",
+        entity_id=str(user.id),
+        actor_user_id=user.id,
+        ip=client_ip,
+        user_agent=user_agent,
+    )
     await db.commit()
     return user, access_token, expires_in, new_raw
 
 
-async def revoke_refresh_token(db: AsyncSession, raw_token: str) -> None:
+async def revoke_refresh_token(
+    db: AsyncSession,
+    raw_token: str,
+    *,
+    client_ip: str | None = None,
+    user_agent: str | None = None,
+) -> None:
     token_hash = hash_refresh_token(raw_token)
     result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     stored = result.scalar_one_or_none()
     if stored is not None and stored.revoked_at is None:
         stored.revoked_at = datetime.now(UTC)
+        await audit_service.record(
+            db,
+            action="user_logout",
+            entity_type="user",
+            entity_id=str(stored.user_id),
+            actor_user_id=stored.user_id,
+            ip=client_ip,
+            user_agent=user_agent,
+        )
         await db.commit()
 
 

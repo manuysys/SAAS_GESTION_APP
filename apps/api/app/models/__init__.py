@@ -8,6 +8,7 @@ from app.models.notification import Notification
 from app.models.payment import Payment
 from app.models.plan import Plan
 from app.models.quote import Quote, QuoteEvent, QuoteItem
+from app.models.security import AuditLog, AuthAttempt, RateLimitBucket
 from app.models.service_request import ServiceRequest
 from app.models.subscription import Subscription
 from app.models.tenant import Membership, RefreshToken, Tenant, User
@@ -20,6 +21,8 @@ from app.models.work_order_material import WorkOrderMaterial
 __all__ = [
     "AIUsageLog",
     "Appointment",
+    "AuditLog",
+    "AuthAttempt",
     "AutomationExecution",
     "AutomationRule",
     "Base",
@@ -31,6 +34,7 @@ __all__ = [
     "Quote",
     "QuoteEvent",
     "QuoteItem",
+    "RateLimitBucket",
     "RefreshToken",
     "ServiceRequest",
     "Subscription",

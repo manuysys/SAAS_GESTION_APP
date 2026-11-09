@@ -1,14 +1,19 @@
-"""Middlewares de seguridad y rate limiting."""
+"""Middlewares de seguridad, rate limiting y trazabilidad."""
 
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from uuid import uuid4
 
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
-from app.core.rate_limit import check_rate_limit
+from app.core.db import SessionLocal
+from app.core.logging import clear_request_id, get_logger, set_request_id
+from app.services import security_service
+
+logger = get_logger(__name__)
 
 _AUTH_PATHS = frozenset(
     {
@@ -17,7 +22,22 @@ _AUTH_PATHS = frozenset(
         "/api/v1/auth/refresh",
     }
 )
-_PUBLIC_PREFIX = "/api/v1/public/quotes/"
+_PUBLIC_QUOTE_PREFIX = "/api/v1/public/quotes/"
+_REQUEST_ID_HEADER = "X-Request-ID"
+
+
+async def request_id_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    request_id = request.headers.get(_REQUEST_ID_HEADER) or str(uuid4())
+    request.state.request_id = request_id
+    set_request_id(request_id)
+    try:
+        response = await call_next(request)
+        response.headers[_REQUEST_ID_HEADER] = request_id
+        return response
+    finally:
+        clear_request_id()
 
 
 async def security_headers_middleware(
@@ -42,24 +62,29 @@ async def rate_limit_middleware(
     if request.method == "OPTIONS":
         return await call_next(request)
 
-    try:
-        if path in _AUTH_PATHS and request.method == "POST":
-            check_rate_limit(
-                request,
-                scope="auth",
-                limit=settings.rate_limit_auth_per_minute,
-            )
-        elif path.startswith(_PUBLIC_PREFIX) and request.method == "GET":
-            check_rate_limit(
-                request,
-                scope="public-quote",
-                limit=settings.rate_limit_public_per_minute,
-            )
-    except HTTPException as exc:
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail},
-            headers=exc.headers,
-        )
+    limit: int | None = None
+    scope: str | None = None
+    if path in _AUTH_PATHS and request.method == "POST":
+        scope = "auth"
+        limit = settings.rate_limit_auth_per_minute
+    elif path.startswith(_PUBLIC_QUOTE_PREFIX) and request.method == "GET":
+        scope = "public-quote"
+        limit = settings.rate_limit_public_per_minute
+
+    if scope is not None and limit is not None:
+        async with SessionLocal() as db:
+            try:
+                await security_service.check_rate_limit(
+                    db,
+                    request,
+                    scope=scope,
+                    limit=limit,
+                )
+            except HTTPException as exc:
+                return JSONResponse(
+                    status_code=exc.status_code,
+                    content={"detail": exc.detail},
+                    headers=exc.headers,
+                )
 
     return await call_next(request)

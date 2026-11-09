@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,36 @@ from app.core.security import decode_access_token
 from app.models import Membership, User
 
 bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def validate_cookie_origin(request: Request) -> None:
+    """Valida Origin/Referer para endpoints que usan cookies.
+
+    Si no hay header Origin (clientes API no-browser), permite la request.
+    Si el origen no pertenece a API_CORS_ORIGINS, rechaza con 403.
+    """
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    if not origin:
+        return
+
+    allowed = settings.api_cors_origins
+    for allowed_origin in allowed:
+        if origin.startswith(allowed_origin):
+            return
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Invalid origin",
+    )
+
+
+def get_client_ip(request: Request) -> str | None:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip() or None
+    if request.client is not None:
+        return request.client.host
+    return None
 
 
 async def get_current_user(

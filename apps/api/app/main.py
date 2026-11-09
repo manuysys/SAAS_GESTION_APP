@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+import app.core.logging
 from app.api.routes import (
     admin,
     ai,
@@ -24,12 +26,21 @@ from app.api.routes import (
     work_orders,
 )
 from app.core.config import settings
-from app.core.middleware import rate_limit_middleware, security_headers_middleware
+from app.core.middleware import (
+    rate_limit_middleware,
+    request_id_middleware,
+    security_headers_middleware,
+)
+
+_production_docs_hidden = settings.app_env.lower() == "production"
 
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
     debug=settings.app_debug,
+    docs_url=None if _production_docs_hidden else "/docs",
+    redoc_url=None if _production_docs_hidden else "/redoc",
+    openapi_url=None if _production_docs_hidden else "/openapi.json",
 )
 
 app.add_middleware(
@@ -39,6 +50,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.allowed_hosts,
+)
+app.middleware("http")(request_id_middleware)
 app.middleware("http")(rate_limit_middleware)
 app.middleware("http")(security_headers_middleware)
 
@@ -66,4 +82,4 @@ app.include_router(whatsapp_webhook.router, prefix="/api/v1")
 
 @app.get("/")
 async def root() -> dict[str, str]:
-    return {"name": settings.app_name, "docs": "/docs", "health": "/api/v1/health/live"}
+    return {"name": settings.app_name, "health": "/api/v1/health/live"}
