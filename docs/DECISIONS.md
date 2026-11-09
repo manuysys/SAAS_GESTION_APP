@@ -193,3 +193,23 @@ desactiva en pruebas.
 **Consecuencias:** suficiente para desarrollo y una sola instancia. En
 producción con varias instancias hace falta Redis/Upstash o el rate limiting del
 proveedor.
+
+## ADR-014 — Frontend y API en Vercel, PostgreSQL en Neon
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Contexto:** la demo dependía de una máquina local y un túnel rápido de
+Cloudflare, sin uptime ni URL estable.
+
+**Decisión:** desplegar el frontend Next.js y la API FastAPI como proyectos
+separados de Vercel. La API usa el preset FastAPI zero-config, `app/main.py`
+como entrypoint, Python 3.12 y `requirements.txt`. PostgreSQL se provisiona con
+el marketplace de Neon (plan Free, región `gru1`) y las migraciones se ejecutan
+con la conexión directa. En producción la API usa `NullPool` y asyncpg con
+`ssl=require`.
+
+**Consecuencias:** la demo queda disponible sin depender de una PC. Los planes
+gratuitos tienen límites, cold starts y una ventana de restauración acotada. Para
+producción se necesita un plan pago, dominio propio, backups verificados y rate
+limiting compartido.

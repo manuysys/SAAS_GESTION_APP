@@ -2,20 +2,20 @@
 
 **Última actualización:** 2026-11-08
 **Fase:** Hito 2 completo + PWA, automatizaciones, IA determinista, suscripciones,
-panel global y esqueleto de WhatsApp. Demo pública temporal.
+panel global, esqueleto de WhatsApp y despliegue público 24/7 en Vercel + Neon.
 
 ## Resumen
 
-La aplicación corre de punta a punta en local y el frontend está publicado en
-Vercel: registro, login, refresh de sesión, creación de empresa, aislamiento por
-tenant, clientes, solicitudes, órdenes de trabajo, presupuestos con PDF y
-aprobación pública, agenda, asignación de técnicos, pagos, dashboard operativo,
-PWA para técnicos, automatizaciones con notificaciones, asistente de IA
-determinista, planes y suscripciones, panel global del SaaS y configuración de
-WhatsApp Cloud API.
+La aplicación corre de punta a punta: registro, login, refresh de sesión,
+creación de empresa, aislamiento por tenant, clientes, solicitudes, órdenes de
+trabajo, presupuestos con PDF y aprobación pública, agenda, asignación de
+técnicos, pagos, dashboard operativo, PWA para técnicos, automatizaciones con
+notificaciones, asistente de IA determinista, planes y suscripciones, panel
+global del SaaS y configuración de WhatsApp Cloud API.
 
-La API corre en la máquina local y se expone por un túnel temporal de
-Cloudflare. La base PostgreSQL es local. **No es un entorno de producción.**
+El frontend y la API están desplegados en Vercel. La base PostgreSQL está en
+Neon (plan Free, región `gru1`). La demo ya no depende de una máquina local ni
+de un túnel.
 
 ## Hecho y verificado
 
@@ -25,7 +25,9 @@ Cloudflare. La base PostgreSQL es local. **No es un entorno de producción.**
 - [x] `AGENTS.md`, documentación base y `.env.example`.
 - [x] OpenCode: agentes, skills, comandos y Context7 MCP.
 - [x] Node 24 vía `fnm`, Python 3.12 vía `uv`.
-- [x] PostgreSQL 17.11 portable en `127.0.0.1:55432`.
+- [x] PostgreSQL 17.11 portable en `127.0.0.1:55432` para desarrollo local.
+- [x] PostgreSQL administrado en Neon para la demo pública.
+- [x] API FastAPI desplegada en Vercel con runtime Python 3.12.
 - [x] CI en GitHub Actions para backend y frontend.
 - [x] Scripts de backup, restore y healthcheck.
 
@@ -98,24 +100,40 @@ pnpm test           -> 61 passed
 pnpm build          -> 21 rutas generadas
 ```
 
-Flujo probado en navegador contra Vercel + túnel: registro, clientes, solicitud,
+Flujo probado en navegador contra Vercel + Neon: registro, clientes, solicitud,
 orden, presupuesto, aprobación pública, agenda, pago y dashboard. También se
 verificó que la aprobación pública dispara una automatización y crea una
 notificación in-app.
 
+### Verificación del despliegue 24/7
+
+```text
+GET https://saas-gestion-api.vercel.app/api/v1/health/live  -> 200
+GET https://saas-gestion-api.vercel.app/api/v1/health/ready -> 200
+POST /api/v1/auth/login (demo)                              -> 200
+GET /api/v1/quotes/{id}/pdf                                 -> 200 application/pdf
+GET /api/v1/plans                                           -> 3 planes
+GET /api/v1/subscription                                    -> Professional active
+GET /api/v1/admin/metrics (fundador)                        -> 200
+```
+
+El refresh de sesión cross-site se verificó recargando el dashboard después del
+login. El asistente determinista devolvió `QT-2026-0002` con datos reales de
+Neon.
+
 ## Demo pública
 
 - Frontend: https://saas-gestion-web.vercel.app
-- API temporal: https://sims-instrumental-capture-enlarge.trycloudflare.com
+- API: https://saas-gestion-api.vercel.app
+- Base de datos: Neon PostgreSQL (`gru1`, plan Free).
 - Admin demo: `demo@saasgestion.com` / `Demo12345!`.
 - Técnico demo: `tecnico@saasgestion.com` / `Tecnico12345!`.
 
-Ver `docs/DEMO.md`. La demo depende de que esta máquina y el túnel sigan activos.
+Ver `docs/DEMO.md`. La demo ya no depende de esta máquina. Limitación: el plan
+Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 
 ## Pendiente
 
-- [ ] PostgreSQL administrado y API desplegada 24/7 (Neon bloqueado por
-      aceptación de términos; alternativa: Supabase o connection string).
 - [ ] WhatsApp end-to-end con número y credenciales de Meta.
 - [ ] Cobros reales con Mercado Pago y webhooks.
 - [ ] Proveedor de IA externo con API key (o Ollama local en producción).
@@ -124,20 +142,19 @@ Ver `docs/DEMO.md`. La demo depende de que esta máquina y el túnel sigan activ
 - [ ] Correo electrónico transaccional.
 - [ ] Entrevistas a clientes.
 - [ ] Dominio propio, política de privacidad y revisión legal.
+- [ ] Backups verificados y plan de restauración de Neon.
 
 ## Próximo paso concreto
 
-1. Provisionar PostgreSQL administrado y desplegar la API con un proveedor que
-   soporte FastAPI (Render, Fly.io, Railway o similar).
-2. Configurar `NEXT_PUBLIC_API_URL` definitiva y CORS del dominio final.
-3. Probar WhatsApp y Mercado Pago con credenciales reales en sandbox.
-4. Implementar enforcement de límites y recordatorios programados.
+1. Configurar un dominio propio y HTTPS para el frontend y la API.
+2. Probar WhatsApp y Mercado Pago con credenciales reales en sandbox.
+3. Implementar enforcement de límites y recordatorios programados.
+4. Verificar backups/restauración de Neon y monitoreo de errores.
 
 ## Limitaciones conocidas
 
-- La demo pública usa un túnel y una base local; no tiene garantía de uptime.
-- Neon no se pudo provisionar porque la CLI exige aceptar términos en el
-  navegador.
+- Neon Free y Vercel Hobby tienen límites de almacenamiento, conexiones y
+  ejecución; no son un entorno productivo con SLA.
 - Sin credenciales de Meta, Mercado Pago ni proveedores de IA externos.
 - El rate limiting es en memoria y por instancia; no sirve para varias
   instancias sin un backend compartido.
@@ -146,3 +163,4 @@ Ver `docs/DEMO.md`. La demo depende de que esta máquina y el túnel sigan activ
 - El asistente determinista responde intenciones predefinidas; no es un LLM.
 - `send_whatsapp` en automatizaciones queda `skipped` hasta configurar WhatsApp.
 - La suscripción se crea en modo `trialing`, pero todavía no se cobra.
+- Los cold starts de Vercel pueden agregar latencia a la primera request.

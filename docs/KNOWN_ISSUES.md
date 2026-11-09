@@ -6,13 +6,9 @@
   `origin` funciona con la credencial de Windows, pero `gh auth login` no se
   completó porque el token existente no tiene el scope `read:org`. Para usar
   todas las funciones de `gh` hay que autorizar un token con ese scope.
-- **Demo pública temporal.** El frontend está en Vercel, pero la API y
-  PostgreSQL corren en una máquina local detrás de un túnel rápido de
-  Cloudflare. No tiene uptime garantizado y la URL cambia al reiniciar.
-- **Neon bloqueado.** La CLI de Vercel exige aceptar los términos de Neon en el
-  navegador. Sin eso no se puede provisionar PostgreSQL administrado.
-- **Sin API 24/7.** Falta desplegar FastAPI en un proveedor con procesos
-  persistentes (Render, Fly.io, Railway o similar).
+- **Demo en planes gratuitos.** Frontend y API están en Vercel Hobby; la base
+  está en Neon Free. Hay límites de uso, cold starts y una ventana de
+  restauración acotada. No es producción con SLA.
 - **Docker no operativo.** Docker Desktop está instalado, pero no hay WSL/Hyper-V
   activo. El desarrollo usa PostgreSQL portable, no contenedores.
 - **Node 26 global en `Downloads`.** Se instaló Node 24 LTS con `fnm` para el

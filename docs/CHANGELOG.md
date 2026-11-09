@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-08 — Despliegue 24/7 en Vercel + Neon
+
+- PostgreSQL administrado en Neon (plan Free, región `gru1`).
+- API FastAPI desplegada en Vercel con runtime Python 3.12 y preset FastAPI.
+- Migraciones Alembic aplicadas contra Neon.
+- Frontend Vercel apuntando a la API persistente.
+- Cookies cross-site `SameSite=None; Secure` verificadas con refresh de sesión.
+- Demo pública sin túnel ni dependencia de la máquina local.
+- Datos demo cargados en Neon: clientes, solicitudes, órdenes, presupuestos,
+  turno, pago, suscripción, automatización y notificación.
+- `requirements.txt`, `.python-version` y `vercel.json` para el deploy de la API.
+
 ## 2026-11-08 — PWA, automatizaciones, IA, suscripciones y WhatsApp
 
 - PWA para técnicos: `/tech`, detalle, transiciones, notas, materiales y fotos.

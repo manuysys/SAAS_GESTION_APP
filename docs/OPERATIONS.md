@@ -14,19 +14,18 @@
 
 ## Respaldos
 
-### PostgreSQL administrado
+### Neon (demo pública)
 
-- Activar backups automáticos diarios.
-- Retención mínima: 7 diarios, 4 semanales, 3 mensuales.
-- Cifrado en reposo y en tránsito.
-- Probar restauración al menos una vez antes del lanzamiento.
+- El plan Free de Neon incluye una ventana de restauración limitada.
+- Verificar la ventana vigente en el panel de Neon.
+- Para producción, contratar un plan con backups automáticos y retención
+  explícita.
+- Probar una restauración antes de usar datos reales.
 
-### Backup manual
+### PostgreSQL local
 
-```powershell
-pg_dump --format=custom --no-owner --file=backup.dump "$env:DATABASE_URL_SYNC"
-pg_restore --clean --if-exists --no-owner --dbname="$env:DATABASE_URL_SYNC" backup.dump
-```
+- Usar `scripts/backup.ps1` y `scripts/restore.ps1`.
+- Guardar los backups fuera de `.local` si se usan para recuperación real.
 
 ## Incidentes
 

@@ -1,14 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/index.py": {
-      "runtime": "python3.12",
-      "maxDuration": 60
+    "app/main.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{tests/**,migrations/**,**/*.test.py,pyproject.toml,uv.lock,requirements-dev.txt}"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index"
-    }
-  ]
+  }
 }

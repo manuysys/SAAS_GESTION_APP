@@ -94,6 +94,16 @@ Con el servidor levantado:
 
 Estas credenciales son solo para desarrollo local. No usarlas en producción.
 
+## Demo pública
+
+- Frontend: https://saas-gestion-web.vercel.app
+- API: https://saas-gestion-api.vercel.app
+- Admin: `demo@saasgestion.com` / `Demo12345!`
+- Técnico: `tecnico@saasgestion.com` / `Tecnico12345!`
+
+Ver [`docs/DEMO.md`](docs/DEMO.md). La demo usa Neon Free y Vercel Hobby; no es
+un entorno productivo con SLA.
+
 ## Documentación
 
 - [Contexto maestro](CONTEXTO_GUIA_PROYECTO.md)

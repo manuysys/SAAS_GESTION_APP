@@ -3,21 +3,14 @@
 ## URL
 
 - Frontend: https://saas-gestion-web.vercel.app
-- API temporal: https://sims-instrumental-capture-enlarge.trycloudflare.com
+- API: https://saas-gestion-api.vercel.app
+- Base de datos: Neon PostgreSQL, región `gru1`, plan Free.
 
-La API corre en la máquina local y se expone por un túnel de Cloudflare. El
-frontend está en Vercel. Si la máquina o el túnel se apagan, la demo deja de
-funcionar. No es un entorno de producción.
+Frontend y API están desplegados en Vercel. La base está en Neon. La demo no
+depende de una máquina local ni de un túnel.
 
-El túnel rápido de Cloudflare cambia de URL cada vez que se reinicia. Si cambia,
-hay que actualizar `NEXT_PUBLIC_API_URL` en Vercel y volver a desplegar:
-
-```powershell
-cd apps/web
-vercel env rm NEXT_PUBLIC_API_URL production --yes
-"https://<nueva-url>.trycloudflare.com" | vercel env add NEXT_PUBLIC_API_URL production
-vercel --prod --yes
-```
+Limitaciones: plan Free de Neon (almacenamiento/conexiones) y plan Hobby de
+Vercel (cold starts y límites de ejecución). No es un entorno con SLA.
 
 ## Cuentas de prueba
 
@@ -37,6 +30,17 @@ Password: Tecnico12345!
 Empresa: Servicios Demo
 ```
 
+### Fundador / panel global
+
+```text
+Email: founder@saasgestion.com
+Password: Founder12345!
+Empresa: SaaS Gestion HQ
+```
+
+El usuario fundador tiene `is_platform_admin=true` y puede entrar a `/admin`.
+No publicar estas credenciales fuera del equipo.
+
 ## Datos cargados
 
 - 3 clientes.
@@ -45,6 +49,7 @@ Empresa: Servicios Demo
 - Presupuesto `QT-2026-0001` aprobado por el cliente.
 - Presupuesto `QT-2026-0002` enviado y pendiente.
 - 1 turno agendado para el técnico.
+- 1 pago parcial registrado.
 - Suscripción Professional activa.
 - Automatización "Avisar presupuesto aprobado".
 - 1 notificación generada por la aprobación pública.
