@@ -25,6 +25,7 @@ from app.repositories.tenants import (
 )
 from app.repositories.users import create_user, get_user_by_email
 from app.schemas.auth import RegisterRequest
+from app.services import billing_service
 
 
 def slugify(value: str) -> str:
@@ -75,6 +76,7 @@ async def register(
         slug=await unique_slug(db, payload.company_name),
     )
     await create_membership(db, tenant_id=tenant.id, user_id=user.id, role="owner")
+    await billing_service.create_trial_subscription(db, tenant.id)
     refresh_raw = await _issue_refresh_token(db, user.id)
     access_token, expires_in = create_access_token(str(user.id))
     await db.commit()

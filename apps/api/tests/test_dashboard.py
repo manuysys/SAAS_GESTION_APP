@@ -1,6 +1,7 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -91,7 +92,9 @@ async def test_dashboard_summary_returns_counts(
     assert body["pending_balance"] == "0.00"
     assert body["appointments_today"] == 0
 
-    start = datetime.now(UTC) + timedelta(hours=2)
+    start = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).replace(
+        hour=12, minute=0, second=0, microsecond=0
+    )
     appointment = await client.post(
         "/api/v1/appointments",
         json={

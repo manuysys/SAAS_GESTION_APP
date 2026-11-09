@@ -32,9 +32,20 @@ from app.schemas.quote import (
     QuoteStatus,
     QuoteUpdate,
 )
+from app.services import automation_service
 
 _CENT = Decimal("0.01")
 MAX_AMOUNT = Decimal("999999999999.99")
+
+
+def _quote_event_payload(quote: Quote) -> dict[str, object]:
+    return {
+        "quote_id": str(quote.id),
+        "number": quote.number,
+        "work_order_id": str(quote.work_order_id) if quote.work_order_id else None,
+        "customer_id": str(quote.customer_id),
+        "total": str(quote.total),
+    }
 
 
 def _quantize(value: Decimal) -> Decimal:
@@ -299,6 +310,17 @@ async def _transition_quote(
         event_type=to_status,
         actor_user_id=actor_user_id,
     )
+    event_map = {
+        "sent": "quote_sent",
+        "approved": "quote_approved",
+        "rejected": "quote_rejected",
+    }
+    await automation_service.emit_event(
+        db,
+        tenant_id=tenant_id,
+        event_type=event_map[to_status],
+        payload=_quote_event_payload(quote),
+    )
     await db.commit()
     return cast(Quote, await get_quote(db, tenant_id=tenant_id, quote_id=quote.id))
 
@@ -425,6 +447,12 @@ async def public_approve_quote(
         actor_user_id=None,
         payload={"notes": decision.notes} if decision.notes else None,
     )
+    await automation_service.emit_event(
+        db,
+        tenant_id=quote.tenant_id,
+        event_type="quote_approved",
+        payload=_quote_event_payload(quote),
+    )
     await db.commit()
     await db.refresh(quote)
     return await public_get_quote(db, token=token)
@@ -458,6 +486,12 @@ async def public_reject_quote(
         event_type="rejected",
         actor_user_id=None,
         payload={"notes": decision.notes} if decision.notes else None,
+    )
+    await automation_service.emit_event(
+        db,
+        tenant_id=quote.tenant_id,
+        event_type="quote_rejected",
+        payload=_quote_event_payload(quote),
     )
     await db.commit()
     await db.refresh(quote)

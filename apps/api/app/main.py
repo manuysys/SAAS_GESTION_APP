@@ -2,11 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import (
+    admin,
+    ai,
     appointments,
     auth,
+    automations,
+    billing,
     customers,
     dashboard,
     health,
+    notifications,
     payments,
     public_quotes,
     quotes,
@@ -14,9 +19,12 @@ from app.api.routes import (
     technician,
     technicians,
     tenants,
+    whatsapp,
+    whatsapp_webhook,
     work_orders,
 )
 from app.core.config import settings
+from app.core.middleware import rate_limit_middleware, security_headers_middleware
 
 app = FastAPI(
     title=settings.app_name,
@@ -31,6 +39,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.middleware("http")(rate_limit_middleware)
+app.middleware("http")(security_headers_middleware)
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
@@ -45,6 +55,13 @@ app.include_router(payments.router, prefix="/api/v1")
 app.include_router(technicians.router, prefix="/api/v1")
 app.include_router(technician.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(billing.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
+app.include_router(automations.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(ai.router, prefix="/api/v1")
+app.include_router(whatsapp.router, prefix="/api/v1")
+app.include_router(whatsapp_webhook.router, prefix="/api/v1")
 
 
 @app.get("/")

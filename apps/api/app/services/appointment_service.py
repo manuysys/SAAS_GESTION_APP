@@ -14,6 +14,7 @@ from app.repositories.appointments import (
 )
 from app.repositories.work_orders import get_work_order
 from app.schemas.appointment import AppointmentCreate, AppointmentUpdate
+from app.services import automation_service
 
 
 async def _validate_technician(db: AsyncSession, *, tenant_id: UUID, technician_id: UUID) -> None:
@@ -135,6 +136,17 @@ async def create_tenant_appointment(
         order.scheduled_at = payload.starts_at
         order.operational_status = "scheduled"
 
+    await automation_service.emit_event(
+        db,
+        tenant_id=tenant_id,
+        event_type="appointment_created",
+        payload={
+            "appointment_id": str(appointment.id),
+            "work_order_id": str(appointment.work_order_id),
+            "technician_id": str(appointment.technician_id),
+            "starts_at": appointment.starts_at.isoformat(),
+        },
+    )
     await db.commit()
     await db.refresh(appointment)
     return appointment

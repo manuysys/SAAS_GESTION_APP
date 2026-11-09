@@ -32,6 +32,7 @@ class UserResponse(ORMModel):
     email: EmailStr
     full_name: str
     status: str
+    is_platform_admin: bool = False
 
 
 class TenantResponse(ORMModel):

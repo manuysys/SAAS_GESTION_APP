@@ -7,6 +7,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+
 from app.core.db import get_db
 from app.main import app
 from app.models import Base

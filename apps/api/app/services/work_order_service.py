@@ -22,6 +22,7 @@ from app.schemas.work_order import (
     WorkOrderTransition,
     WorkOrderUpdate,
 )
+from app.services import automation_service
 
 
 async def validate_assignee(db: AsyncSession, tenant_id: UUID, user_id: UUID) -> None:
@@ -188,6 +189,18 @@ async def transition_tenant_work_order(
         to_status=target,
         actor_user_id=actor_user_id,
         payload={"notes": payload.notes} if payload.notes else None,
+    )
+    await automation_service.emit_event(
+        db,
+        tenant_id=tenant_id,
+        event_type="work_order_status_changed",
+        payload={
+            "work_order_id": str(order.id),
+            "from_status": current,
+            "to_status": target,
+            "priority": order.priority,
+            "customer_id": str(order.customer_id),
+        },
     )
     await db.commit()
     await db.refresh(order)

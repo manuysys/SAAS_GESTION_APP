@@ -16,6 +16,7 @@ from app.repositories.payments import (
 )
 from app.repositories.work_orders import get_work_order
 from app.schemas.payment import PaymentCreate
+from app.services import automation_service
 
 _ALLOWED_METHODS: Final = frozenset({"cash", "transfer", "card", "mercadopago", "other"})
 
@@ -122,6 +123,17 @@ async def create_tenant_payment(
     )
     await _recalc_work_order_payment_status(
         db, tenant_id=tenant_id, work_order_id=payload.work_order_id
+    )
+    await automation_service.emit_event(
+        db,
+        tenant_id=tenant_id,
+        event_type="payment_registered",
+        payload={
+            "payment_id": str(payment.id),
+            "work_order_id": str(payment.work_order_id),
+            "amount": str(payment.amount),
+            "method": payment.method,
+        },
     )
     await db.commit()
     await db.refresh(payment)
