@@ -1,13 +1,13 @@
 # Roadmap
 
-## Hito 0 — Fundamentos (en curso)
+## Hito 0 — Fundamentos
 
 - [x] Lectura del contexto maestro.
 - [x] Auditoría del entorno.
 - [x] Repositorio y documentación base.
 - [x] Toolchain local (Node 24, Python 3.12, PostgreSQL 17 portable).
 - [x] OpenCode: MCP, agentes, skills y comandos.
-- [ ] Investigación competitiva con fuentes oficiales.
+- [x] Investigación competitiva con fuentes oficiales (2026-11-08).
 - [ ] Entrevistas a potenciales clientes (5–10).
 - [ ] Decisión de segmento inicial.
 - [ ] Identidad provisional (sin nombre comercial definitivo).
@@ -34,37 +34,44 @@
 
 ## Hito 3 — Experiencia móvil
 
-- [ ] PWA responsive para técnicos.
-- [ ] Órdenes asignadas, detalle y cambio de estado.
-- [ ] Fotografías, observaciones y materiales.
-- [ ] Cierre de trabajo y solicitud de reprogramación.
+- [x] PWA responsive para técnicos.
+- [x] Órdenes asignadas, detalle y cambio de estado.
+- [x] Fotografías, observaciones y materiales.
+- [x] Cierre de trabajo.
+- [ ] Solicitud de reprogramación desde la PWA.
 
 ## Hito 4 — Automatizaciones
 
-- [ ] Eventos de dominio y outbox transaccional.
-- [ ] Motor de reglas, condiciones y acciones.
-- [ ] Reintentos, idempotencia e historial.
-- [ ] Recordatorios y seguimiento de presupuestos.
+- [x] Eventos de dominio.
+- [x] Motor de reglas, condiciones y acciones.
+- [x] Idempotencia e historial de ejecuciones.
+- [x] Notificaciones in-app.
+- [ ] Recordatorios y seguimiento programado de presupuestos.
+- [ ] Outbox transaccional con worker.
 
 ## Hito 5 — Comunicación
 
-- [ ] WhatsApp Business Platform (API oficial).
-- [ ] Webhooks con verificación de firma.
-- [ ] Plantillas, consentimiento y registro de mensajes.
-- [ ] Correo electrónico y notificaciones.
+- [x] WhatsApp Business Platform: configuración, webhook, firma y mensajes.
+- [x] Webhooks con verificación de firma.
+- [ ] Plantillas aprobadas y consentimiento.
+- [ ] Envío end-to-end con credenciales reales.
+- [ ] Correo electrónico transaccional.
 
 ## Hito 6 — Inteligencia artificial
 
-- [ ] Asistente administrativo con consultas reales.
-- [ ] Herramientas controladas y niveles de autorización.
+- [x] Asistente administrativo con consultas reales.
+- [x] Proveedor determinista, OpenAI-compatible y Ollama.
+- [x] Cuotas, medición de tokens y costos.
+- [ ] Herramientas controladas con confirmación humana.
 - [ ] Borradores de presupuestos y solicitudes.
-- [ ] Cuotas, medición de tokens y costos.
 
 ## Hito 7 — Comercialización
 
-- [ ] Planes, entitlements y suscripciones.
+- [x] Planes, límites y suscripciones con precio histórico.
+- [x] Panel global del proveedor SaaS.
+- [ ] Enforcement completo de límites por plan.
+- [ ] Cobros con Mercado Pago y webhooks.
 - [ ] Onboarding guiado.
-- [ ] Panel global del proveedor SaaS.
 - [ ] Landing page, soporte y primeros clientes pagos.
 
 ## Hito 8 — Expansión

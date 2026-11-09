@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-11-08 — PWA, automatizaciones, IA, suscripciones y WhatsApp
+
+- PWA para técnicos: `/tech`, detalle, transiciones, notas, materiales y fotos.
+- Modelos `work_order_materials` y `work_order_attachments` con migración
+  `51fc582e7593`.
+- Automatizaciones: `automation_rules`, `automation_executions`, eventos de
+  dominio, condiciones, acciones, idempotencia e historial.
+- Notificaciones in-app con campana, contador y lectura individual/masiva.
+- Asistente de IA con proveedor determinista, OpenAI-compatible y Ollama,
+  cuotas, uso y costo estimado.
+- Planes, suscripciones con precio histórico, uso y panel global del SaaS.
+- WhatsApp Cloud API: configuración cifrada, webhook con firma HMAC, mensajes
+  idempotentes y envío de texto.
+- Rate limiting en memoria y cabeceras de seguridad.
+- Migración `5ffb8399d836` con automatizaciones, notificaciones, IA,
+  suscripciones, WhatsApp y `users.is_platform_admin`.
+- Frontend: `/automations`, `/notifications`, `/assistant`, `/settings/billing`,
+  `/settings/whatsapp` y `/admin`.
+- CI, backups, restore y healthcheck.
+- Investigación competitiva con fuentes oficiales al 2026-11-08.
+- 73 pruebas pytest y 61 pruebas de frontend.
+
+## 2026-11-08 — Despliegue público temporal
+
+- Frontend en Vercel: `https://saas-gestion-web.vercel.app`.
+- API local expuesta por túnel de Cloudflare.
+- Tenant demo con clientes, solicitudes, órdenes, presupuestos, turno, pago,
+  suscripción y automatización.
+- Registro y alta de cliente probados desde el dominio público.
+
 ## 2026-11-08 — Agenda, técnicos, pagos y dashboard
 
 - Modelos `appointments` y `payments`.

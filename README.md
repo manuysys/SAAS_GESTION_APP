@@ -4,8 +4,10 @@ Plataforma SaaS B2B de gestión, automatización e inteligencia para empresas de
 servicios técnicos: CRM, solicitudes, órdenes de trabajo, presupuestos, agenda,
 pagos, comunicaciones y automatizaciones en un solo lugar.
 
-> **Estado:** vertical slice funcionando en local: registro, login, empresa,
-> multi-tenancy y CRUD de clientes. La fuente de verdad del avance es
+> **Estado:** aplicación funcional de punta a punta en local y demo pública
+> temporal en Vercel. Incluye PWA para técnicos, automatizaciones,
+> notificaciones, asistente de IA determinista, suscripciones, panel global y
+> esqueleto de WhatsApp oficial. La fuente de verdad del avance es
 > [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 ## Stack
@@ -17,9 +19,9 @@ pagos, comunicaciones y automatizaciones en un solo lugar.
 | Base de datos | PostgreSQL 17 |
 | Autenticación | Self-hosted: Argon2id + JWT + refresh rotativo |
 | Archivos | Adaptador local en desarrollo; S3-compatible en producción |
-| IA | Interfaz desacoplada; Ollama en desarrollo, proveedores externos en producción |
+| IA | Interfaz desacoplada; determinista local, OpenAI-compatible u Ollama |
 | Automatizaciones | Motor propio basado en eventos; n8n solo como orquestador auxiliar |
-| WhatsApp | API oficial de WhatsApp Business Platform (etapa posterior) |
+| WhatsApp | API oficial de WhatsApp Business Platform (esqueleto implementado) |
 
 ## Requisitos
 
@@ -107,6 +109,14 @@ Estas credenciales son solo para desarrollo local. No usarlas en producción.
 - [Despliegue](docs/DEPLOYMENT.md)
 - [Despliegue en Vercel + Neon](docs/DEPLOY_VERCEL.md)
 - [Demo pública](docs/DEMO.md)
+- [Operaciones](docs/OPERATIONS.md)
+- [PWA para técnicos](docs/PWA_TECHNICIANS.md)
+- [Motor de automatizaciones](docs/AUTOMATION_ENGINE.md)
+- [Diseño del agente de IA](docs/AI_AGENT_DESIGN.md)
+- [Suscripciones y planes](docs/SAAS_BILLING.md)
+- [WhatsApp](docs/WHATSAPP_INTEGRATION.md)
+- [Análisis competitivo](docs/COMPETITIVE_ANALYSIS.md)
+- [Investigación de clientes](docs/CUSTOMER_RESEARCH.md)
 
 ## Convenciones
 

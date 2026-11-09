@@ -119,3 +119,77 @@ el catálogo, y el cliente debe poder aprobarlo sin crear una cuenta.
 
 **Consecuencias:** el enlace público es un bearer secreto; no debe compartirse
 públicamente. El PDF no reemplaza la aprobación registrada en el sistema.
+
+## ADR-009 — Automatizaciones in-process con eventos de dominio
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Contexto:** el MVP necesita reaccionar a eventos de negocio sin introducir
+Kafka, Redis ni un worker separado.
+
+**Decisión:** emitir eventos dentro de la transacción del servicio de negocio y
+ejecutar reglas activas en un savepoint. Cada ejecución tiene
+`idempotency_key = rule_id:event_id`, estado y error. Las acciones iniciales son
+`notify` y `notify_user`; `send_whatsapp` queda `skipped` hasta configurar la
+integración. No hay outbox ni reintentos programados todavía.
+
+**Consecuencias:** simple y transaccional; si el proceso se cae, no hay
+reintento automático. Para producción con volumen se evaluará outbox + worker.
+
+## ADR-010 — IA desacoplada con proveedor determinista por defecto
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Contexto:** no hay API key de un proveedor externo y el producto no debe
+depender de un vendedor.
+
+**Decisión:** interfaz `AIProvider` con tres implementaciones:
+`DeterministicProvider` (local, sin red, responde intenciones frecuentes con
+datos reales), `OpenAICompatibleProvider` y `OllamaProvider`. El proveedor se
+elige con `AI_PROVIDER`. Se registran tokens y costo estimado por tenant. La IA
+no ejecuta acciones ni recibe SQL libre; solo recibe un snapshot del negocio.
+
+**Consecuencias:** la demo funciona sin claves y sin simular un LLM. Las
+respuestas deterministas son limitadas y se informa claramente el modo.
+
+## ADR-011 — Suscripciones con precio histórico y panel global
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Decisión:** `plans` guarda el precio de lista; `subscriptions` guarda
+`price_snapshot` para no alterar contratos existentes. El registro crea una
+suscripción `trialing` al plan Starter si existe. El panel global requiere
+`is_platform_admin` o un email en `PLATFORM_ADMIN_EMAILS` y muestra métricas
+agregadas, no datos de clientes.
+
+**Consecuencias:** el enforcement de límites es parcial; los cobros reales con
+Mercado Pago quedan para una etapa posterior.
+
+## ADR-012 — WhatsApp Cloud API oficial con secretos cifrados
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Decisión:** usar la API oficial de WhatsApp Business. Los tokens y secretos
+por tenant se cifran con Fernet usando `WHATSAPP_ENCRYPTION_KEY`. El webhook
+valida `X-Hub-Signature-256` con HMAC SHA-256 y es idempotente por
+`wa_message_id`. No se automatiza WhatsApp Web ni se simulan envíos.
+
+**Consecuencias:** sin credenciales de Meta no se puede probar end-to-end. La
+plataforma sigue funcionando si WhatsApp no está configurado.
+
+## ADR-013 — Rate limiting en memoria para una instancia
+
+**Fecha:** 2026-11-08
+**Estado:** aceptada
+
+**Decisión:** limitar login, registro, refresh y enlaces públicos con una
+ventana deslizante en memoria. Se configura por variables de entorno y se
+desactiva en pruebas.
+
+**Consecuencias:** suficiente para desarrollo y una sola instancia. En
+producción con varias instancias hace falta Redis/Upstash o el rate limiting del
+proveedor.

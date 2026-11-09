@@ -132,18 +132,33 @@ apuntando a la API local mediante un túnel HTTPS:
 
 ```powershell
 # API local en 8000
-.local\bin\cloudflared.exe tunnel --url http://127.0.0.1:8000 --no-autoupdate
+.local\bin\cloudflared.exe tunnel --url http://127.0.0.1:8000 --no-autoupdate --protocol http2
 ```
+
+`--protocol http2` evita fallos de registro del túnel rápido en algunas redes.
 
 Luego:
 
 1. Copiar la URL `https://*.trycloudflare.com`.
-2. Configurar `NEXT_PUBLIC_API_URL` en Vercel con esa URL.
+2. Configurar `NEXT_PUBLIC_API_URL` en Vercel con esa URL:
+
+```powershell
+cd apps/web
+vercel env rm NEXT_PUBLIC_API_URL production --yes
+"https://<nueva-url>.trycloudflare.com" | vercel env add NEXT_PUBLIC_API_URL production
+vercel --prod --yes
+```
+
 3. Reiniciar la API local con:
    - `API_CORS_ORIGINS=["https://<proyecto>.vercel.app"]`
    - `COOKIE_SECURE=true`
    - `COOKIE_SAMESITE=none`
+   - `WHATSAPP_ENCRYPTION_KEY=<clave>` si se va a configurar WhatsApp.
 4. Deployar el frontend con `vercel --prod`.
+
+La URL del túnel rápido cambia al reiniciarlo. Las cookies de sesión quedan
+asociadas al dominio del túnel, así que hay que volver a iniciar sesión después
+de cada cambio.
 
 Esta modalidad depende de que la máquina y el túnel sigan activos. No es
 producción y no tiene garantía de uptime.
@@ -170,6 +185,15 @@ JWT_REFRESH_TTL_DAYS=30
 API_CORS_ORIGINS=["https://<frontend>.vercel.app"]
 COOKIE_SECURE=true
 COOKIE_SAMESITE=none
+PLATFORM_ADMIN_EMAILS=["fundador@tu-dominio.com"]
+AI_PROVIDER=deterministic
+AI_MONTHLY_TOKEN_LIMIT=200000
+WHATSAPP_ENCRYPTION_KEY=<clave-aleatoria>
+WHATSAPP_API_VERSION=v23.0
+WHATSAPP_VERIFY_TOKEN=<token-de-verificacion>
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_AUTH_PER_MINUTE=10
+RATE_LIMIT_PUBLIC_PER_MINUTE=30
 ```
 
 ### Web

@@ -18,7 +18,8 @@
 
 ### users
 `id`, `email` (único global), `password_hash`, `full_name`, `status`,
-`email_verified_at`, `last_login_at`, `created_at`, `updated_at`.
+`is_platform_admin` (booleano, default `false`), `email_verified_at`,
+`last_login_at`, `created_at`, `updated_at`.
 
 ### memberships
 `id`, `tenant_id`, `user_id`, `role`, `status`, `created_at`, `updated_at`.
@@ -122,17 +123,73 @@ Registra el historial inmutable de cambios de estado del presupuesto
 `id`, `tenant_id`, `customer_id?`, `work_order_id?`, `channel`, `direction`,
 `status`, `template_id?`, `content`, `external_id`, `sent_at`, `created_at`.
 
-### automation_rules / automation_executions
-Reglas con trigger, condiciones, acciones, estado y versión. Ejecuciones con
-estado, intento, error, timestamps e idempotency key.
+### automation_rules
+`id`, `tenant_id` (RESTRICT), `name` (único por tenant), `event_type` (índice),
+`conditions` (JSONB), `action_type`, `action_config` (JSONB), `active`,
+`created_at`, `updated_at`.
+
+Reglas de automatización con evento disparador, condiciones (JSONB) y acción
+configurada (JSONB). Único `(tenant_id, name)`.
+
+### automation_executions
+`id`, `tenant_id` (RESTRICT), `rule_id` (CASCADE, índice), `event_type`,
+`status` (default `pending`), `payload` (JSONB), `error` (Text), `attempts`
+(default `0`), `idempotency_key`, `created_at`, `updated_at`, `executed_at`.
+
+Ejecución de una regla: estado, intentos, error e idempotency key. Único
+`(tenant_id, idempotency_key)` para deduplicar entregas.
+
+### notifications
+`id`, `tenant_id` (RESTRICT), `user_id` (CASCADE, nullable), `title`, `message`
+(Text), `type` (default `info`), `read_at`, `created_at`, `updated_at`.
+
+Índice compuesto `(tenant_id, user_id, read_at)` para listar notificaciones
+no leídas por usuario.
+
+### ai_usage_logs
+`id`, `tenant_id` (RESTRICT), `user_id` (SET NULL, nullable), `provider`,
+`model`, `feature`, `input_tokens` (default `0`), `output_tokens` (default `0`),
+`estimated_cost` (`NUMERIC(14,6)`, default `0`), `created_at`.
+
+Registro de consumo de IA con tokens de entrada/salida y costo estimado.
+Índice compuesto `(tenant_id, created_at)`.
+
+### plans
+`id`, `code` (único, índice), `name`, `price_ars` (`NUMERIC(14,2)`),
+`billing_period` (default `monthly`), `limits` (JSONB), `active`, `created_at`,
+`updated_at`.
+
+Catálogo global de planes (sin `tenant_id`). Los límites se guardan como JSONB.
+Se siembran los planes `starter`, `professional` y `business` en la migración.
+
+### subscriptions
+`id`, `tenant_id` (RESTRICT, único), `plan_id` (RESTRICT, referencia `plans`),
+`status` (default `trialing`, índice), `started_at`, `current_period_end`,
+`price_snapshot` (`NUMERIC(14,2)`), `created_at`, `updated_at`.
+
+Una suscripción por tenant; `price_snapshot` conserva el precio histórico del
+plan al momento de la suscripción.
+
+### whatsapp_configs
+`id`, `tenant_id` (RESTRICT, único), `phone_number_id` (único, índice),
+`business_account_id`, `access_token_encrypted` (Text), `verify_token_encrypted`
+(Text), `app_secret_encrypted` (Text), `active` (default `false`), `created_at`,
+`updated_at`.
+
+Configuración de WhatsApp por tenant. Las credenciales se guardan cifradas; una
+configuración por tenant.
+
+### whatsapp_messages
+`id`, `tenant_id` (RESTRICT, nullable, índice), `direction`, `wa_message_id`
+(único, nullable), `from_phone`, `to_phone`, `message_type`, `body` (Text),
+`status` (default `received`), `payload` (JSONB), `created_at`.
+
+Registro de mensajes entrantes/salientes. `tenant_id` es nullable para mensajes
+aún no asociados a un tenant. Índice compuesto `(tenant_id, created_at)`.
 
 ### audit_logs
 `id`, `tenant_id`, `actor_user_id?`, `action`, `entity_type`, `entity_id`,
 `before` (JSONB), `after` (JSONB), `ip`, `user_agent`, `created_at`.
-
-### ai_usage_logs
-`id`, `tenant_id`, `user_id?`, `provider`, `model`, `feature`, `input_tokens`,
-`output_tokens`, `estimated_cost`, `created_at`.
 
 ## Relaciones principales
 
@@ -149,6 +206,11 @@ work_order 1─N work_order_material
 work_order 1─N work_order_attachment
 customer 1─N communication
 tenant 1─N automation_rule 1─N automation_execution
+tenant 1─N notification
+tenant 1─N ai_usage_log
+tenant 1─1 subscription N─1 plan
+tenant 1─N whatsapp_config
+tenant 1─N whatsapp_message
 ```
 
 ## Índices mínimos
