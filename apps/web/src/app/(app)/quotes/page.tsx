@@ -1,15 +1,38 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { ArrowRight, FileText, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { QuoteForm } from "@/components/quotes/quote-form";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { QUOTE_STATUS_LABELS, quoteStatusLabel, quoteStatusStyle } from "@/lib/quote-status";
-import { formatCurrency, formatDate, formatDateOnly } from "@/lib/utils";
-import { QuoteForm } from "@/components/quotes/quote-form";
+import { QUOTE_STATUS_LABELS, quoteStatusLabel } from "@/lib/quote-status";
+import { cn, formatCurrency, formatDate, formatDateOnly } from "@/lib/utils";
+
+const statusVariant: Record<string, "neutral" | "success" | "warning" | "danger" | "info"> = {
+  draft: "neutral",
+  sent: "warning",
+  approved: "success",
+  rejected: "danger",
+  expired: "neutral",
+};
+
+const filters = [
+  { value: "", label: "Todos" },
+  { value: "draft", label: "Borradores" },
+  { value: "sent", label: "Enviados" },
+  { value: "approved", label: "Aprobados" },
+  { value: "rejected", label: "Rechazados" },
+  { value: "expired", label: "Vencidos" },
+] as const;
 
 export default function QuotesPage() {
   const { activeTenantId, tenants } = useAuth();
@@ -30,11 +53,7 @@ export default function QuotesPage() {
   });
 
   if (!activeTenantId) {
-    return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
-        No hay una empresa activa.
-      </div>
-    );
+    return <Card className="text-slate p-8 text-sm">No hay una empresa activa.</Card>;
   }
 
   const quotes = quotesQuery.data?.items ?? [];
@@ -42,66 +61,119 @@ export default function QuotesPage() {
   const customers = customersQuery.data?.items ?? [];
   const customerName = (id: string) =>
     customers.find((customer) => customer.id === id)?.name ?? "Cliente";
+  const sent = quotes.filter((quote) => quote.status === "sent").length;
+  const approved = quotes.filter((quote) => quote.status === "approved").length;
+  const amount = quotes.reduce((sum, quote) => sum + Number(quote.total), 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Presupuestos</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            {total} presupuesto{total === 1 ? "" : "s"} en {activeTenant?.name ?? "tu empresa"}.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowForm((value) => !value)}
-          aria-expanded={showForm}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700"
-        >
-          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {showForm ? "Cancelar" : "Nuevo presupuesto"}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Comercial"
+        title="Presupuestos"
+        description={`${total} presupuesto${total === 1 ? "" : "s"} en ${activeTenant?.name ?? "tu empresa"}.`}
+        actions={
+          <Button
+            onClick={() => setShowForm((value) => !value)}
+            aria-expanded={showForm}
+            variant={showForm ? "outline" : "primary"}
+          >
+            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {showForm ? "Cancelar" : "Nuevo presupuesto"}
+          </Button>
+        }
+      />
 
       {showForm && <QuoteForm tenantId={activeTenantId} onCancel={() => setShowForm(false)} />}
 
-      <div className="rounded-2xl border border-zinc-200 bg-white">
-        <div className="flex flex-col gap-2 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <label htmlFor="status-filter" className="text-sm font-medium text-zinc-700">
-            Filtrar por estado
-          </label>
-          <select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm sm:w-56"
-          >
-            <option value="">Todos</option>
-            {Object.entries(QUOTE_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Total"
+          value={total}
+          hint="Presupuestos registrados"
+          icon={FileText}
+          className="border-ink/10 bg-ink/5"
+        />
+        <StatCard
+          label="Enviados"
+          value={sent}
+          hint="Esperando respuesta"
+          icon={FileText}
+          tone="amber"
+          className="border-amber/20 bg-amber/10"
+        />
+        <StatCard
+          label="Aprobados"
+          value={approved}
+          hint="Listos para ejecutar"
+          icon={FileText}
+          tone="teal"
+          className="border-teal/15 bg-teal/5"
+        />
+        <StatCard
+          label="Monto total"
+          value={formatCurrency(amount)}
+          hint="Suma de la página actual"
+          icon={FileText}
+          tone="teal"
+          className="border-teal/15 bg-teal/5"
+        />
+      </div>
+
+      <Card>
+        <div className="border-mist flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filtrar presupuestos">
+            {filters.map((filter) => {
+              const active = statusFilter === filter.value;
+              return (
+                <button
+                  key={filter.value || "all"}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setStatusFilter(filter.value)}
+                  className={cn(
+                    "min-h-9 shrink-0 rounded-full px-3 text-xs font-semibold transition-colors",
+                    active
+                      ? "bg-ink text-white"
+                      : "border-mist text-slate border bg-white hover:bg-paper",
+                  )}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-slate text-xs">
+            {Object.keys(QUOTE_STATUS_LABELS).length} estados posibles
+          </p>
         </div>
 
         {quotesQuery.isLoading ? (
-          <p className="p-6 text-sm text-zinc-500">Cargando presupuestos...</p>
+          <p className="text-slate p-6 text-sm">Cargando presupuestos...</p>
         ) : quotesQuery.isError ? (
           <p className="p-6 text-sm text-red-600">No se pudieron cargar los presupuestos.</p>
         ) : quotes.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-800">No hay presupuestos</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              {statusFilter
-                ? "Probá con otro estado o creá un presupuesto nuevo."
-                : "Creá el primero para enviárselo a tus clientes."}
-            </p>
+          <div className="p-6">
+            <EmptyState
+              icon={FileText}
+              title="No hay presupuestos"
+              description={
+                statusFilter
+                  ? "Probá con otro estado o creá un presupuesto nuevo."
+                  : "Creá el primero para enviárselo a tus clientes."
+              }
+              action={
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="h-4 w-4" />
+                  Nuevo presupuesto
+                </Button>
+              }
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50 text-xs tracking-wide text-zinc-500 uppercase">
+              <thead className="bg-paper text-slate text-xs tracking-wide uppercase">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Número
@@ -123,24 +195,22 @@ export default function QuotesPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-mist divide-y">
                 {quotes.map((quote) => (
-                  <tr key={quote.id} className="hover:bg-zinc-50">
-                    <td className="px-4 py-3 font-mono text-xs font-medium text-zinc-900">
+                  <tr key={quote.id} className="hover:bg-paper/70 transition-colors">
+                    <td className="text-ink px-4 py-3 font-mono text-xs font-semibold">
                       {quote.number}
                     </td>
-                    <td className="px-4 py-3 text-zinc-600">{customerName(quote.customer_id)}</td>
+                    <td className="text-slate px-4 py-3">{customerName(quote.customer_id)}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${quoteStatusStyle(quote.status)}`}
-                      >
+                      <Badge variant={statusVariant[quote.status] ?? "neutral"}>
                         {quoteStatusLabel(quote.status)}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-zinc-900">
+                    <td className="text-ink px-4 py-3 text-right font-semibold">
                       {formatCurrency(quote.total)}
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">
+                    <td className="text-slate px-4 py-3 text-xs">
                       {quote.sent_at ? (
                         <p>Enviado {formatDate(quote.sent_at)}</p>
                       ) : (
@@ -153,7 +223,7 @@ export default function QuotesPage() {
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/quotes/${quote.id}`}
-                        className="inline-flex items-center gap-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                        className="border-mist text-ink hover:bg-paper inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium"
                       >
                         Ver
                         <ArrowRight className="h-3 w-3" />
@@ -165,7 +235,7 @@ export default function QuotesPage() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

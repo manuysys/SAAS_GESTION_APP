@@ -2,11 +2,27 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Trash2, X } from "lucide-react";
+import { Mail, Phone, Plus, Search, Trash2, Users, X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/utils";
@@ -20,11 +36,21 @@ const customerSchema = z.object({
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
 
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
 export default function CustomersPage() {
   const { activeTenantId, tenants } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
 
   const {
@@ -49,6 +75,7 @@ export default function CustomersPage() {
         notes: values.notes || undefined,
       }),
     onSuccess: () => {
+      toast.success("Cliente creado");
       void queryClient.invalidateQueries({ queryKey: ["customers"] });
       reset();
       setShowForm(false);
@@ -58,19 +85,26 @@ export default function CustomersPage() {
   const deleteMutation = useMutation({
     mutationFn: (customerId: string) => api.customers.remove(activeTenantId ?? "", customerId),
     onSuccess: () => {
+      toast.success("Cliente archivado");
+      setDeleteTarget(null);
       void queryClient.invalidateQueries({ queryKey: ["customers"] });
     },
+    onError: (error) => toast.error(error instanceof ApiError ? error.detail : "No se pudo archivar"),
   });
 
   async function onSubmit(values: CustomerFormValues) {
-    await createMutation.mutateAsync(values);
+    try {
+      await createMutation.mutateAsync(values);
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.detail : "No se pudo crear el cliente");
+    }
   }
 
   if (!activeTenantId) {
     return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
+      <Card className="p-8 text-sm text-slate">
         No hay una empresa activa. Cerrá sesión y volvé a ingresar.
-      </div>
+      </Card>
     );
   }
 
@@ -85,128 +119,123 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            {total} cliente{total === 1 ? "" : "s"} en {activeTenant?.name ?? "tu empresa"}.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setShowForm((value) => !value);
-            createMutation.reset();
-          }}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700"
-        >
-          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {showForm ? "Cancelar" : "Nuevo cliente"}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Cartera"
+        title="Clientes"
+        description={`${total} cliente${total === 1 ? "" : "s"} en ${activeTenant?.name ?? "tu empresa"}.`}
+        actions={
+          <Button
+            onClick={() => {
+              setShowForm((value) => !value);
+              createMutation.reset();
+            }}
+            variant={showForm ? "outline" : "primary"}
+          >
+            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {showForm ? "Cancelar" : "Nuevo cliente"}
+          </Button>
+        }
+      />
 
       {showForm && (
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="rounded-2xl border border-zinc-200 bg-white p-5"
-        >
-          <h2 className="text-sm font-semibold">Nuevo cliente</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label htmlFor="name" className="mb-1 block text-sm font-medium">
-                Nombre *
-              </label>
-              <input
-                id="name"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                {...register("name")}
-              />
-              {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
-            </div>
-            <div>
-              <label htmlFor="phone" className="mb-1 block text-sm font-medium">
-                Teléfono
-              </label>
-              <input
-                id="phone"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                {...register("phone")}
-              />
-              {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>}
-            </div>
-            <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                {...register("email")}
-              />
-              {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
-            </div>
-            <div className="sm:col-span-2">
-              <label htmlFor="notes" className="mb-1 block text-sm font-medium">
-                Observaciones
-              </label>
-              <textarea
-                id="notes"
-                rows={3}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                {...register("notes")}
-              />
-              {errors.notes && <p className="mt-1 text-xs text-red-600">{errors.notes.message}</p>}
-            </div>
-          </div>
-          {formError && (
-            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
-          )}
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || createMutation.isPending}
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-60"
-            >
-              {createMutation.isPending ? "Guardando..." : "Guardar cliente"}
-            </button>
-          </div>
-        </form>
+        <Card className="border-teal/20 bg-teal/5">
+          <CardHeader>
+            <CardTitle>Nuevo cliente</CardTitle>
+            <p className="text-slate text-sm">Cargá los datos básicos para empezar el historial.</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label htmlFor="name" className="text-ink mb-1 block text-sm font-medium">
+                  Nombre *
+                </label>
+                <Input id="name" autoComplete="name" {...register("name")} />
+                {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
+              </div>
+              <div>
+                <label htmlFor="phone" className="text-ink mb-1 block text-sm font-medium">
+                  Teléfono
+                </label>
+                <Input id="phone" type="tel" autoComplete="tel" {...register("phone")} />
+                {errors.phone && (
+                  <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="email" className="text-ink mb-1 block text-sm font-medium">
+                  Email
+                </label>
+                <Input id="email" type="email" autoComplete="email" {...register("email")} />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="notes" className="text-ink mb-1 block text-sm font-medium">
+                  Observaciones
+                </label>
+                <textarea
+                  id="notes"
+                  rows={3}
+                  className="border-mist text-ink placeholder:text-slate/60 focus:border-teal focus:ring-teal/20 w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2"
+                  {...register("notes")}
+                />
+                {errors.notes && (
+                  <p className="mt-1 text-xs text-red-600">{errors.notes.message}</p>
+                )}
+              </div>
+              {formError && (
+                <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">
+                  {formError}
+                </p>
+              )}
+              <div className="flex justify-end gap-2 sm:col-span-2">
+                <Button variant="outline" onClick={() => setShowForm(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting || createMutation.isPending}>
+                  {createMutation.isPending ? "Guardando..." : "Guardar cliente"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="rounded-2xl border border-zinc-200 bg-white">
-        <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-3">
-          <Search className="h-4 w-4 text-zinc-400" />
-          <input
+      <Card>
+        <div className="border-mist flex items-center gap-2 border-b px-4 py-3">
+          <Search className="text-slate h-4 w-4" aria-hidden="true" />
+          <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por nombre, teléfono o email"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400"
+            className="border-0 bg-transparent focus:ring-0"
+            aria-label="Buscar clientes"
           />
         </div>
 
         {customersQuery.isLoading ? (
-          <p className="p-6 text-sm text-zinc-500">Cargando clientes...</p>
+          <p className="text-slate p-6 text-sm">Cargando clientes...</p>
         ) : customersQuery.isError ? (
           <p className="p-6 text-sm text-red-600">No se pudieron cargar los clientes.</p>
         ) : customers.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-800">Todavía no hay clientes</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              Creá el primero para empezar a construir el historial.
-            </p>
+          <div className="p-6">
+            <EmptyState
+              icon={Users}
+              title="Todavía no hay clientes"
+              description="Creá el primero para empezar a construir el historial."
+              action={
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="h-4 w-4" />
+                  Nuevo cliente
+                </Button>
+              }
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50 text-xs tracking-wide text-zinc-500 uppercase">
+            <table className="w-full min-w-[680px] text-left text-sm">
+              <thead className="bg-paper text-slate text-xs tracking-wide uppercase">
                 <tr>
                   <th className="px-4 py-3 font-medium">Cliente</th>
                   <th className="px-4 py-3 font-medium">Contacto</th>
@@ -215,38 +244,49 @@ export default function CustomersPage() {
                   <th className="px-4 py-3 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-mist divide-y">
                 {customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-zinc-50">
+                  <tr key={customer.id} className="hover:bg-paper/70 transition-colors">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-zinc-900">{customer.name}</p>
-                      {customer.notes && (
-                        <p className="mt-0.5 max-w-xs truncate text-xs text-zinc-500">
-                          {customer.notes}
+                      <div className="flex items-center gap-3">
+                        <span className="bg-teal/10 text-teal flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold">
+                          {initials(customer.name)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-ink font-semibold">{customer.name}</p>
+                          {customer.notes && (
+                            <p className="text-slate mt-0.5 max-w-xs truncate text-xs">
+                              {customer.notes}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-slate space-y-1 text-xs">
+                        <p className="flex items-center gap-1.5">
+                          <Phone className="h-3 w-3" aria-hidden="true" />
+                          {customer.phone ?? "—"}
                         </p>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600">
-                      <p>{customer.phone ?? "—"}</p>
-                      <p className="text-xs">{customer.email ?? "—"}</p>
+                        <p className="flex items-center gap-1.5">
+                          <Mail className="h-3 w-3" aria-hidden="true" />
+                          {customer.email ?? "—"}
+                        </p>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
-                        {customer.status}
-                      </span>
+                      <Badge variant={customer.status === "active" ? "success" : "neutral"}>
+                        {customer.status === "active" ? "Activo" : customer.status}
+                      </Badge>
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">
+                    <td className="text-slate px-4 py-3 text-xs">
                       {formatDate(customer.created_at)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm(`¿Archivar a ${customer.name}?`)) {
-                            deleteMutation.mutate(customer.id);
-                          }
-                        }}
-                        className="rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => setDeleteTarget({ id: customer.id, name: customer.name })}
+                        className="text-slate hover:bg-red-50 hover:text-red-600 rounded-lg p-2"
                         aria-label={`Archivar ${customer.name}`}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -258,7 +298,30 @@ export default function CustomersPage() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
+
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archivar cliente</DialogTitle>
+            <DialogDescription>
+              ¿Confirmás que querés archivar a {deleteTarget?.name}? El historial se conserva.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button
+              variant="danger"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+            >
+              {deleteMutation.isPending ? "Archivando..." : "Archivar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

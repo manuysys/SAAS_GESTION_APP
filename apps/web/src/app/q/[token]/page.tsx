@@ -12,7 +12,7 @@ export default async function PublicQuotePage(props: PageProps<"/q/[token]">) {
   const { token } = await props.params;
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-8 md:py-12">
+    <main className="bg-paper min-h-screen px-4 py-8 md:py-12">
       <div className="mx-auto w-full max-w-3xl">
         <PublicQuoteView token={token} />
       </div>

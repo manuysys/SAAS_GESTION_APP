@@ -1,24 +1,34 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, X } from "lucide-react";
+import { Plus, Receipt, Wallet, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { PaymentForm } from "@/components/payments/payment-form";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
 import { api, errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { sumMoney } from "@/lib/money";
-import { paymentMethodLabel, paymentStatusLabel, paymentStatusStyle } from "@/lib/payment-status";
+import { paymentMethodLabel, paymentStatusLabel } from "@/lib/payment-status";
 import { formatCurrency, formatDate } from "@/lib/utils";
+
+const paymentVariant: Record<string, "success" | "danger" | "neutral"> = {
+  registered: "success",
+  voided: "danger",
+};
 
 export default function PaymentsPage() {
   const { activeTenantId, tenants } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
-  const canManagePayments = ["owner", "admin", "dispatcher"].includes(
-    activeTenant?.role ?? "",
-  );
+  const canManagePayments = ["owner", "admin", "dispatcher"].includes(activeTenant?.role ?? "");
 
   const paymentsQuery = useQuery({
     queryKey: ["payments", activeTenantId],
@@ -35,74 +45,81 @@ export default function PaymentsPage() {
   const voidMutation = useMutation({
     mutationFn: (paymentId: string) => api.payments.void(activeTenantId ?? "", paymentId),
     onSuccess: () => {
+      toast.success("Pago anulado");
       void queryClient.invalidateQueries({ queryKey: ["payments", activeTenantId] });
       void queryClient.invalidateQueries({ queryKey: ["work-orders", activeTenantId] });
       void queryClient.invalidateQueries({ queryKey: ["dashboard-summary", activeTenantId] });
     },
+    onError: (error) => toast.error(errorMessage(error, "No se pudo anular el pago")),
   });
 
   if (!activeTenantId) {
-    return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
-        No hay una empresa activa.
-      </div>
-    );
+    return <Card className="text-slate p-8 text-sm">No hay una empresa activa.</Card>;
   }
 
   if (!canManagePayments) {
-    return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
-        No tenés acceso a la información de pagos.
-      </div>
-    );
+    return <Card className="text-slate p-8 text-sm">No tenés acceso a la información de pagos.</Card>;
   }
 
   const payments = paymentsQuery.data?.items ?? [];
   const orders = ordersQuery.data?.items ?? [];
   const activeOrders = orders.filter((order) => order.operational_status !== "cancelled");
   const orderCode = (id: string) => orders.find((order) => order.id === id)?.code ?? "—";
-  const registeredTotal = sumMoney(
-    payments.filter((payment) => payment.status === "registered").map((payment) => payment.amount),
-  );
+  const registeredPayments = payments.filter((payment) => payment.status === "registered");
+  const registeredTotal = sumMoney(registeredPayments.map((payment) => payment.amount));
+  const average = registeredPayments.length
+    ? Number(registeredTotal) / registeredPayments.length
+    : 0;
   const voidError = voidMutation.error
     ? errorMessage(voidMutation.error, "No se pudo anular el pago")
     : null;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pagos</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            {paymentsQuery.data?.total ?? 0} pagos en {activeTenant?.name ?? "tu empresa"}.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setShowForm((value) => !value);
-            voidMutation.reset();
-          }}
-          aria-expanded={showForm}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700"
-        >
-          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {showForm ? "Cancelar" : "Registrar pago"}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Finanzas"
+        title="Pagos"
+        description={`${paymentsQuery.data?.total ?? 0} pagos en ${activeTenant?.name ?? "tu empresa"}.`}
+        actions={
+          <Button
+            onClick={() => {
+              setShowForm((value) => !value);
+              voidMutation.reset();
+            }}
+            aria-expanded={showForm}
+            variant={showForm ? "outline" : "primary"}
+          >
+            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {showForm ? "Cancelar" : "Registrar pago"}
+          </Button>
+        }
+      />
 
-      <section
-        aria-labelledby="payments-total-title"
-        className="rounded-2xl border border-zinc-200 bg-white p-5"
-      >
-        <h2 id="payments-total-title" className="text-sm text-zinc-600">
-          Total registrado
-        </h2>
-        <p className="mt-1 text-2xl font-semibold">{formatCurrency(registeredTotal)}</p>
-        <p className="mt-1 text-xs text-zinc-500">
-          Suma de los pagos no anulados de la lista cargada.
-        </p>
-      </section>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Total registrado"
+          value={formatCurrency(registeredTotal)}
+          hint="Pagos no anulados de la lista"
+          icon={Wallet}
+          tone="teal"
+          className="border-teal/15 bg-teal/5"
+        />
+        <StatCard
+          label="Pagos registrados"
+          value={registeredPayments.length}
+          hint={`${payments.length} movimientos en total`}
+          icon={Receipt}
+          className="border-ink/10 bg-ink/5"
+        />
+        <StatCard
+          label="Ticket promedio"
+          value={formatCurrency(average)}
+          hint="Sobre pagos registrados"
+          icon={Receipt}
+          tone="amber"
+          className="border-amber/20 bg-amber/10"
+        />
+      </div>
 
       {showForm && (
         <PaymentForm
@@ -113,27 +130,34 @@ export default function PaymentsPage() {
       )}
 
       {voidError && (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
           {voidError}
         </p>
       )}
 
-      <div className="rounded-2xl border border-zinc-200 bg-white">
+      <Card>
         {paymentsQuery.isLoading ? (
-          <p className="p-6 text-sm text-zinc-500">Cargando pagos...</p>
+          <p className="text-slate p-6 text-sm">Cargando pagos...</p>
         ) : paymentsQuery.isError ? (
           <p className="p-6 text-sm text-red-600">No se pudieron cargar los pagos.</p>
         ) : payments.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-800">No hay pagos registrados</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              Registrá un cobro cuando un cliente pague una orden.
-            </p>
+          <div className="p-6">
+            <EmptyState
+              icon={Wallet}
+              title="No hay pagos registrados"
+              description="Registrá un cobro cuando un cliente pague una orden."
+              action={
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="h-4 w-4" />
+                  Registrar pago
+                </Button>
+              }
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50 text-xs tracking-wide text-zinc-500 uppercase">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="bg-paper text-slate text-xs tracking-wide uppercase">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Fecha
@@ -158,36 +182,35 @@ export default function PaymentsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-mist divide-y">
                 {payments.map((payment) => {
                   const isVoiding = voidMutation.isPending && voidMutation.variables === payment.id;
                   const canVoid = payment.status === "registered";
                   return (
-                    <tr key={payment.id} className="hover:bg-zinc-50">
-                      <td className="px-4 py-3 text-xs text-zinc-600">
+                    <tr key={payment.id} className="hover:bg-paper/70 transition-colors">
+                      <td className="text-slate px-4 py-3 text-xs">
                         {formatDate(payment.paid_at)}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-zinc-700">
+                      <td className="text-slate px-4 py-3 font-mono text-xs">
                         {orderCode(payment.work_order_id)}
                       </td>
-                      <td className="px-4 py-3 text-zinc-600">
+                      <td className="text-slate px-4 py-3">
                         {paymentMethodLabel(payment.method)}
                       </td>
-                      <td className="px-4 py-3 text-zinc-600">{payment.reference ?? "—"}</td>
-                      <td className="px-4 py-3 text-right font-medium text-zinc-900">
+                      <td className="text-slate px-4 py-3">{payment.reference ?? "—"}</td>
+                      <td className="text-ink px-4 py-3 text-right font-semibold">
                         {formatCurrency(payment.amount)}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium ${paymentStatusStyle(payment.status)}`}
-                        >
+                        <Badge variant={paymentVariant[payment.status] ?? "neutral"}>
                           {paymentStatusLabel(payment.status)}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 text-right">
                         {canVoid && (
-                          <button
-                            type="button"
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => {
                               if (
                                 window.confirm(
@@ -199,10 +222,10 @@ export default function PaymentsPage() {
                             }}
                             disabled={isVoiding}
                             aria-label={`Anular pago de ${formatCurrency(payment.amount)} del ${formatDate(payment.paid_at)}`}
-                            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+                            className="text-red-700 hover:bg-red-50"
                           >
                             {isVoiding ? "Anulando..." : "Anular"}
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>
@@ -212,7 +235,7 @@ export default function PaymentsPage() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

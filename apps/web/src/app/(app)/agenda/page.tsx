@@ -1,13 +1,17 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppointmentForm } from "@/components/agenda/appointment-form";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   appointmentStatusLabel,
-  appointmentStatusStyle,
   dayBoundsIso,
   formatTimeArgentina,
   shiftDay,
@@ -17,8 +21,11 @@ import { api, errorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDateOnly } from "@/lib/utils";
 
-const navButtonClass =
-  "inline-flex items-center justify-center rounded-lg border border-zinc-300 p-2 text-zinc-700 hover:bg-zinc-50";
+const statusVariant: Record<string, "success" | "danger" | "warning" | "neutral"> = {
+  scheduled: "warning",
+  completed: "success",
+  cancelled: "danger",
+};
 
 export default function AgendaPage() {
   const { activeTenantId, tenants } = useAuth();
@@ -56,11 +63,7 @@ export default function AgendaPage() {
   });
 
   if (!activeTenantId) {
-    return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
-        No hay una empresa activa.
-      </div>
-    );
+    return <Card className="text-slate p-8 text-sm">No hay una empresa activa.</Card>;
   }
 
   const orders = ordersQuery.data?.items ?? [];
@@ -78,31 +81,27 @@ export default function AgendaPage() {
   const cancelError = cancelMutation.error
     ? errorMessage(cancelMutation.error, "No se pudo cancelar el turno")
     : null;
+  const isToday = day === todayArgentinaDay();
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Agenda</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            {appointments.length} {appointments.length === 1 ? "turno" : "turnos"} el{" "}
-            {formatDateOnly(day)} en {activeTenant?.name ?? "tu empresa"}.
-          </p>
-        </div>
-        {canWrite && (
-          <button
-            type="button"
-            onClick={() => {
-              setShowForm((value) => !value);
-            }}
-            aria-expanded={showForm}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700"
-          >
-            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {showForm ? "Cancelar" : "Nuevo turno"}
-          </button>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Agenda"
+        title="Turnos y visitas"
+        description={`${appointments.length} ${appointments.length === 1 ? "turno" : "turnos"} el ${formatDateOnly(day)} en ${activeTenant?.name ?? "tu empresa"}.`}
+        actions={
+          canWrite ? (
+            <Button
+              onClick={() => setShowForm((value) => !value)}
+              aria-expanded={showForm}
+              variant={showForm ? "outline" : "primary"}
+            >
+              {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              {showForm ? "Cancelar" : "Nuevo turno"}
+            </Button>
+          ) : undefined
+        }
+      />
 
       {canWrite && showForm && (
         <AppointmentForm
@@ -114,13 +113,36 @@ export default function AgendaPage() {
         />
       )}
 
-      <div className="rounded-2xl border border-zinc-200 bg-white">
-        <div className="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="bg-ink relative overflow-hidden rounded-3xl p-5 text-white sm:p-6">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-teal-300 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] uppercase">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+              {isToday ? "Hoy" : "Día seleccionado"}
+            </p>
+            <p className="font-display mt-2 text-2xl font-semibold tracking-tight">
+              {formatDateOnly(day)}
+            </p>
+            <p className="mt-1 text-sm text-white/60">
+              {appointments.length === 1
+                ? "1 visita programada"
+                : `${appointments.length} visitas programadas`}
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setDay((current) => shiftDay(current, -1))}
-              className={navButtonClass}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 text-white hover:bg-white/10"
               aria-label="Día anterior"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -135,46 +157,57 @@ export default function AgendaPage() {
               onChange={(event) => {
                 if (event.target.value) setDay(event.target.value);
               }}
-              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+              className="h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white [color-scheme:dark]"
             />
             <button
               type="button"
               onClick={() => setDay((current) => shiftDay(current, 1))}
-              className={navButtonClass}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 text-white hover:bg-white/10"
               aria-label="Día siguiente"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
+            <button
+              type="button"
+              onClick={() => setDay(todayArgentinaDay())}
+              disabled={isToday}
+              className="h-10 rounded-xl bg-amber px-3 text-sm font-semibold text-ink disabled:opacity-40"
+            >
+              Hoy
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setDay(todayArgentinaDay())}
-            disabled={day === todayArgentinaDay()}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
-          >
-            Hoy
-          </button>
         </div>
+      </section>
 
-        {cancelError && (
-          <p role="alert" className="mx-4 mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {cancelError}
-          </p>
-        )}
+      {cancelError && (
+        <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+          {cancelError}
+        </p>
+      )}
 
+      <Card>
         {appointmentsQuery.isLoading ? (
-          <p className="p-6 text-sm text-zinc-500">Cargando turnos...</p>
+          <p className="text-slate p-6 text-sm">Cargando turnos...</p>
         ) : appointmentsQuery.isError ? (
           <p className="p-6 text-sm text-red-600">No se pudieron cargar los turnos.</p>
         ) : appointments.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-800">No hay turnos para este día</p>
-            <p className="mt-1 text-sm text-zinc-500">
-              Creá un turno para asignar un técnico a una orden.
-            </p>
+          <div className="p-6">
+            <EmptyState
+              icon={CalendarDays}
+              title="No hay turnos para este día"
+              description="Creá un turno para asignar un técnico a una orden."
+              action={
+                canWrite ? (
+                  <Button onClick={() => setShowForm(true)}>
+                    <Plus className="h-4 w-4" />
+                    Nuevo turno
+                  </Button>
+                ) : undefined
+              }
+            />
           </div>
         ) : (
-          <ol className="divide-y divide-zinc-100">
+          <ol className="divide-mist divide-y">
             {appointments.map((appointment) => {
               const isCancelling =
                 cancelMutation.isPending && cancelMutation.variables === appointment.id;
@@ -183,36 +216,40 @@ export default function AgendaPage() {
               return (
                 <li
                   key={appointment.id}
-                  className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between"
+                  className="hover:bg-paper/60 flex flex-col gap-3 px-4 py-4 transition-colors sm:flex-row sm:items-start sm:justify-between"
                 >
-                  <div className="min-w-0 space-y-1">
-                    <p className="font-mono text-sm font-semibold text-zinc-900">{timeRange}</p>
-                    <p className="text-sm font-medium text-zinc-800">
-                      {orderLabel(appointment.work_order_id)}
-                    </p>
-                    <p className="text-sm text-zinc-600">
-                      Técnico: {technicianName(appointment.technician_id)}
-                    </p>
-                    {appointment.notes && (
-                      <p className="text-xs text-zinc-500">{appointment.notes}</p>
-                    )}
+                  <div className="flex min-w-0 gap-3">
+                    <div className="bg-ink flex h-12 w-20 shrink-0 items-center justify-center rounded-xl font-mono text-xs font-semibold text-white">
+                      {formatTimeArgentina(appointment.starts_at)}
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-ink text-sm font-semibold">
+                        {orderLabel(appointment.work_order_id)}
+                      </p>
+                      <p className="text-slate text-sm">
+                        Técnico: {technicianName(appointment.technician_id)}
+                      </p>
+                      <p className="text-slate/80 text-xs">{timeRange}</p>
+                      {appointment.notes && (
+                        <p className="text-slate text-xs">{appointment.notes}</p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end">
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${appointmentStatusStyle(appointment.status)}`}
-                    >
+                    <Badge variant={statusVariant[appointment.status] ?? "neutral"}>
                       {appointmentStatusLabel(appointment.status)}
-                    </span>
+                    </Badge>
                     {canWrite && canCancel && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => cancelMutation.mutate(appointment.id)}
                         disabled={isCancelling}
                         aria-label={`Cancelar turno de ${timeRange}`}
-                        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
+                        className="text-red-700 hover:bg-red-50"
                       >
                         {isCancelling ? "Cancelando..." : "Cancelar turno"}
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </li>
@@ -220,7 +257,7 @@ export default function AgendaPage() {
             })}
           </ol>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

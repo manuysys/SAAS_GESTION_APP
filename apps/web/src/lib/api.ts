@@ -955,10 +955,12 @@ export const api = {
       }),
   },
   technicianWorkOrders: {
-    list: (tenantId: string) =>
-      request<TechnicianWorkOrderListResponse>("/api/v1/technician/work-orders", {
+    list: (tenantId: string, status?: string) => {
+      const query = status ? `?status=${encodeURIComponent(status)}` : "";
+      return request<TechnicianWorkOrderListResponse>(`/api/v1/technician/work-orders${query}`, {
         headers: tenantHeaders(tenantId),
-      }),
+      });
+    },
     get: (tenantId: string, orderId: string) =>
       request<TechnicianWorkOrder>(`/api/v1/technician/work-orders/${orderId}`, {
         headers: tenantHeaders(tenantId),

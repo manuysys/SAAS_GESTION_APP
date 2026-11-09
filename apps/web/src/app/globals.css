@@ -1,15 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
+  --background: #f7f5f0;
+  --foreground: #0b1f33;
+  --brand-ink: #0b1f33;
+  --brand-teal: #0f766e;
+  --brand-amber: #f59e0b;
+  --brand-paper: #f7f5f0;
+  --brand-mist: #e7e2d8;
+  --brand-slate: #5b6b7a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-ink: var(--brand-ink);
+  --color-teal: var(--brand-teal);
+  --color-amber: var(--brand-amber);
+  --color-paper: var(--brand-paper);
+  --color-mist: var(--brand-mist);
+  --color-slate: var(--brand-slate);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-space-grotesk);
 }
 
 * {
@@ -28,6 +41,205 @@ body {
 }
 
 ::selection {
-  background: #18181b;
+  background: var(--brand-ink);
   color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Landing (marketing) ----------
+ * Utilidades propias de la landing. Los tokens de marca de arriba no cambian.
+ */
+:root {
+  --mk-ink-2: #0e2740;
+  --mk-ink-3: #16344f;
+  --mk-tint: #efebe3;
+  --mk-teal-soft: #5eead4;
+  --mk-teal-deep: #0b4f4a;
+}
+
+@theme inline {
+  --color-mk-ink-2: var(--mk-ink-2);
+  --color-mk-ink-3: var(--mk-ink-3);
+  --color-mk-tint: var(--mk-tint);
+  --color-mk-teal: var(--mk-teal-soft);
+  --color-mk-deep: var(--mk-teal-deep);
+}
+
+.mk-grid-dark {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+.mk-grid-light {
+  background-image:
+    linear-gradient(to right, rgb(11 31 51 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(11 31 51 / 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+.mk-grid-fade {
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, #000 35%, transparent 100%);
+}
+
+.mk-marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.mk-glow-amber {
+  box-shadow:
+    0 0 0 1px rgb(245 158 11 / 0.4),
+    0 12px 40px -12px rgb(245 158 11 / 0.7);
+}
+
+@keyframes mk-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mk-rise {
+  animation: mk-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--mk-delay, 0ms);
+}
+
+@keyframes mk-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.mk-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: mk-marquee 40s linear infinite;
+}
+
+@keyframes mk-grid-move {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 56px 56px;
+  }
+}
+
+.mk-grid-move {
+  animation: mk-grid-move 9s linear infinite;
+}
+
+@keyframes mk-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.mk-ping {
+  position: relative;
+}
+
+.mk-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  animation: mk-ping 1.8s ease-out infinite;
+}
+
+@keyframes mk-dash {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+.mk-dash {
+  animation: mk-dash 1.6s linear infinite;
+}
+
+@keyframes mk-node-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.mk-node-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mk-node-ring 2.6s ease-out infinite;
+}
+
+@keyframes mk-scan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+.mk-scan {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: var(--mk-teal-soft);
+  opacity: 0.35;
+  animation: mk-scan 7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-rise,
+  .mk-marquee-track,
+  .mk-grid-move,
+  .mk-dash,
+  .mk-node-ring,
+  .mk-scan {
+    animation: none;
+  }
+
+  .mk-marquee-track {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.75rem;
+  }
+
+  .mk-marquee-dup,
+  .mk-ping::after,
+  .mk-node-ring,
+  .mk-scan {
+    display: none;
+  }
 }

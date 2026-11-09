@@ -3,16 +3,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { TechShell } from "@/components/tech/tech-shell";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import {
-  OPERATIONAL_STATUS_LABELS,
-  OPERATIONAL_STATUS_STYLES,
-  PRIORITY_LABELS,
-} from "@/lib/order-status";
-import { formatDate } from "@/lib/utils";
+import { OPERATIONAL_STATUS_LABELS, PRIORITY_LABELS } from "@/lib/order-status";
+import { cn, formatDate } from "@/lib/utils";
+
+const filters = [
+  { value: "", label: "Todas" },
+  { value: "scheduled", label: "Programadas" },
+  { value: "in_progress", label: "En ejecución" },
+  { value: "waiting", label: "En espera" },
+  { value: "finished", label: "Finalizadas" },
+] as const;
+
+const statusVariant: Record<string, "neutral" | "success" | "warning" | "danger" | "info" | "teal"> = {
+  new: "neutral",
+  scheduled: "info",
+  in_progress: "warning",
+  waiting: "teal",
+  finished: "success",
+  cancelled: "danger",
+};
 
 export default function TechOrdersPage() {
   return (
@@ -24,20 +40,21 @@ export default function TechOrdersPage() {
 
 function TechOrdersList() {
   const { activeTenantId } = useAuth();
+  const [filter, setFilter] = useState<string>("");
 
   const ordersQuery = useQuery({
-    queryKey: ["tech-work-orders", activeTenantId],
-    queryFn: () => api.technicianWorkOrders.list(activeTenantId ?? ""),
+    queryKey: ["tech-work-orders", activeTenantId, filter],
+    queryFn: () => api.technicianWorkOrders.list(activeTenantId ?? "", filter || undefined),
     enabled: Boolean(activeTenantId),
   });
 
   if (!activeTenantId) {
-    return <p className="text-sm text-zinc-600">No hay una empresa activa.</p>;
+    return <p className="text-slate text-sm">No hay una empresa activa.</p>;
   }
 
   if (ordersQuery.isLoading) {
     return (
-      <div className="flex items-center gap-2 py-8 text-sm text-zinc-600">
+      <div className="text-slate flex items-center gap-2 py-8 text-sm">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         Cargando tus trabajos...
       </div>
@@ -52,7 +69,7 @@ function TechOrdersList() {
         <button
           type="button"
           onClick={() => void ordersQuery.refetch()}
-          className="mt-4 min-h-12 w-full rounded-lg bg-zinc-900 px-4 text-sm font-semibold text-white hover:bg-zinc-700"
+          className="bg-ink mt-4 min-h-12 w-full rounded-xl px-4 text-sm font-semibold text-white"
         >
           Reintentar
         </button>
@@ -65,55 +82,76 @@ function TechOrdersList() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Mis trabajos</h1>
-        <p className="mt-1 text-sm text-zinc-600">
+        <p className="text-teal text-xs font-semibold tracking-[0.14em] uppercase">Técnico</p>
+        <h1 className="text-ink font-display mt-1 text-2xl font-semibold tracking-tight">
+          Mis trabajos
+        </h1>
+        <p className="text-slate mt-1 text-sm">
           {orders.length === 1 ? "1 orden asignada" : `${orders.length} órdenes asignadas`}
         </p>
       </div>
 
+      <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filtrar trabajos">
+        {filters.map((item) => {
+          const active = filter === item.value;
+          return (
+            <button
+              key={item.value || "all"}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setFilter(item.value)}
+              className={cn(
+                "min-h-10 shrink-0 rounded-full px-3.5 text-sm font-medium transition-colors",
+                active
+                  ? "bg-ink text-white"
+                  : "border-mist text-slate border bg-white hover:bg-paper",
+              )}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+
       {orders.length === 0 ? (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-center">
-          <p className="text-sm font-medium text-zinc-800">No tenés trabajos asignados</p>
-          <p className="mt-1 text-sm text-zinc-500">
-            Cuando el despachador te asigne una orden, aparece acá.
-          </p>
-        </div>
+        <EmptyState
+          title={filter ? "No hay trabajos en este estado" : "No tenés trabajos asignados"}
+          description={
+            filter
+              ? "Probá con otro filtro o volvé a todas las órdenes."
+              : "Cuando el despachador te asigne una orden, aparece acá."
+          }
+        />
       ) : (
         <ul className="space-y-3">
           {orders.map((order) => (
             <li key={order.id}>
               <Link
                 href={`/tech/orders/${order.id}`}
-                className="flex min-h-20 items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 hover:border-zinc-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                className="border-mist hover:border-teal/40 focus-visible:outline-teal flex min-h-20 items-center gap-3 rounded-2xl border bg-white p-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        OPERATIONAL_STATUS_STYLES[order.operational_status] ??
-                        "bg-zinc-100 text-zinc-700"
-                      }`}
-                    >
+                    <Badge variant={statusVariant[order.operational_status] ?? "neutral"}>
                       {OPERATIONAL_STATUS_LABELS[order.operational_status] ??
                         order.operational_status}
-                    </span>
-                    <span className="text-xs text-zinc-500">
+                    </Badge>
+                    <span className="text-slate text-xs">
                       Prioridad {PRIORITY_LABELS[order.priority] ?? order.priority}
                     </span>
                   </div>
-                  <p className="font-mono text-xs text-zinc-500">{order.code}</p>
-                  <p className="text-base leading-snug font-semibold text-zinc-950">
-                    {order.title}
-                  </p>
-                  <p className="truncate text-sm text-zinc-700">{order.customer_name}</p>
-                  <p className="flex items-center gap-1.5 text-xs text-zinc-500">
+                  <p className="text-slate font-mono text-xs">{order.code}</p>
+                  <p className="text-ink text-base leading-snug font-semibold">{order.title}</p>
+                  <p className="text-slate truncate text-sm">{order.customer_name ?? "Cliente"}</p>
+                  <p className="text-slate flex items-center gap-1.5 text-xs">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     {order.scheduled_at
                       ? `Programada: ${formatDate(order.scheduled_at)}`
                       : "Sin programar"}
                   </p>
                 </div>
-                <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-zinc-900">
+                <span className="text-ink flex shrink-0 items-center gap-1 text-sm font-semibold">
                   Abrir
                   <ChevronRight className="h-5 w-5" aria-hidden="true" />
                 </span>

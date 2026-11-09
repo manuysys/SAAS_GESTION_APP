@@ -1,117 +1,22 @@
 "use client";
 
-import {
-  CalendarDays,
-  ClipboardList,
-  CreditCard,
-  FileText,
-  Inbox,
-  LayoutDashboard,
-  Loader2,
-  LogOut,
-  MessageCircle,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  Wallet,
-  Workflow,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
+import { CommandPalette } from "@/components/command-palette";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { brand } from "@/lib/brand";
+import { isActivePath, visibleNavigation } from "@/lib/navigation";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  /** Roles del tenant activo que ven el enlace. Sin `roles`, lo ven todos. */
-  roles?: string[];
-  /** Solo administradores de la plataforma SaaS (panel global). */
-  platformAdminOnly?: boolean;
-};
-
-const MANAGEMENT_ROLES = ["owner", "admin", "dispatcher"];
-const ADMIN_ROLES = ["owner", "admin"];
-
-/**
- * Módulos financieros (panel, presupuestos, pagos, facturación) solo para roles de gestión.
- * Los técnicos usan /tech, fuera de este shell.
- */
-const navigation: NavItem[] = [
-  {
-    href: "/tech",
-    label: "Mis trabajos",
-    icon: Wrench,
-    roles: ["technician"],
-  },
-  {
-    href: "/dashboard",
-    label: "Panel",
-    icon: LayoutDashboard,
-    roles: MANAGEMENT_ROLES,
-  },
-  { href: "/customers", label: "Clientes", icon: Users },
-  { href: "/requests", label: "Solicitudes", icon: Inbox },
-  { href: "/orders", label: "Órdenes", icon: ClipboardList },
-  {
-    href: "/quotes",
-    label: "Presupuestos",
-    icon: FileText,
-    roles: MANAGEMENT_ROLES,
-  },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
-  {
-    href: "/payments",
-    label: "Pagos",
-    icon: Wallet,
-    roles: MANAGEMENT_ROLES,
-  },
-  {
-    href: "/automations",
-    label: "Automatizaciones",
-    icon: Workflow,
-    roles: ADMIN_ROLES,
-  },
-  {
-    href: "/assistant",
-    label: "Asistente",
-    icon: Sparkles,
-    roles: MANAGEMENT_ROLES,
-  },
-  {
-    href: "/settings/billing",
-    label: "Facturación",
-    icon: CreditCard,
-    roles: ADMIN_ROLES,
-  },
-  {
-    href: "/settings/whatsapp",
-    label: "WhatsApp",
-    icon: MessageCircle,
-    roles: ADMIN_ROLES,
-  },
-  {
-    href: "/admin",
-    label: "Admin SaaS",
-    icon: ShieldCheck,
-    platformAdminOnly: true,
-  },
-];
-
-function isActivePath(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, tenants, activeTenantId, setActiveTenant, logout, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -121,8 +26,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center gap-3 text-sm text-zinc-600">
-        <Loader2 className="h-5 w-5 animate-spin" />
+      <div className="text-slate flex min-h-screen items-center justify-center gap-3 text-sm">
+        <span className="border-teal h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
         Cargando sesión...
       </div>
     );
@@ -134,28 +39,29 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
   const role = activeTenant?.role ?? "";
-  const visibleNavigation = navigation.filter((item) => {
-    if (item.platformAdminOnly) {
-      return user.is_platform_admin === true;
-    }
-    return !item.roles || item.roles.includes(role);
-  });
+  const items = visibleNavigation(role, user.is_platform_admin);
+
+  function signOut() {
+    void logout().then(() => router.replace("/login"));
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-zinc-200 bg-white md:flex">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-sm font-bold text-white">
-            SG
-          </div>
-          <div>
-            <p className="text-sm leading-tight font-semibold">SaaS Gestión</p>
-            <p className="text-xs text-zinc-500">Panel de empresa</p>
-          </div>
-        </div>
+    <div className="bg-paper min-h-screen">
+      <aside className="bg-ink fixed inset-y-0 left-0 hidden w-64 flex-col text-white md:flex">
+        <Link href="/dashboard" className="flex items-center gap-3 px-5 py-5">
+          <span className="bg-teal flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-white">
+            A
+          </span>
+          <span>
+            <span className="font-display block text-sm leading-tight font-semibold">
+              {brand.name}
+            </span>
+            <span className="block text-xs text-white/55">Panel de empresa</span>
+          </span>
+        </Link>
 
-        <nav className="flex-1 space-y-1 px-3 py-2">
-          {visibleNavigation.map((item) => {
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Navegación principal">
+          {items.map((item) => {
             const active = isActivePath(pathname, item.href);
             const Icon = item.icon;
             return (
@@ -163,47 +69,133 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
+                  "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-zinc-900 text-white"
-                    : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950",
+                    ? "bg-white/12 text-white"
+                    : "text-white/65 hover:bg-white/8 hover:text-white",
                 )}
+                aria-current={active ? "page" : undefined}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {item.label}
+                {active && <span className="bg-teal ml-auto h-1.5 w-1.5 rounded-full" />}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-zinc-200 p-4">
+        <div className="border-t border-white/10 p-4">
           <p className="truncate text-sm font-medium">{user.full_name}</p>
-          <p className="truncate text-xs text-zinc-500">{user.email}</p>
+          <p className="truncate text-xs text-white/50">{user.email}</p>
           <button
             type="button"
-            onClick={() => void logout().then(() => router.replace("/login"))}
-            className="mt-3 flex w-full items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            onClick={signOut}
+            className="mt-3 flex w-full items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-sm text-white/75 hover:bg-white/8 hover:text-white"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4" aria-hidden="true" />
             Cerrar sesión
           </button>
         </div>
       </aside>
 
-      <div className="md:pl-64">
-        <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur">
-          <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-8">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{activeTenant?.name ?? "Mi empresa"}</p>
-              <p className="text-xs text-zinc-500">Rol: {activeTenant?.role ?? "—"}</p>
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            type="button"
+            className="bg-ink/50 absolute inset-0 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Cerrar menú"
+          />
+          <div className="bg-ink relative flex h-full w-72 max-w-[85vw] flex-col text-white shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-4">
+              <span className="font-display text-sm font-semibold">{brand.name}</span>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg p-2 text-white/70 hover:bg-white/10"
+                aria-label="Cerrar menú"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
+            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Navegación móvil">
+              {items.map((item) => {
+                const active = isActivePath(pathname, item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
+                      active ? "bg-white/12 text-white" : "text-white/65 hover:bg-white/8",
+                    )}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="border-t border-white/10 p-4">
+              <p className="truncate text-sm font-medium">{user.full_name}</p>
+              <p className="truncate text-xs text-white/50">{user.email}</p>
+              <button
+                type="button"
+                onClick={signOut}
+                className="mt-3 flex w-full items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-sm text-white/75"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="md:pl-64">
+        <header className="border-mist bg-paper/85 sticky top-0 z-30 border-b backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-8">
+            <div className="flex min-w-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMobileOpen(true)}
+                className="border-mist text-ink rounded-xl border bg-white p-2 md:hidden"
+                aria-label="Abrir menú"
+                aria-expanded={mobileOpen}
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+              <div className="min-w-0">
+                <p className="text-ink truncate text-sm font-semibold">
+                  {activeTenant?.name ?? "Mi empresa"}
+                </p>
+                <p className="text-slate text-xs">
+                  {role === "owner"
+                    ? "Owner"
+                    : role === "admin"
+                      ? "Administrador"
+                      : role === "dispatcher"
+                        ? "Coordinador"
+                        : role === "technician"
+                          ? "Técnico"
+                          : role === "viewer"
+                            ? "Consulta"
+                            : "—"}
+                </p>
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
+              <CommandPalette items={items} />
               <NotificationsBell />
               <select
                 aria-label="Empresa activa"
                 value={activeTenantId ?? ""}
                 onChange={(event) => setActiveTenant(event.target.value)}
-                className="max-w-[220px] rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+                className="border-mist text-ink hidden max-w-[220px] rounded-xl border bg-white px-3 py-2 text-sm sm:block"
               >
                 {tenants.map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>
@@ -211,38 +203,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                onClick={() => void logout().then(() => router.replace("/login"))}
-                className="rounded-lg border border-zinc-200 p-2 text-zinc-600 hover:bg-zinc-50 md:hidden"
-                aria-label="Cerrar sesión"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
             </div>
           </div>
-          <nav className="flex gap-1 overflow-x-auto px-4 pb-2 md:hidden">
-            {visibleNavigation.map((item) => {
-              const active = isActivePath(pathname, item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium",
-                    active ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-700",
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
         </header>
 
-        <main className="mx-auto max-w-6xl p-4 md:p-8">{children}</main>
+        <main className="mx-auto max-w-7xl p-4 md:p-8">{children}</main>
       </div>
     </div>
   );
