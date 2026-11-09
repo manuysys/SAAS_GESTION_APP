@@ -77,6 +77,26 @@ Ver `docs/TENANT_SECURITY.md`. Resumen:
 - En producción, gestor de secretos del proveedor.
 - Rotación documentada de JWT, base de datos e integraciones.
 
+## Controles implementados (2026-11-09)
+
+- Validación de configuración de producción al arranque: JWT fuerte,
+  `APP_DEBUG=false`, cookies seguras, CORS sin localhost y `SameSite=None` para
+  cross-site.
+- `/docs`, `/redoc` y `/openapi.json` deshabilitados en producción.
+- `TrustedHostMiddleware` con `ALLOWED_HOSTS`.
+- Request ID (`X-Request-ID`) y logs estructurados con structlog.
+- Rate limiting compartido en PostgreSQL (`rate_limit_buckets`) con UPSERT
+  atómico y fallback en memoria si la DB falla.
+- Lockout de login por email/IP (`auth_attempts`, 5 fallos en 15 minutos).
+- Detección de reutilización de refresh token: revoca toda la familia.
+- Validación de `Origin`/`Referer` en refresh y logout.
+- Auditoría (`audit_logs`) de registro, login, logout, refresh reuse, cambios de
+  plan, acciones admin, presupuestos y pagos.
+- Cabeceras de seguridad HTTP y HSTS cuando `COOKIE_SECURE=true`.
+
+Pendiente: RLS, 2FA, recuperación de contraseña con email, CSP estricta en
+frontend y rate limiting distribuido para múltiples instancias.
+
 ## Respaldos y continuidad
 
 - Backup diario de PostgreSQL con retención mínima de 7 días.

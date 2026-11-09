@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-11-09 — Landing Arreglo, Groq y design system
+
+- Marca provisional **Arreglo** centralizada en `apps/web/src/lib/brand.ts`.
+- Landing v2 oscura: hero full-bleed ink, Three.js isométrico lazy, scanlines,
+  tarjetas flotantes, contadores animados, marquee y CTA final con grilla.
+- GSAP ScrollTrigger con recorrido fijado, Lenis smooth scroll, tilt 3D y Motion
+  para microinteracciones; fallback SVG y `prefers-reduced-motion`.
+- Landing nueva con hero, recorrido, bento de funciones, product tour, precios,
+  FAQ, CTA, páginas de privacidad/términos, sitemap, robots y OG image.
+- Design system inicial: Button, Card, Badge, Input, PageHeader, EmptyState,
+  Skeleton, StatCard, Dialog, Tabs, Tooltip y DropdownMenu.
+- Panel: sidebar ink, command palette (`⌘K`), notificaciones en popover,
+  dashboard con hero oscuro, anillos de salud operativa y actividad reciente.
+- Clientes, órdenes (tablero + tabla), presupuestos, pagos, agenda y solicitudes
+  renovados con métricas, badges y menos superficies blancas.
+- PWA técnico: filtros por estado, cards y shell renovados.
+- Presupuesto público: nueva identidad, confirmación de rechazo con Dialog y
+  barra de decisión sticky.
+- Login/registro con identidad Arreglo y cuenta demo visible.
+- **Groq** configurado como proveedor de IA externo
+  (`openai/gpt-oss-120b`), con fallback determinista ante cuota agotada.
+- `APIKEYS.txt` movido a `.local` y agregado a `.gitignore`.
+- Documentación: `docs/BRAND.md`, `docs/PRODUCTION_CHECKLIST.md` y ADR-015.
+- Seguridad P0: rate limiting compartido en PostgreSQL, lockout, revocación de
+  familia de refresh tokens, audit log, validación de Origin, request ID,
+  TrustedHost y docs ocultos en producción.
+- Migración `c0cc7ae032ee` con `rate_limit_buckets`, `auth_attempts` y
+  `audit_logs`.
+- CI de seguridad con `pip-audit` y `pnpm audit`, Dependabot y workflow de
+  backup diario de Neon.
+- 83 pruebas pytest y 70 pruebas de frontend.
+
 ## 2026-11-08 — Despliegue 24/7 en Vercel + Neon
 
 - PostgreSQL administrado en Neon (plan Free, región `gru1`).

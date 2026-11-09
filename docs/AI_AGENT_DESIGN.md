@@ -93,3 +93,30 @@ con un mensaje claro.
 - Herramienta con argumentos inválidos devuelve error controlado.
 - Cuota agotada devuelve 429.
 - Acción sensible sin confirmación no se ejecuta.
+
+## Groq (proveedor inicial)
+
+Configuración:
+
+```env
+AI_PROVIDER=openai_compatible
+AI_BASE_URL=https://api.groq.com/openai/v1
+AI_MODEL=openai/gpt-oss-120b
+AI_API_KEY=...
+```
+
+Free tier de Groq para `openai/gpt-oss-120b`: 30 RPM, 1.000 requests/día,
+8K tokens/minuto y 200K tokens/día. Es suficiente para demo y primeros usuarios,
+no para escala.
+
+Reglas:
+
+- Cuota diaria por tenant para no agotar la cuota global de la organización.
+- Si Groq devuelve 429, responder con el proveedor determinista y avisar
+  “Modo local (la cuota de IA externa se agotó)”. No simular una respuesta del
+  LLM.
+- Si Groq devuelve error de red/5xx, devolver 502 controlado.
+- Revisar términos de uso de datos del free tier antes de usarlo con datos
+  reales de clientes.
+- Alternativas gratuitas para fallback: Gemini 2.5 Flash u OpenRouter free
+  (límites más bajos).

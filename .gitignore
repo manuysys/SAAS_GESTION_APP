@@ -61,3 +61,7 @@ apps/api/.pytest_cache/
 # OpenCode local
 .opencode/*.local.json
 .lane/
+
+# Local secrets
+APIKEYS.txt
+*.tt

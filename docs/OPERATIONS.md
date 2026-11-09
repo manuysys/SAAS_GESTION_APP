@@ -27,6 +27,23 @@
 - Usar `scripts/backup.ps1` y `scripts/restore.ps1`.
 - Guardar los backups fuera de `.local` si se usan para recuperación real.
 
+### Backup automático de Neon
+
+- Workflow `.github/workflows/backup.yml`, diario a las 05:00 UTC.
+- Requiere el secret `NEON_DATABASE_URL` con la URL directa
+  (`postgresql://...`) sin prefijo de driver.
+- Guarda un artefacto `backup.dump` con retención de 14 días.
+- Restauración:
+
+```powershell
+pg_restore --clean --if-exists --no-owner --no-privileges \
+  --dbname="$env:DATABASE_URL" backup.dump
+```
+
+- Probar la restauración en una base de staging antes de confiar en el backup.
+- Para producción real, usar el plan de Neon con point-in-time recovery y
+  backups administrados.
+
 ## Incidentes
 
 | Escenario | Acción |
@@ -63,6 +80,26 @@
 - Ejecuciones de automatización fallidas.
 - Consumo de IA y WhatsApp por tenant.
 - Errores de frontend.
+
+## Email transaccional
+
+Proveedor recomendado: **Resend** (free: 3.000 emails/mes, 100/día, 3 dominios,
+DKIM/SPF/DMARC). Alternativa: Brevo (300/día, pero con marca en el plan free).
+
+Variables:
+
+```env
+RESEND_API_KEY=
+EMAIL_FROM="Arreglo <no-reply@arreglo.com.ar>"
+```
+
+Usos iniciales: bienvenida, reset de contraseña, presupuesto enviado,
+recordatorio de turno y recibo de pago. Hasta verificar el dominio, Resend solo
+permite enviar al email de la cuenta.
+
+Requisitos de entregabilidad: dominio propio, SPF, DKIM, DMARC, rebotes y quejas
+configurados. No usar el dominio principal para marketing masivo sin separar
+subdominio.
 
 ## Checklist de lanzamiento
 

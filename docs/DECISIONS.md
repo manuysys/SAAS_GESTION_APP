@@ -213,3 +213,20 @@ con la conexión directa. En producción la API usa `NullPool` y asyncpg con
 gratuitos tienen límites, cold starts y una ventana de restauración acotada. Para
 producción se necesita un plan pago, dominio propio, backups verificados y rate
 limiting compartido.
+
+## ADR-015 — Marca provisional Arreglo
+
+**Fecha:** 2026-11-09
+**Estado:** provisional
+
+**Contexto:** el producto necesita una marca para la landing y la comunicación,
+pero no hay nombre definitivo ni logo.
+
+**Decisión:** usar **Arreglo** como marca provisional. `arreglo.com.ar` aparece
+disponible en RDAP (pendiente de confirmar en NIC.ar). Paleta ink/teal/amber/
+paper, tipografía Space Grotesk + Geist y un monograma simple. La identidad
+definitiva queda sujeta a búsqueda de marca y registro de dominio.
+
+**Consecuencias:** la landing y la documentación usan Arreglo; el nombre se
+puede cambiar centralizándolo en `apps/web/src/lib/brand.ts` y en la
+documentación. No invertir en piezas definitivas hasta validar marca/dominio.

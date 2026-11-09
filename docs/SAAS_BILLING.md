@@ -68,3 +68,34 @@ tocar código.
 - Tenant no puede ver datos de otro.
 - Panel global no expone datos sensibles sin auditoría.
 - Cambio de plan respeta precio contratado.
+
+## Mercado Pago — suscripciones (diseño)
+
+Se usará la API de **suscripciones con plan asociado** (`preapproval_plan` +
+`preapproval`). El plan de Mercado Pago representa Starter/Professional/Business;
+la suscripción representa al tenant.
+
+Flujo:
+
+1. El owner elige un plan en `/settings/billing`.
+2. El backend crea o reutiliza un `preapproval_plan` por plan y crea una
+   `preapproval` con `back_url` al frontend.
+3. El usuario autoriza el cobro en Mercado Pago.
+4. El webhook firmado actualiza la suscripción local (`authorized`, `paused`,
+   `cancelled`, `pending`) de forma idempotente.
+5. Se registra una factura interna por cada cobro y se extiende
+   `current_period_end`.
+
+Free trial: `preapproval_plan.free_trial` con `frequency` y `frequency_type`.
+Se adopta **14 días** para alinear la prueba con el onboarding. Al finalizar, si
+no hay autorización, la suscripción pasa a `past_due` y luego a `cancelled` con
+período de gracia de 3 días.
+
+Tablas previstas: `billing_customers`, `billing_invoices`,
+`billing_webhook_events` (idempotencia) y columnas nuevas en `subscriptions`
+(`provider`, `external_id`, `preapproval_plan_id`, `next_payment_date`,
+`trial_ends_at`).
+
+Credenciales necesarias: `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY`, `MP_CLIENT_ID`,
+`MP_CLIENT_SECRET`, `MP_WEBHOOK_SECRET`. El alias/CBU no se usa para la API.
+Probar primero con usuarios de prueba (sandbox) y tarjetas de test.

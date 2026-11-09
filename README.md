@@ -1,5 +1,8 @@
 # SaaS Gestión
 
+> **Marca provisional:** **Arreglo**. La identidad definitiva está pendiente de
+> validación de dominio y marca. Ver [`docs/BRAND.md`](docs/BRAND.md).
+
 Plataforma SaaS B2B de gestión, automatización e inteligencia para empresas de
 servicios técnicos: CRM, solicitudes, órdenes de trabajo, presupuestos, agenda,
 pagos, comunicaciones y automatizaciones en un solo lugar.
@@ -108,6 +111,7 @@ un entorno productivo con SLA.
 
 - [Contexto maestro](CONTEXTO_GUIA_PROYECTO.md)
 - [Estado del proyecto](docs/PROJECT_STATUS.md)
+- [Marca provisional](docs/BRAND.md)
 - [Decisiones](docs/DECISIONS.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Arquitectura](docs/ARCHITECTURE.md)

@@ -10,12 +10,13 @@ La aplicación corre de punta a punta: registro, login, refresh de sesión,
 creación de empresa, aislamiento por tenant, clientes, solicitudes, órdenes de
 trabajo, presupuestos con PDF y aprobación pública, agenda, asignación de
 técnicos, pagos, dashboard operativo, PWA para técnicos, automatizaciones con
-notificaciones, asistente de IA determinista, planes y suscripciones, panel
-global del SaaS y configuración de WhatsApp Cloud API.
+notificaciones, asistente de IA, planes y suscripciones, panel global del SaaS y
+configuración de WhatsApp Cloud API.
 
 El frontend y la API están desplegados en Vercel. La base PostgreSQL está en
 Neon (plan Free, región `gru1`). La demo ya no depende de una máquina local ni
-de un túnel.
+de un túnel. La marca provisional es **Arreglo** y la landing pública está en
+`/`.
 
 ## Hecho y verificado
 
@@ -56,28 +57,51 @@ de un túnel.
   `notify_user`, ejecuciones idempotentes e historial. `send_whatsapp` queda
   `skipped` hasta configurar credenciales.
 - [x] Notificaciones in-app con lectura individual y masiva.
-- [x] Asistente de IA: proveedor determinista local por defecto, proveedores
-  OpenAI-compatible y Ollama opcionales, cuotas y registro de uso.
+- [x] Asistente de IA: proveedor determinista local, Groq/OpenAI-compatible y
+  Ollama opcionales, cuotas y registro de uso.
+- [x] Groq configurado en producción con `openai/gpt-oss-120b` y fallback
+  determinista si se agota la cuota externa.
 - [x] Planes, suscripción con precio histórico, uso y límites.
 - [x] Panel global: métricas agregadas, empresas y cambio de suscripción.
 - [x] WhatsApp Cloud API: configuración cifrada, webhook con firma HMAC,
   idempotencia y envío de texto. Sin credenciales reales no está probado
   end-to-end.
-- [x] Rate limiting en memoria para login/registro/refresh y enlaces públicos.
+- [x] Rate limiting compartido en PostgreSQL con fallback en memoria.
+- [x] Lockout de login por email/IP y revocación de familia de refresh tokens.
+- [x] Auditoría de auth, admin, presupuestos y pagos en `audit_logs`.
+- [x] Validación de `Origin` en endpoints con cookie.
+- [x] Request ID, logs estructurados y `TrustedHostMiddleware`.
+- [x] `/docs`, `/redoc` y `/openapi.json` ocultos en producción.
 - [x] Cabeceras de seguridad HTTP.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 73 pruebas pytest.
+- [x] 83 pruebas pytest.
 
 ### Frontend
 
 - [x] Next.js 16.4.5 + React 19 + TypeScript estricto + Tailwind 4.
-- [x] Landing, registro, login y cierre de sesión.
+- [x] Landing pública de producto con marca provisional **Arreglo**.
+- [x] Hero oscuro full-bleed con Three.js isométrico lazy, scanlines, tarjetas
+  flotantes y contadores.
+- [x] GSAP ScrollTrigger con recorrido fijado, Lenis smooth scroll, marquee,
+  tilt 3D y Motion para microinteracciones.
+- [x] Design system inicial: Button, Card, Badge, Input, PageHeader, EmptyState,
+  Skeleton, StatCard, ProgressRing, Dialog, Tabs, Tooltip y DropdownMenu.
+- [x] Panel con command palette (`⌘K`), notificaciones en popover y dashboard
+  renovado con hero oscuro, anillos de salud operativa y actividad reciente.
+- [x] Clientes con búsqueda, avatares, estados y confirmación de archivado.
+- [x] Órdenes con vista de tablero por estado y vista de tabla.
+- [x] Presupuestos con métricas, filtros por estado y tabla renovada.
+- [x] Pagos con métricas de total, cantidad y ticket promedio.
+- [x] Agenda con cabecera de día, timeline y estados.
+- [x] Solicitudes con métricas, prioridad, origen y conversión a orden.
+- [x] Registro, login y cierre de sesión con identidad Arreglo.
 - [x] Contexto de autenticación con refresh automático y selector de empresa.
 - [x] Dashboard con métricas reales.
 - [x] Clientes, solicitudes, órdenes y detalle con historial.
-- [x] Presupuestos, PDF y página pública `/q/[token]`.
+- [x] Presupuestos, PDF y página pública `/q/[token]` rediseñada.
 - [x] Agenda, pagos y asignación de técnicos.
 - [x] PWA `/tech` y `/tech/orders/[id]` con manifest, service worker y offline.
+- [x] Filtros por estado en la PWA del técnico.
 - [x] Automatizaciones y notificaciones con campana y contador.
 - [x] Asistente `/assistant` con preguntas rápidas y estado honesto del proveedor.
 - [x] Facturación `/settings/billing` con plan, uso y cambio de plan.
@@ -85,19 +109,19 @@ de un túnel.
 - [x] WhatsApp `/settings/whatsapp` con configuración, mensajes y envío.
 - [x] Navegación por rol; técnicos usan su propio shell.
 - [x] Cliente API tipado, TanStack Query, React Hook Form + Zod.
-- [x] Vitest con 61 pruebas.
+- [x] Vitest con 70 pruebas.
 
 ### Verificación ejecutada
 
 ```text
 ruff check          -> All checks passed
-ruff format --check -> 116 files already formatted
+ruff format --check -> 119 files already formatted
 basedpyright        -> 0 errors, 0 warnings, 0 notes
-pytest              -> 73 passed
+pytest              -> 83 passed
 pnpm lint           -> sin errores
 pnpm typecheck      -> sin errores
-pnpm test           -> 61 passed
-pnpm build          -> 21 rutas generadas
+pnpm test           -> 70 passed
+pnpm build          -> 27 rutas generadas
 ```
 
 Flujo probado en navegador contra Vercel + Neon: registro, clientes, solicitud,
@@ -110,11 +134,16 @@ notificación in-app.
 ```text
 GET https://saas-gestion-api.vercel.app/api/v1/health/live  -> 200
 GET https://saas-gestion-api.vercel.app/api/v1/health/ready -> 200
-POST /api/v1/auth/login (demo)                              -> 200
+GET https://saas-gestion-api.vercel.app/docs                -> 404
+GET https://saas-gestion-api.vercel.app/openapi.json        -> 404
+POST /api/v1/auth/login (demo)                              -> 200 + X-Request-ID
 GET /api/v1/quotes/{id}/pdf                                 -> 200 application/pdf
 GET /api/v1/plans                                           -> 3 planes
 GET /api/v1/subscription                                    -> Professional active
 GET /api/v1/admin/metrics (fundador)                        -> 200
+SELECT count(*) FROM audit_logs                             -> 1
+SELECT count(*) FROM rate_limit_buckets                     -> 1
+SELECT count(*) FROM auth_attempts                          -> 1
 ```
 
 El refresh de sesión cross-site se verificó recargando el dashboard después del
@@ -156,11 +185,12 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 - Neon Free y Vercel Hobby tienen límites de almacenamiento, conexiones y
   ejecución; no son un entorno productivo con SLA.
 - Sin credenciales de Meta, Mercado Pago ni proveedores de IA externos.
-- El rate limiting es en memoria y por instancia; no sirve para varias
-  instancias sin un backend compartido.
+- El rate limiting usa PostgreSQL con fallback en memoria; para varias instancias
+  conviene Redis/Upstash o el WAF del proveedor.
 - Las fotos de técnicos se guardan como `BYTEA` en PostgreSQL; migrar a S3 en
   producción.
 - El asistente determinista responde intenciones predefinidas; no es un LLM.
 - `send_whatsapp` en automatizaciones queda `skipped` hasta configurar WhatsApp.
 - La suscripción se crea en modo `trialing`, pero todavía no se cobra.
 - Los cold starts de Vercel pueden agregar latencia a la primera request.
+- Falta RLS, 2FA y recuperación de contraseña con email.
