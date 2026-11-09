@@ -3,27 +3,47 @@
 import {
   CalendarDays,
   ClipboardList,
+  CreditCard,
   FileText,
   Inbox,
   LayoutDashboard,
   Loader2,
   LogOut,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles,
   Users,
   Wallet,
+  Workflow,
   Wrench,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { NotificationsBell } from "@/components/notifications-bell";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  /** Roles del tenant activo que ven el enlace. Sin `roles`, lo ven todos. */
+  roles?: string[];
+  /** Solo administradores de la plataforma SaaS (panel global). */
+  platformAdminOnly?: boolean;
+};
+
+const MANAGEMENT_ROLES = ["owner", "admin", "dispatcher"];
+const ADMIN_ROLES = ["owner", "admin"];
+
 /**
- * Módulos financieros (panel, presupuestos, pagos) solo para roles de gestión.
+ * Módulos financieros (panel, presupuestos, pagos, facturación) solo para roles de gestión.
  * Los técnicos usan /tech, fuera de este shell.
  */
-const navigation = [
+const navigation: NavItem[] = [
   {
     href: "/tech",
     label: "Mis trabajos",
@@ -34,7 +54,7 @@ const navigation = [
     href: "/dashboard",
     label: "Panel",
     icon: LayoutDashboard,
-    roles: ["owner", "admin", "dispatcher"],
+    roles: MANAGEMENT_ROLES,
   },
   { href: "/customers", label: "Clientes", icon: Users },
   { href: "/requests", label: "Solicitudes", icon: Inbox },
@@ -43,14 +63,44 @@ const navigation = [
     href: "/quotes",
     label: "Presupuestos",
     icon: FileText,
-    roles: ["owner", "admin", "dispatcher"],
+    roles: MANAGEMENT_ROLES,
   },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   {
     href: "/payments",
     label: "Pagos",
     icon: Wallet,
-    roles: ["owner", "admin", "dispatcher"],
+    roles: MANAGEMENT_ROLES,
+  },
+  {
+    href: "/automations",
+    label: "Automatizaciones",
+    icon: Workflow,
+    roles: ADMIN_ROLES,
+  },
+  {
+    href: "/assistant",
+    label: "Asistente",
+    icon: Sparkles,
+    roles: MANAGEMENT_ROLES,
+  },
+  {
+    href: "/settings/billing",
+    label: "Facturación",
+    icon: CreditCard,
+    roles: ADMIN_ROLES,
+  },
+  {
+    href: "/settings/whatsapp",
+    label: "WhatsApp",
+    icon: MessageCircle,
+    roles: ADMIN_ROLES,
+  },
+  {
+    href: "/admin",
+    label: "Admin SaaS",
+    icon: ShieldCheck,
+    platformAdminOnly: true,
   },
 ];
 
@@ -84,7 +134,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const activeTenant = tenants.find((tenant) => tenant.id === activeTenantId);
   const role = activeTenant?.role ?? "";
-  const visibleNavigation = navigation.filter((item) => !item.roles || item.roles.includes(role));
+  const visibleNavigation = navigation.filter((item) => {
+    if (item.platformAdminOnly) {
+      return user.is_platform_admin === true;
+    }
+    return !item.roles || item.roles.includes(role);
+  });
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -143,6 +198,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <p className="text-xs text-zinc-500">Rol: {activeTenant?.role ?? "—"}</p>
             </div>
             <div className="flex items-center gap-2">
+              <NotificationsBell />
               <select
                 aria-label="Empresa activa"
                 value={activeTenantId ?? ""}

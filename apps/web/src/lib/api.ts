@@ -58,6 +58,12 @@ export type User = {
   email: string;
   full_name: string;
   status: string;
+  /** Administrador de la plataforma SaaS (panel global). Solo para la UI; el backend valida. */
+  is_platform_admin?: boolean;
+};
+
+export type MessageResponse = {
+  message: string;
 };
 
 export type AuthResponse = {
@@ -417,6 +423,228 @@ export type WorkOrderAttachment = {
   mime_type: string;
   size_bytes: number;
   created_at: string;
+};
+
+/* ───────────────────────── Automatizaciones ───────────────────────── */
+
+export type AutomationEventType =
+  | "quote_sent"
+  | "quote_approved"
+  | "quote_rejected"
+  | "work_order_status_changed"
+  | "appointment_created"
+  | "payment_registered";
+
+export type AutomationActionType = "notify" | "notify_user" | "send_whatsapp";
+
+export type AutomationRule = {
+  id: string;
+  tenant_id: string;
+  name: string;
+  event_type: AutomationEventType;
+  conditions: Record<string, unknown> | null;
+  action_type: AutomationActionType;
+  action_config: Record<string, unknown> | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AutomationRuleInput = {
+  name: string;
+  event_type: AutomationEventType;
+  conditions?: Record<string, unknown>;
+  action_type: AutomationActionType;
+  action_config?: Record<string, unknown>;
+  active?: boolean;
+};
+
+export type AutomationExecutionStatus = "pending" | "success" | "failed" | "skipped";
+
+export type AutomationExecution = {
+  id: string;
+  rule_id: string;
+  event_type: AutomationEventType;
+  status: AutomationExecutionStatus;
+  payload: Record<string, unknown> | null;
+  error: string | null;
+  attempts: number;
+  created_at: string;
+  executed_at: string | null;
+};
+
+/* ───────────────────────── Notificaciones ───────────────────────── */
+
+export type Notification = {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  read_at: string | null;
+  created_at: string;
+  user_id: string | null;
+};
+
+export type NotificationListResponse = {
+  items: Notification[];
+  total: number;
+  unread: number;
+};
+
+/* ───────────────────────── Suscripciones y administración SaaS ───────────────────────── */
+
+/** Importes llegan como string (Decimal serializado). */
+export type Plan = {
+  id: string;
+  code: string;
+  name: string;
+  price_ars: string;
+  billing_period: string;
+  limits: Record<string, unknown> | null;
+  active: boolean;
+};
+
+export type SubscriptionStatus = "trialing" | "active" | "past_due" | "cancelled";
+
+export type Subscription = {
+  id: string;
+  tenant_id: string;
+  plan: Plan;
+  status: SubscriptionStatus;
+  started_at: string | null;
+  current_period_end: string | null;
+  price_snapshot: string;
+};
+
+export type SubscriptionUsage = {
+  orders_this_month: number;
+  users_count: number;
+  technicians_count: number;
+  ai_tokens_used: number;
+};
+
+export type SubscriptionDetail = {
+  subscription: Subscription;
+  usage: SubscriptionUsage;
+};
+
+export type AdminTenant = {
+  id: string;
+  name: string;
+  created_at: string;
+  plan_code: string | null;
+  plan_name: string | null;
+  subscription_status: string | null;
+  users_count: number;
+  orders_count: number;
+  price_snapshot: string;
+};
+
+export type AdminTenantList = {
+  items: AdminTenant[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type AdminMetrics = {
+  tenants_total: number;
+  active_subscriptions: number;
+  trialing_subscriptions: number;
+  mrr_ars: string;
+  orders_total: number;
+  orders_this_month: number;
+  ai_tokens_this_month: number;
+};
+
+/* ───────────────────────── Asistente de IA ───────────────────────── */
+
+export type AIStatus = {
+  provider: string;
+  model: string;
+  configured: boolean;
+  available: boolean;
+  deterministic_available: boolean;
+  monthly_token_limit: number;
+  tokens_used: number;
+  capabilities: string[];
+};
+
+export type AIChatResponse = {
+  reply: string;
+  provider: string;
+  model: string;
+  input_tokens: number;
+  output_tokens: number;
+  /** Costo estimado como string (Decimal serializado). */
+  estimated_cost: string;
+  used_tokens: number;
+};
+
+export type AIUsageItem = {
+  id: string;
+  provider: string;
+  model: string;
+  feature: string;
+  input_tokens: number;
+  output_tokens: number;
+  estimated_cost: string;
+  created_at: string;
+};
+
+export type AIUsage = {
+  items: AIUsageItem[];
+  total_tokens: number;
+  total_cost: string;
+  monthly_limit: number;
+  remaining: number;
+};
+
+/* ───────────────────────── WhatsApp ───────────────────────── */
+
+/** Los secretos nunca se devuelven: solo se informa si están cargados. */
+export type WhatsAppConfig = {
+  configured: boolean;
+  active: boolean;
+  phone_number_id: string | null;
+  business_account_id: string | null;
+  has_access_token: boolean;
+  has_verify_token: boolean;
+  has_app_secret: boolean;
+};
+
+export type WhatsAppConfigInput = {
+  phone_number_id: string;
+  business_account_id: string;
+  access_token?: string;
+  verify_token?: string;
+  app_secret?: string;
+  active: boolean;
+};
+
+export type WhatsAppMessage = {
+  id: string;
+  direction: string;
+  wa_message_id: string | null;
+  from_phone: string;
+  to_phone: string;
+  message_type: string;
+  body: string | null;
+  status: string;
+  created_at: string;
+};
+
+export type WhatsAppMessageList = {
+  items: WhatsAppMessage[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type WhatsAppSendResult = {
+  id: string;
+  status: string;
+  wa_message_id: string | null;
 };
 
 function tenantHeaders(tenantId: string): HeadersInit {
@@ -793,6 +1021,127 @@ export const api = {
       publicRequest<PublicQuote>(`/api/v1/public/quotes/${token}/reject`, {
         method: "POST",
         body: JSON.stringify({}),
+      }),
+  },
+  automations: {
+    list: (tenantId: string) =>
+      request<AutomationRule[]>("/api/v1/automations", { headers: tenantHeaders(tenantId) }),
+    create: (tenantId: string, input: AutomationRuleInput) =>
+      request<AutomationRule>("/api/v1/automations", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    update: (tenantId: string, ruleId: string, input: Partial<AutomationRuleInput>) =>
+      request<AutomationRule>(`/api/v1/automations/${ruleId}`, {
+        method: "PATCH",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    toggle: (tenantId: string, ruleId: string) =>
+      request<AutomationRule>(`/api/v1/automations/${ruleId}/toggle`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+    remove: (tenantId: string, ruleId: string) =>
+      request<MessageResponse>(`/api/v1/automations/${ruleId}`, {
+        method: "DELETE",
+        headers: tenantHeaders(tenantId),
+      }),
+    /** Últimas ejecuciones del tenant (el backend acepta hasta 200). */
+    executions: (tenantId: string, limit = 50) =>
+      request<AutomationExecution[]>(`/api/v1/automations/executions?limit=${limit}`, {
+        headers: tenantHeaders(tenantId),
+      }),
+  },
+  notifications: {
+    list: (tenantId: string) =>
+      request<NotificationListResponse>("/api/v1/notifications", {
+        headers: tenantHeaders(tenantId),
+      }),
+    markRead: (tenantId: string, notificationId: string) =>
+      request<Notification>(`/api/v1/notifications/${notificationId}/read`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+    markAllRead: (tenantId: string) =>
+      request<MessageResponse>("/api/v1/notifications/read-all", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+  },
+  billing: {
+    plans: (tenantId: string) =>
+      request<Plan[]>("/api/v1/plans", { headers: tenantHeaders(tenantId) }),
+    subscription: (tenantId: string) =>
+      request<SubscriptionDetail>("/api/v1/subscription", {
+        headers: tenantHeaders(tenantId),
+      }),
+    /** Solo owner. Devuelve el detalle actualizado de la suscripción. */
+    changePlan: (tenantId: string, planCode: string) =>
+      request<SubscriptionDetail>("/api/v1/subscription/change", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ plan_code: planCode }),
+      }),
+  },
+  admin: {
+    /** Solo administradores de la plataforma. `search` filtra por nombre de empresa. */
+    tenants: (tenantId: string, search?: string) => {
+      const query = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
+      return request<AdminTenantList>(`/api/v1/admin/tenants${query}`, {
+        headers: tenantHeaders(tenantId),
+      });
+    },
+    metrics: (tenantId: string) =>
+      request<AdminMetrics>("/api/v1/admin/metrics", { headers: tenantHeaders(tenantId) }),
+    /** Cambia plan y estado de la suscripción de `targetTenantId` (no del tenant activo). */
+    updateSubscription: (
+      tenantId: string,
+      targetTenantId: string,
+      planCode: string,
+      status: SubscriptionStatus,
+    ) =>
+      request<Subscription>(`/api/v1/admin/tenants/${targetTenantId}/subscription`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ plan_code: planCode, status }),
+      }),
+  },
+  ai: {
+    status: (tenantId: string) =>
+      request<AIStatus>("/api/v1/ai/status", { headers: tenantHeaders(tenantId) }),
+    chat: (tenantId: string, message: string) =>
+      request<AIChatResponse>("/api/v1/ai/chat", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ message }),
+      }),
+    usage: (tenantId: string) =>
+      request<AIUsage>("/api/v1/ai/usage", { headers: tenantHeaders(tenantId) }),
+  },
+  whatsapp: {
+    getConfig: (tenantId: string) =>
+      request<WhatsAppConfig>("/api/v1/whatsapp/config", { headers: tenantHeaders(tenantId) }),
+    /** Solo owner/admin. Los secretos en blanco no reemplazan los existentes (lo define el backend). */
+    updateConfig: (tenantId: string, input: WhatsAppConfigInput) =>
+      request<WhatsAppConfig>("/api/v1/whatsapp/config", {
+        method: "PUT",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    messages: (tenantId: string) =>
+      request<WhatsAppMessageList>("/api/v1/whatsapp/messages", {
+        headers: tenantHeaders(tenantId),
+      }),
+    send: (tenantId: string, toPhone: string, body: string) =>
+      request<WhatsAppSendResult>("/api/v1/whatsapp/send", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ to_phone: toPhone, body }),
       }),
   },
 };
