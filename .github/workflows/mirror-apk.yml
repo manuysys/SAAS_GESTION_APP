@@ -10,6 +10,8 @@ jobs:
   mirror:
     name: Mirror APK to tmpfiles
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download release APK
         run: |
@@ -18,6 +20,15 @@ jobs:
             https://github.com/manuysys/SAAS_GESTION_APP/releases/download/mobile-apk-3/app-release.apk
 
       - name: Upload to tmpfiles
+        id: upload
         run: |
           response=$(curl -s --fail -F "file=@app-release.apk" https://tmpfiles.org/api/v1/upload)
-          echo "$response"
+          url=$(echo "$response" | jq -r '.data.url')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "APK_URL=$url"
+
+      - name: Publish mirror URL in release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit mobile-apk-3 --notes "APK mirror: ${{ steps.upload.outputs.url }}"
