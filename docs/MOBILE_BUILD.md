@@ -121,6 +121,13 @@ npx eas-cli@latest build -p android --profile preview
 El perfil `preview` genera un APK instalable. El perfil `production` genera un
 AAB para Google Play.
 
+## Build en GitHub Actions
+
+El workflow `.github/workflows/android-apk.yml` compila un APK arm64 en Ubuntu y
+lo publica como artifact `arreglo-android-apk`. Se ejecuta al cambiar
+`apps/mobile/**` o manualmente con `workflow_dispatch`. Evita los límites de
+ruta de Windows y no requiere una máquina local.
+
 ## Android
 
 - Package: `com.arreglo.mobile`.

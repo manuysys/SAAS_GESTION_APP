@@ -154,6 +154,7 @@ pnpm typecheck      -> sin errores
 pnpm test           -> 95 passed
 pnpm build          -> 27 rutas generadas
 expo-doctor         -> 20/20 checks passed
+scripts/verify.ps1  -> Todo OK
 ```
 
 Flujo probado en navegador contra Vercel + Neon: registro, clientes, solicitud,

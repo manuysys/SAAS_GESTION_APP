@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build release APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: apps/mobile
@@ -53,3 +55,12 @@ jobs:
           name: arreglo-android-apk
           path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+
+      - name: Publish APK as release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mobile-apk-${{ github.run_number }}
+          name: Arreglo Android APK ${{ github.run_number }}
+          prerelease: true
+          files: ${{ github.workspace }}/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
