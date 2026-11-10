@@ -273,8 +273,10 @@ async def get_expiring_quotes(
     items: list[dict[str, object]] = []
     for quote, customer in rows:
         assert quote.valid_until is not None
-        valid_local = quote.valid_until.astimezone(tz)
-        days_left = max(0, (valid_local.date() - reference).days)
+        # `valid_until` se carga como fecha (día calendario) desde la UI.
+        # Comparar por fecha evita que la conversión UTC la desplace un día.
+        valid_date = quote.valid_until.date()
+        days_left = max(0, (valid_date - reference).days)
         items.append(
             {
                 "id": quote.id,

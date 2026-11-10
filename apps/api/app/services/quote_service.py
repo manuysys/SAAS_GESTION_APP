@@ -3,6 +3,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from io import BytesIO
 from typing import cast
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException, status
 from reportlab.lib.pagesizes import A4
@@ -67,7 +68,8 @@ async def _ensure_not_expired(db: AsyncSession, quote: Quote) -> None:
     valid_until = quote.valid_until
     if valid_until.tzinfo is None:
         valid_until = valid_until.replace(tzinfo=UTC)
-    if valid_until < datetime.now(UTC):
+    today_ar = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).date()
+    if valid_until.date() < today_ar:
         quote.status = "expired"
         await db.commit()
         raise HTTPException(

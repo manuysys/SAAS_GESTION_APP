@@ -3,6 +3,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, or_, select
@@ -458,7 +459,8 @@ def _ensure_quote_not_expired(quote: Quote) -> None:
     valid_until = quote.valid_until
     if valid_until.tzinfo is None:
         valid_until = valid_until.replace(tzinfo=UTC)
-    if valid_until < datetime.now(UTC):
+    today_ar = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")).date()
+    if valid_until.date() < today_ar:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Quote expired",
