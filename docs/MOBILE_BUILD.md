@@ -124,9 +124,15 @@ AAB para Google Play.
 ## Build en GitHub Actions
 
 El workflow `.github/workflows/android-apk.yml` compila un APK arm64 en Ubuntu y
-lo publica como artifact `arreglo-android-apk`. Se ejecuta al cambiar
-`apps/mobile/**` o manualmente con `workflow_dispatch`. Evita los límites de
-ruta de Windows y no requiere una máquina local.
+lo publica como artifact `arreglo-android-apk` y como release asset. Se ejecuta
+al cambiar `apps/mobile/**` o manualmente con `workflow_dispatch`. Evita los
+límites de ruta de Windows y no requiere una máquina local.
+
+APK de prueba publicado:
+
+```text
+https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-3
+```
 
 ## Android
 

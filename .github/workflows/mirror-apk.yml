@@ -31,4 +31,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release edit mobile-apk-3 --notes "APK mirror: ${{ steps.upload.outputs.url }}"
+          gh release edit mobile-apk-3 --repo manuysys/SAAS_GESTION_APP --notes "APK mirror: ${{ steps.upload.outputs.url }}"

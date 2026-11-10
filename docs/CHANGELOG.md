@@ -24,6 +24,8 @@
 - Nueve documentos de auditoría, matriz de verdad, benchmark y backlog
   priorizado en `docs/`.
 - Android SDK local, scripts de entorno, CI móvil y guía de build.
+- APK release arm64 generado en GitHub Actions y publicado como release
+  `mobile-apk-3` (30.8 MB, firma de debug).
 - 97 pruebas pytest y 95 pruebas de frontend.
 
 ## 2026-11-09 — Landing Arreglo, Groq y design system

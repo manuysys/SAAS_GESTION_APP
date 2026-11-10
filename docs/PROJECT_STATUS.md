@@ -140,7 +140,9 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] Tokens en `expo-secure-store`; refresh rotativo persistido.
 - [x] `pnpm exec tsc --noEmit`, `expo export --platform android` y
   `expo-doctor` 20/20.
-- [ ] APK release generado y probado en dispositivo físico (en curso).
+- [x] APK release arm64 generado en GitHub Actions (release `mobile-apk-3`,
+  30.8 MB).
+- [ ] APK instalado y probado en un dispositivo físico.
 
 ### Verificación ejecutada
 
@@ -155,6 +157,7 @@ pnpm test           -> 95 passed
 pnpm build          -> 27 rutas generadas
 expo-doctor         -> 20/20 checks passed
 scripts/verify.ps1  -> Todo OK
+Android APK         -> release mobile-apk-3, 30.8 MB (arm64)
 ```
 
 Flujo probado en navegador contra Vercel + Neon: registro, clientes, solicitud,
@@ -200,6 +203,7 @@ migración `76aba18b0e16` quedó aplicada en Neon y la API se redesplegó el
 - Admin demo: `demo@saasgestion.com` / `Demo12345!`.
 - Técnico demo: `tecnico@saasgestion.com` / `Tecnico12345!`.
 - Cliente demo del portal: empresa `servicios-demo`, `carlos@example.com`.
+- APK Android de prueba: https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-3
 
 Ver `docs/DEMO.md`. La demo ya no depende de esta máquina. Limitación: el plan
 Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
