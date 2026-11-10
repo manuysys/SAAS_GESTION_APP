@@ -87,6 +87,18 @@ En la app, usar **“Probar demo de cliente”**. El backend devuelve un token d
 demostración solo para el tenant `servicios-demo` cuando `PORTAL_DEV_MODE=true`.
 En producción real, el acceso se envía por email o WhatsApp.
 
+### APK de prueba
+
+Descargar el APK arm64 desde la release pública:
+
+```text
+https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-3
+```
+
+El APK está firmado con la keystore de debug: sirve para probar en un Android
+real, no para publicar en Google Play. Habilitar “instalar apps desconocidas”
+para el navegador o el explorador de archivos.
+
 ## Advertencia
 
 No cargar datos personales reales ni información confidencial. Es un entorno de
