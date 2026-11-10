@@ -1,0 +1,23 @@
+name: Mirror APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/mirror-apk.yml"
+
+jobs:
+  mirror:
+    name: Mirror APK to tmpfiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release APK
+        run: |
+          curl -L --fail --retry 5 --retry-delay 3 \
+            -o app-release.apk \
+            https://github.com/manuysys/SAAS_GESTION_APP/releases/download/mobile-apk-3/app-release.apk
+
+      - name: Upload to tmpfiles
+        run: |
+          response=$(curl -s --fail -F "file=@app-release.apk" https://tmpfiles.org/api/v1/upload)
+          echo "$response"
