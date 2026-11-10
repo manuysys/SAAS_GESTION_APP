@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-10 — App móvil Android, portal del cliente y dashboard operativo
+
+- App Expo / React Native (SDK 58) para Android en `apps/mobile`, con dos
+  experiencias: técnico y cliente. No es un wrapper web.
+- Técnico: login, trabajos asignados con filtros, detalle, transiciones,
+  llamada al cliente, dirección, notas, materiales, fotos, cola offline con
+  idempotencia y registro de push.
+- Cliente: login por email o teléfono con magic link (token de desarrollo en la
+  demo), resumen, solicitud de servicio, órdenes, turnos, presupuestos con
+  aprobación/rechazo, pagos y detalle con ítems.
+- Backend: `POST /auth/mobile/login|refresh|logout`, `/notifications/devices`,
+  `/portal/{slug}/*`, direcciones de cliente, `portal_settings`, push con Expo y
+  `client_request_id` en notas, materiales y adjuntos.
+- Migración `76aba18b0e16` aplicada en Neon: `customer_access_tokens`,
+  `device_tokens`, direcciones, `portal_settings` y constraints de idempotencia.
+- Trial de suscripción alineado a 14 días.
+- Dashboard operativo: `GET /dashboard/operations` con turnos de hoy, órdenes
+  atrasadas, sin técnico, presupuestos por vencer y trabajos finalizados con
+  saldo; nueva UI de centro de operaciones.
+- Landing P0: dataset único `demo-data.ts`, IDs y estados coherentes, 27 tests de
+  integridad, copy honesto sobre IA/offline/WhatsApp/trial y FAQ ampliado.
+- Nueve documentos de auditoría, matriz de verdad, benchmark y backlog
+  priorizado en `docs/`.
+- Android SDK local, scripts de entorno, CI móvil y guía de build.
+- 97 pruebas pytest y 95 pruebas de frontend.
+
 ## 2026-11-09 — Landing Arreglo, Groq y design system
 
 - Marca provisional **Arreglo** centralizada en `apps/web/src/lib/brand.ts`.

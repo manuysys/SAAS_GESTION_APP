@@ -54,9 +54,7 @@ export function TrustStrip() {
             );
           })}
         </ul>
-        <p className="mt-8 text-xs text-slate">
-          Cifras del producto, no de clientes. Las pantallas muestran datos de ejemplo.
-        </p>
+        <p className="mt-8 text-xs text-slate">Cifras del producto, no de clientes.</p>
       </div>
     </section>
   );

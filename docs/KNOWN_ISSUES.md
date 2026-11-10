@@ -22,11 +22,13 @@
 - **WhatsApp sin probar end-to-end.** El código de configuración, webhook,
   firma HMAC y envío está implementado, pero no hay número de Meta ni
   credenciales reales. No afirmar que funciona hasta probarlo.
-- **IA externa sin API key.** El proveedor determinista funciona localmente.
-  OpenAI-compatible y Ollama están implementados, pero no se probaron contra un
-  proveedor externo real.
+- **IA externa con Groq en producción.** El proveedor OpenAI-compatible está
+  configurado con Groq (`openai/gpt-oss-120b`) y fallback determinista si se
+  agota la cuota. Ollama local no se probó con el modelo grande por RAM.
 - **Mercado Pago sin credenciales.** No hay cobros reales ni webhooks.
-- **Sin correo transaccional.** Las notificaciones son solo in-app.
+- **Sin correo transaccional.** Las notificaciones son solo in-app y el magic
+  link del portal no se envía por email ni WhatsApp: en la demo se devuelve un
+  `dev_token`.
 
 ## Producto
 
@@ -40,13 +42,32 @@
   envía nada.
 - **Fotos en PostgreSQL.** Los adjuntos se guardan como `BYTEA`; migrar a S3 en
   producción.
-- **Rate limiting en memoria.** Es por instancia; en producción con varias
-  instancias hace falta Redis/Upstash o el límite del proveedor.
+- **Rate limiting compartido en PostgreSQL.** Hay fallback en memoria; para
+  varias instancias conviene Redis/Upstash o el límite del proveedor.
 - **Panel global.** Requiere `is_platform_admin` o un email en
   `PLATFORM_ADMIN_EMAILS`. No hay interfaz para administrar platform admins.
 - **Sin entrevistas a clientes.** La investigación competitiva está hecha, pero
   no hay validación con clientes reales.
 - **Sin nombre comercial aprobado.** TIVORA fue descartado preliminarmente.
+
+## App móvil y portal
+
+- **APK de prueba firmado con debug.** El build local usa la keystore de debug;
+  sirve para instalar en un dispositivo real, no para Google Play. Para publicar
+  hay que configurar una keystore de release o usar EAS.
+- **Sin probar en dispositivo físico.** Falta instalar el APK y recorrer login,
+  trabajos, fotos, offline y portal en un Android real.
+- **Push requiere `extra.eas.projectId`.** Sin `eas init` o un development build,
+  el registro de notificaciones queda desactivado silenciosamente.
+- **Magic link sin entrega real.** No hay email transaccional ni WhatsApp; el
+  portal usa `dev_token` en el tenant demo con `PORTAL_DEV_MODE=true`.
+- **`PORTAL_DEV_MODE=true` en producción.** Permite iniciar sesión como el
+  cliente demo de `servicios-demo`. Desactivarlo para un entorno real.
+- **Fotos offline en almacenamiento local.** Se copian a `documentDirectory`; si
+  se reinstala la app o se limpian datos, se pierden antes de sincronizar.
+- **iOS no probado.** Requiere macOS o EAS Build.
+- **El portal no reemplaza la web.** No incluye facturación fiscal, configuración
+  de empresa ni administración.
 
 ## Riesgos técnicos
 

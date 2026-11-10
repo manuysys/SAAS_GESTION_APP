@@ -81,6 +81,18 @@ if (Test-Path (Join-Path $web 'package.json')) {
 }
 
 Write-Host ""
+Write-Host "=== Mobile ==="
+$mobile = Join-Path $root 'apps\mobile'
+if (Test-Path (Join-Path $mobile 'package.json')) {
+    Push-Location $mobile
+    pnpm exec tsc --noEmit
+    if ($LASTEXITCODE -ne 0) { $failures += 'mobile-tsc' }
+    Pop-Location
+} else {
+    Write-Host "[SKIP] apps/mobile aun no existe"
+}
+
+Write-Host ""
 if ($failures.Count -gt 0) {
     Write-Host "FALLOS: $($failures -join ', ')"
     exit 1

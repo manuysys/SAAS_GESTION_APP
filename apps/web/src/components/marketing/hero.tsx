@@ -52,7 +52,7 @@ export function Hero() {
             </Link>
           </div>
           <p className="mk-rise mt-3 text-xs text-white/65" style={delayStyle(280)}>
-            Prueba de 14 días: en implementación. Hoy el registro no cobra.
+            Prueba gratuita de 14 días: en implementación. Hoy no se cobra al registrarse.
           </p>
 
           <div

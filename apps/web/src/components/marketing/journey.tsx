@@ -101,7 +101,7 @@ export function Journey() {
             id="journey-title"
             className="mt-4 font-display text-[clamp(2rem,4.6vw,3.5rem)] leading-[1.02] font-semibold tracking-[-0.03em] text-balance"
           >
-            Del primer mensaje al cobro, sin volver a cargar datos.
+            Del primer pedido al cobro, sin volver a cargar datos.
           </h2>
           <p className="mt-5 max-w-md text-base leading-7 text-white/75">
             Cada paso alimenta al siguiente. La oficina, el técnico y el cliente trabajan sobre el

@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +21,7 @@ class Tenant(UUIDMixin, TimestampMixin, Base):
         String(64), default="America/Argentina/Buenos_Aires", nullable=False
     )
     currency: Mapped[str] = mapped_column(String(3), default="ARS", nullable=False)
+    portal_settings: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
 
     memberships: Mapped[list[Membership]] = relationship(
         back_populates="tenant",

@@ -3,13 +3,15 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
-  ArrowUpRight,
   CalendarDays,
   ClipboardList,
+  Clock,
   FileText,
   Sparkles,
   Users,
+  UserX,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -19,11 +21,12 @@ import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProgressRing } from "@/components/ui/progress-ring";
 import { StatCard } from "@/components/ui/stat-card";
-import { api } from "@/lib/api";
+import { api, getAccessToken } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const quickLinks = [
   { href: "/customers", label: "Clientes", icon: Users },
@@ -42,6 +45,115 @@ const notificationVariant: Record<string, "neutral" | "success" | "warning" | "d
   info: "info",
 };
 
+type DashboardAppointmentItem = {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  status: string;
+  order_code: string;
+  order_title: string;
+  customer_name: string;
+  technician_name: string | null;
+};
+
+type DashboardOverdueOrderItem = {
+  id: string;
+  code: string;
+  title: string;
+  customer_name: string;
+  operational_status: string;
+  scheduled_at: string;
+  days_overdue: number;
+};
+
+type DashboardUnassignedOrderItem = {
+  id: string;
+  code: string;
+  title: string;
+  customer_name: string;
+  priority: string;
+  created_at: string;
+};
+
+type DashboardExpiringQuoteItem = {
+  id: string;
+  number: string;
+  customer_name: string;
+  total: string;
+  valid_until: string;
+  days_left: number;
+};
+
+type DashboardFinishedWithBalanceItem = {
+  id: string;
+  code: string;
+  title: string;
+  customer_name: string;
+  total: string;
+  paid: string;
+  balance: string;
+};
+
+type DashboardOperations = {
+  today_appointments: DashboardAppointmentItem[];
+  overdue_orders: DashboardOverdueOrderItem[];
+  unassigned_orders: DashboardUnassignedOrderItem[];
+  expiring_quotes: DashboardExpiringQuoteItem[];
+  finished_with_balance: DashboardFinishedWithBalanceItem[];
+  counts: {
+    today_appointments: number;
+    overdue_orders: number;
+    unassigned_orders: number;
+    expiring_quotes: number;
+    finished_with_balance: number;
+  };
+};
+
+async function fetchOperations(tenantId: string): Promise<DashboardOperations> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Tenant-ID": tenantId,
+  };
+  const token = getAccessToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  const response = await fetch(`${API_URL}/api/v1/dashboard/operations`, {
+    headers,
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const detail = typeof body?.detail === "string" ? body.detail : "No se pudieron cargar las operaciones";
+    throw new Error(detail);
+  }
+  return response.json() as Promise<DashboardOperations>;
+}
+
+function formatTime(value: string | Date) {
+  return new Intl.DateTimeFormat("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date(value));
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    new: "Nueva",
+    scheduled: "Programada",
+    in_progress: "En curso",
+    waiting: "En espera",
+    finished: "Finalizada",
+    cancelled: "Cancelada",
+    sent: "Enviado",
+    approved: "Aprobado",
+    rejected: "Rechazado",
+    draft: "Borrador",
+  };
+  return labels[status] ?? status;
+}
+
 export default function DashboardPage() {
   const { user, activeTenantId, tenants } = useAuth();
   const router = useRouter();
@@ -58,6 +170,12 @@ export default function DashboardPage() {
   const summaryQuery = useQuery({
     queryKey: ["dashboard-summary", activeTenantId],
     queryFn: () => api.dashboard.summary(activeTenantId ?? ""),
+    enabled: Boolean(activeTenantId) && canViewDashboard,
+  });
+
+  const operationsQuery = useQuery({
+    queryKey: ["dashboard-operations", activeTenantId],
+    queryFn: () => fetchOperations(activeTenantId ?? ""),
     enabled: Boolean(activeTenantId) && canViewDashboard,
   });
 
@@ -82,6 +200,8 @@ export default function DashboardPage() {
   const balance =
     loading || unavailable || !summary ? "—" : formatCurrency(summary.pending_balance);
   const notifications = activityQuery.data?.items.slice(0, 4) ?? [];
+  const ops = operationsQuery.data;
+  const opsLoading = operationsQuery.isLoading;
 
   return (
     <div className="space-y-6">
@@ -209,82 +329,246 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader className="flex-row items-start justify-between gap-4">
             <div>
-              <CardTitle>Salud operativa</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="text-teal h-4 w-4" aria-hidden="true" />
+                Hoy
+              </CardTitle>
               <p className="text-slate mt-1 text-sm">
-                Proporción de trabajo abierto y presupuestos sin responder.
+                Turnos del día{" "}
+                {ops ? `(${ops.counts.today_appointments})` : "—"}
               </p>
             </div>
-            <Badge variant="teal" className="shrink-0">
-              Datos reales
-            </Badge>
+            <Link
+              href="/agenda"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0")}
+            >
+              Ver agenda
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {opsLoading ? (
+              <p className="text-slate text-sm">Cargando turnos...</p>
+            ) : !ops || ops.today_appointments.length === 0 ? (
+              <p className="text-slate text-sm">
+                No hay turnos agendados para hoy. Cuando asignes una visita, aparece acá.
+              </p>
+            ) : (
+              <ul className="divide-mist divide-y">
+                {ops.today_appointments.map((appointment) => (
+                  <li key={appointment.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className="bg-teal/10 text-teal flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-semibold">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-ink text-sm font-semibold">
+                        {formatTime(appointment.starts_at)} · {appointment.order_title}
+                      </p>
+                      <p className="text-slate text-xs">{appointment.customer_name}</p>
+                      {appointment.technician_name && (
+                        <p className="text-slate/70 mt-0.5 text-[11px]">
+                          Técnico: {appointment.technician_name}
+                        </p>
+                      )}
+                    </div>
+                    <Badge variant="neutral" className="h-fit shrink-0 text-[10px]">
+                      {statusLabel(appointment.status)}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="text-amber h-4 w-4" aria-hidden="true" />
+                Requiere atención
+              </CardTitle>
+              <p className="text-slate mt-1 text-sm">
+                Atrasadas, sin técnico, presupuestos por vencer y saldos.
+              </p>
+            </div>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="border-mist rounded-2xl border bg-white p-4">
-                <ProgressRing
-                  value={summary?.work_orders_open ?? 0}
-                  max={summary?.work_orders_total ?? 0}
-                  label="Órdenes abiertas"
-                  detail={
-                    summary && !unavailable
-                      ? `${summary.work_orders_open} de ${summary.work_orders_total}`
-                      : "Sin datos"
-                  }
-                  color="teal"
-                />
-              </div>
-              <div className="border-mist rounded-2xl border bg-white p-4">
-                <ProgressRing
-                  value={summary?.quotes_pending ?? 0}
-                  max={summary?.quotes_total ?? 0}
-                  label="Presupuestos pendientes"
-                  detail={
-                    summary && !unavailable
-                      ? `${summary.quotes_pending} de ${summary.quotes_total}`
-                      : "Sin datos"
-                  }
-                  color="amber"
-                />
-              </div>
-            </div>
-
-            <ol className="space-y-2.5">
-              {[
-                "Cliente, solicitud y orden de trabajo",
-                "Presupuesto enviado y aprobado por el cliente",
-                "Turno asignado y trabajo cerrado por el técnico",
-                "Pago registrado y saldo actualizado",
-              ].map((step, index) => (
-                <li
-                  key={step}
-                  className="border-mist bg-paper/60 flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm"
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-ink flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+                  <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
+                  Órdenes atrasadas{" "}
+                  {ops ? `(${ops.counts.overdue_orders})` : "—"}
+                </h4>
+                <Link
+                  href="/orders"
+                  className="text-teal text-xs font-semibold hover:underline"
                 >
-                  <span className="bg-ink flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white">
-                    {index + 1}
-                  </span>
-                  <span className="text-ink">{step}</span>
-                  {index === 0 && (
-                    <ArrowUpRight className="text-teal ml-auto h-4 w-4" aria-hidden="true" />
-                  )}
-                </li>
-              ))}
-            </ol>
+                  Ver órdenes
+                </Link>
+              </div>
+              {!ops || opsLoading ? (
+                <p className="text-slate text-sm">Cargando...</p>
+              ) : ops.overdue_orders.length === 0 ? (
+                <p className="text-slate text-sm">No hay órdenes atrasadas. Todo en tiempo.</p>
+              ) : (
+                <ul className="divide-mist divide-y">
+                  {ops.overdue_orders.map((order) => (
+                    <li key={order.id} className="py-2 first:pt-0 last:pb-0">
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="group flex items-start justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-ink truncate text-sm font-medium group-hover:text-teal">
+                            {order.code} · {order.title}
+                          </p>
+                          <p className="text-slate text-xs">{order.customer_name}</p>
+                        </div>
+                        <Badge variant="danger" className="h-fit shrink-0 text-[10px]">
+                          {order.days_overdue}d
+                        </Badge>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
 
-            <div className="flex flex-wrap gap-2">
-              <Link href="/orders" className={buttonVariants({ variant: "primary" })}>
-                Ver órdenes
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link href="/quotes" className={buttonVariants({ variant: "outline" })}>
-                Presupuestos
-              </Link>
-              <Link href="/agenda" className={buttonVariants({ variant: "outline" })}>
-                Agenda
-              </Link>
-            </div>
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-ink flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+                  <UserX className="h-3.5 w-3.5" aria-hidden="true" />
+                  Sin técnico{" "}
+                  {ops ? `(${ops.counts.unassigned_orders})` : "—"}
+                </h4>
+                <Link
+                  href="/orders"
+                  className="text-teal text-xs font-semibold hover:underline"
+                >
+                  Asignar
+                </Link>
+              </div>
+              {!ops || opsLoading ? (
+                <p className="text-slate text-sm">Cargando...</p>
+              ) : ops.unassigned_orders.length === 0 ? (
+                <p className="text-slate text-sm">Todas las órdenes abiertas tienen técnico.</p>
+              ) : (
+                <ul className="divide-mist divide-y">
+                  {ops.unassigned_orders.map((order) => (
+                    <li key={order.id} className="py-2 first:pt-0 last:pb-0">
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="group flex items-start justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-ink truncate text-sm font-medium group-hover:text-teal">
+                            {order.code} · {order.title}
+                          </p>
+                          <p className="text-slate text-xs">{order.customer_name}</p>
+                        </div>
+                        <Badge variant="warning" className="h-fit shrink-0 text-[10px]">
+                          {statusLabel(order.priority)}
+                        </Badge>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-ink flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+                  <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                  Presupuestos por vencer{" "}
+                  {ops ? `(${ops.counts.expiring_quotes})` : "—"}
+                </h4>
+                <Link
+                  href="/quotes"
+                  className="text-teal text-xs font-semibold hover:underline"
+                >
+                  Ver presupuestos
+                </Link>
+              </div>
+              {!ops || opsLoading ? (
+                <p className="text-slate text-sm">Cargando...</p>
+              ) : ops.expiring_quotes.length === 0 ? (
+                <p className="text-slate text-sm">No hay presupuestos por vencer.</p>
+              ) : (
+                <ul className="divide-mist divide-y">
+                  {ops.expiring_quotes.map((quote) => (
+                    <li key={quote.id} className="py-2 first:pt-0 last:pb-0">
+                      <Link
+                        href={`/quotes/${quote.id}`}
+                        className="group flex items-start justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-ink truncate text-sm font-medium group-hover:text-teal">
+                            {quote.number} · {quote.customer_name}
+                          </p>
+                          <p className="text-slate text-xs">
+                            Vence {formatDate(quote.valid_until)} ·{" "}
+                            {formatCurrency(quote.total)}
+                          </p>
+                        </div>
+                        <Badge variant="warning" className="h-fit shrink-0 text-[10px]">
+                          {quote.days_left}d
+                        </Badge>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-ink flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+                  <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
+                  Finalizadas con saldo{" "}
+                  {ops ? `(${ops.counts.finished_with_balance})` : "—"}
+                </h4>
+                <Link
+                  href="/payments"
+                  className="text-teal text-xs font-semibold hover:underline"
+                >
+                  Ver pagos
+                </Link>
+              </div>
+              {!ops || opsLoading ? (
+                <p className="text-slate text-sm">Cargando...</p>
+              ) : ops.finished_with_balance.length === 0 ? (
+                <p className="text-slate text-sm">No hay órdenes finalizadas con saldo pendiente.</p>
+              ) : (
+                <ul className="divide-mist divide-y">
+                  {ops.finished_with_balance.map((order) => (
+                    <li key={order.id} className="py-2 first:pt-0 last:pb-0">
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="group flex items-start justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-ink truncate text-sm font-medium group-hover:text-teal">
+                            {order.code} · {order.title}
+                          </p>
+                          <p className="text-slate text-xs">
+                            {order.customer_name} · pagado {formatCurrency(order.paid)} de{" "}
+                            {formatCurrency(order.total)}
+                          </p>
+                        </div>
+                        <Badge variant="danger" className="h-fit shrink-0 text-[10px]">
+                          {formatCurrency(order.balance)}
+                        </Badge>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </CardContent>
         </Card>
 

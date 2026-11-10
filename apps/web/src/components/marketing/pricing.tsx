@@ -32,6 +32,7 @@ export function Pricing() {
             Prueba de 14 días: en implementación
           </p>
         </div>
+        <p className="mt-4 text-xs leading-5 text-ink/75">{pricingCopy.limitsNote}</p>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-3 lg:items-stretch">
           {plans.map((plan) => {

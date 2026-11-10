@@ -8,8 +8,13 @@ const arsFormatter = new Intl.NumberFormat("es-AR", {
 
 const countFormatter = new Intl.NumberFormat("es-AR");
 
+/** Importe en ARS sin centavos, para landing, mockups y precios. */
+export function formatArs(valueArs: number) {
+  return arsFormatter.format(valueArs);
+}
+
 export function formatPlanPrice(priceArs: number) {
-  return arsFormatter.format(priceArs);
+  return formatArs(priceArs);
 }
 
 export function formatCount(value: number) {
@@ -23,6 +28,6 @@ export function planLimitItems(plan: Plan) {
     `${formatCount(users)} ${users === 1 ? "usuario" : "usuarios"}`,
     `${formatCount(technicians)} ${technicians === 1 ? "técnico" : "técnicos"}`,
     `${formatCount(ordersPerMonth)} órdenes por mes`,
-    `${formatCount(aiTokens)} tokens de IA por mes`,
+    `${formatCount(aiTokens)} tokens del asistente por mes`,
   ];
 }

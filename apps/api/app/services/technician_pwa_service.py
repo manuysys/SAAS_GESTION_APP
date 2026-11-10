@@ -9,11 +9,16 @@ from app.repositories.technician_pwa import (
     create_work_order_material,
     get_technician_work_order,
     get_work_order_attachment,
+    get_work_order_attachment_by_client_request_id,
+    get_work_order_material_by_client_request_id,
     list_technician_work_orders,
     list_work_order_attachments,
     list_work_order_materials,
 )
-from app.repositories.work_orders import create_work_order_event
+from app.repositories.work_orders import (
+    create_work_order_event,
+    get_work_order_event_by_client_request_id,
+)
 from app.schemas.technician_pwa import (
     AttachmentResponse,
     MaterialCreate,
@@ -34,6 +39,10 @@ def _to_technician_response(order: WorkOrder, customer: Customer) -> TechnicianW
         **base,
         customer_name=customer.name,
         customer_phone=customer.phone,
+        customer_address=customer.address,
+        customer_city=customer.city,
+        customer_province=customer.province,
+        customer_postal_code=customer.postal_code,
     )
 
 
@@ -117,10 +126,20 @@ async def add_technician_note(
     order_id: UUID,
     notes: str,
     technician_id: UUID,
+    client_request_id: str | None = None,
 ) -> None:
     order, _ = await _get_assigned_order(
         db, tenant_id=tenant_id, order_id=order_id, technician_id=technician_id
     )
+    if client_request_id:
+        existing = await get_work_order_event_by_client_request_id(
+            db,
+            tenant_id=tenant_id,
+            work_order_id=order.id,
+            client_request_id=client_request_id,
+        )
+        if existing is not None:
+            return
     await create_work_order_event(
         db,
         tenant_id=tenant_id,
@@ -130,6 +149,7 @@ async def add_technician_note(
         to_status=None,
         actor_user_id=technician_id,
         payload={"notes": notes},
+        client_request_id=client_request_id,
     )
     await db.commit()
 
@@ -155,6 +175,16 @@ async def create_technician_material(
     await _get_assigned_order(
         db, tenant_id=tenant_id, order_id=order_id, technician_id=technician_id
     )
+    if payload.client_request_id:
+        existing = await get_work_order_material_by_client_request_id(
+            db,
+            tenant_id=tenant_id,
+            work_order_id=order_id,
+            client_request_id=payload.client_request_id,
+        )
+        if existing is not None:
+            return MaterialResponse.model_validate(existing)
+
     material = await create_work_order_material(
         db,
         tenant_id=tenant_id,
@@ -163,6 +193,7 @@ async def create_technician_material(
         quantity=payload.quantity,
         unit=payload.unit.strip(),
         created_by_user_id=technician_id,
+        client_request_id=payload.client_request_id,
     )
     await db.commit()
     await db.refresh(material)
@@ -186,10 +217,21 @@ async def create_technician_attachment(
     order_id: UUID,
     file: UploadFile,
     technician_id: UUID,
+    client_request_id: str | None = None,
 ) -> AttachmentResponse:
     await _get_assigned_order(
         db, tenant_id=tenant_id, order_id=order_id, technician_id=technician_id
     )
+
+    if client_request_id:
+        existing = await get_work_order_attachment_by_client_request_id(
+            db,
+            tenant_id=tenant_id,
+            work_order_id=order_id,
+            client_request_id=client_request_id,
+        )
+        if existing is not None:
+            return AttachmentResponse.model_validate(existing)
 
     mime_type = file.content_type or "application/octet-stream"
     if mime_type not in _ALLOWED_MIME_TYPES:
@@ -215,6 +257,7 @@ async def create_technician_attachment(
         size_bytes=len(data),
         data=data,
         uploaded_by_user_id=technician_id,
+        client_request_id=client_request_id,
     )
     await db.commit()
     await db.refresh(attachment)

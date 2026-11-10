@@ -42,6 +42,10 @@ async def create_tenant_customer(
         name=payload.name.strip(),
         phone=payload.phone,
         email=str(payload.email) if payload.email else None,
+        address=payload.address,
+        city=payload.city,
+        province=payload.province,
+        postal_code=payload.postal_code,
         notes=payload.notes,
     )
     await db.commit()

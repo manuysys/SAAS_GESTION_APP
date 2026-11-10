@@ -68,6 +68,23 @@ async def list_work_order_materials(
     return list(result.scalars().all())
 
 
+async def get_work_order_material_by_client_request_id(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    work_order_id: UUID,
+    client_request_id: str,
+) -> WorkOrderMaterial | None:
+    result = await db.execute(
+        select(WorkOrderMaterial).where(
+            WorkOrderMaterial.tenant_id == tenant_id,
+            WorkOrderMaterial.work_order_id == work_order_id,
+            WorkOrderMaterial.client_request_id == client_request_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
 async def create_work_order_material(
     db: AsyncSession,
     *,
@@ -77,6 +94,7 @@ async def create_work_order_material(
     quantity: Decimal,
     unit: str,
     created_by_user_id: UUID,
+    client_request_id: str | None,
 ) -> WorkOrderMaterial:
     material = WorkOrderMaterial(
         tenant_id=tenant_id,
@@ -84,6 +102,7 @@ async def create_work_order_material(
         description=description,
         quantity=quantity,
         unit=unit,
+        client_request_id=client_request_id,
         created_by_user_id=created_by_user_id,
     )
     db.add(material)
@@ -105,6 +124,23 @@ async def list_work_order_attachments(
     return list(result.scalars().all())
 
 
+async def get_work_order_attachment_by_client_request_id(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    work_order_id: UUID,
+    client_request_id: str,
+) -> WorkOrderAttachment | None:
+    result = await db.execute(
+        select(WorkOrderAttachment).where(
+            WorkOrderAttachment.tenant_id == tenant_id,
+            WorkOrderAttachment.work_order_id == work_order_id,
+            WorkOrderAttachment.client_request_id == client_request_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
 async def create_work_order_attachment(
     db: AsyncSession,
     *,
@@ -115,6 +151,7 @@ async def create_work_order_attachment(
     size_bytes: int,
     data: bytes,
     uploaded_by_user_id: UUID,
+    client_request_id: str | None,
 ) -> WorkOrderAttachment:
     attachment = WorkOrderAttachment(
         tenant_id=tenant_id,
@@ -123,6 +160,7 @@ async def create_work_order_attachment(
         mime_type=mime_type,
         size_bytes=size_bytes,
         data=data,
+        client_request_id=client_request_id,
         uploaded_by_user_id=uploaded_by_user_id,
     )
     db.add(attachment)

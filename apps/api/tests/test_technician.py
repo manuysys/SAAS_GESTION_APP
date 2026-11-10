@@ -9,6 +9,10 @@ CUSTOMER = {
     "name": "Cliente Técnico",
     "phone": "+54 11 5555-2000",
     "email": "tecnico@example.com",
+    "address": "Av. Siempre Viva 742",
+    "city": "CABA",
+    "province": "Buenos Aires",
+    "postal_code": "1425",
 }
 
 _IMAGE_BYTES = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xd9"
@@ -108,6 +112,8 @@ async def test_technician_only_sees_assigned_orders(
     assert body["items"][0]["id"] == assigned_id
     assert body["items"][0]["customer_name"] == CUSTOMER["name"]
     assert body["items"][0]["customer_phone"] == CUSTOMER["phone"]
+    assert body["items"][0]["customer_address"] == CUSTOMER["address"]
+    assert body["items"][0]["customer_city"] == CUSTOMER["city"]
 
     read_assigned = await client.get(
         f"/api/v1/technician/work-orders/{assigned_id}",
@@ -328,3 +334,87 @@ async def test_attachment_validation(client: AsyncClient, db_session: AsyncSessi
         headers=_headers(tech_token, tenant_id),
     )
     assert too_large.status_code == 422, too_large.text
+
+
+async def test_technician_idempotency(client: AsyncClient, db_session: AsyncSession) -> None:
+    owner_token, tenant_id, _ = await _register(client, "owner-idem@example.com", "Empresa I")
+    tech_token, _, tech_user_id = await _register(client, "tech-idem@example.com", "Tech I")
+    await _add_technician(db_session, tenant_id, tech_user_id)
+    customer_id = await _create_customer(client, owner_token, tenant_id)
+
+    order = await client.post(
+        "/api/v1/work-orders",
+        json={
+            "customer_id": customer_id,
+            "title": "Orden idempotente",
+            "assigned_user_id": tech_user_id,
+        },
+        headers=_headers(owner_token, tenant_id),
+    )
+    assert order.status_code == 201, order.text
+    order_id = order.json()["id"]
+
+    client_request_id = "idem-note-001"
+    first = await client.post(
+        f"/api/v1/technician/work-orders/{order_id}/notes",
+        json={"notes": "Nota idempotente", "client_request_id": client_request_id},
+        headers=_headers(tech_token, tenant_id),
+    )
+    assert first.status_code == 200, first.text
+
+    second = await client.post(
+        f"/api/v1/technician/work-orders/{order_id}/notes",
+        json={"notes": "Nota idempotente", "client_request_id": client_request_id},
+        headers=_headers(tech_token, tenant_id),
+    )
+    assert second.status_code == 200, second.text
+
+    events = await client.get(
+        f"/api/v1/work-orders/{order_id}/events", headers=_headers(owner_token, tenant_id)
+    )
+    note_events = [e for e in events.json() if e["event_type"] == "note"]
+    assert len(note_events) == 1
+
+    material_first = await client.post(
+        f"/api/v1/technician/work-orders/{order_id}/materials",
+        json={
+            "description": "Cable",
+            "quantity": "1.000",
+            "unit": "m",
+            "client_request_id": "idem-material-001",
+        },
+        headers=_headers(tech_token, tenant_id),
+    )
+    assert material_first.status_code == 201, material_first.text
+    material_id = material_first.json()["id"]
+
+    material_second = await client.post(
+        f"/api/v1/technician/work-orders/{order_id}/materials",
+        json={
+            "description": "Cable",
+            "quantity": "1.000",
+            "unit": "m",
+            "client_request_id": "idem-material-001",
+        },
+        headers=_headers(tech_token, tenant_id),
+    )
+    assert material_second.status_code == 201, material_second.text
+    assert material_second.json()["id"] == material_id
+
+    attachment_first = await client.post(
+        f"/api/v1/technician/work-orders/{order_id}/attachments",
+        files={"file": ("photo.jpg", _IMAGE_BYTES, "image/jpeg")},
+        data={"client_request_id": "idem-attach-001"},
+        headers=_headers(tech_token, tenant_id),
+    )
+    assert attachment_first.status_code == 201, attachment_first.text
+    attachment_id = attachment_first.json()["id"]
+
+    attachment_second = await client.post(
+        f"/api/v1/technician/work-orders/{order_id}/attachments",
+        files={"file": ("photo.jpg", _IMAGE_BYTES, "image/jpeg")},
+        data={"client_request_id": "idem-attach-001"},
+        headers=_headers(tech_token, tenant_id),
+    )
+    assert attachment_second.status_code == 201, attachment_second.text
+    assert attachment_second.json()["id"] == attachment_id

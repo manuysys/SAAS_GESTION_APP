@@ -1,0 +1,1247 @@
+# ARREGLO — AUDITORÍA INTEGRAL Y EVOLUCIÓN DEL PRODUCTO
+## PROMPT DE CONTINUIDAD PARA OPENCode / AGENTES DE DESARROLLO
+
+**Fecha de referencia:** 9 de noviembre de 2026.
+
+**Producto:** Arreglo (nombre provisional visible en la versión desplegada).
+
+**Web pública:** https://saas-gestion-web.vercel.app/
+
+**Dashboard:** https://saas-gestion-web.vercel.app/dashboard
+
+**Login:** https://saas-gestion-web.vercel.app/login
+
+**Registro:** https://saas-gestion-web.vercel.app/register
+
+---
+
+# 1. CONTEXTO Y OBJETIVO
+
+Ya existe una primera implementación funcional y un despliegue público del producto Arreglo.
+
+No estamos comenzando desde cero.
+
+Tu trabajo consiste en auditar lo que existe, comprender su arquitectura, revisar sus decisiones de producto y mejorar progresivamente la plataforma.
+
+No reemplaces toda la aplicación por una nueva implementación.
+
+No elimines funcionalidades existentes sin demostrar que son innecesarias o incorrectas.
+
+No supongas que las páginas desplegadas representan exactamente el estado actual del código local.
+
+La primera responsabilidad es identificar qué existe realmente.
+
+## Producto
+
+Arreglo es una plataforma SaaS B2B orientada inicialmente a empresas pequeñas de servicios técnicos a domicilio.
+
+Su objetivo es conectar:
+
+- Clientes.
+- Consultas.
+- Solicitudes.
+- Presupuestos.
+- Órdenes de trabajo.
+- Agenda.
+- Técnicos.
+- Visitas.
+- Pagos.
+- Comunicaciones.
+- Automatizaciones.
+- Inteligencia artificial.
+
+La propuesta comercial es:
+
+"Del primer llamado al último cobro, todo en orden".
+
+Queremos que un negocio pueda organizar su operación desde un solo lugar, reducir tareas manuales y evitar perder clientes, presupuestos o trabajos.
+
+La arquitectura debe poder extenderse posteriormente a talleres de reparación de PC, celulares, electrónica y electrodomésticos.
+
+El producto debe tener identidad y experiencia propias. No copiar interfaces, textos, logos ni código de competidores.
+
+# 2. REFERENCIA DE LA VERSIÓN ACTUAL
+
+Inspeccionar estas páginas:
+
+- https://saas-gestion-web.vercel.app/
+- https://saas-gestion-web.vercel.app/dashboard
+- https://saas-gestion-web.vercel.app/login
+- https://saas-gestion-web.vercel.app/register
+- https://saas-gestion-web.vercel.app/privacy
+- https://saas-gestion-web.vercel.app/terms
+
+La landing ya comunica:
+
+- Software para servicios técnicos a domicilio.
+- Clientes e historial.
+- Solicitudes.
+- Órdenes de trabajo.
+- Presupuestos.
+- Aprobación pública mediante enlaces.
+- Agenda.
+- Asignación de técnicos.
+- PWA para técnicos.
+- Pagos totales y parciales.
+- Saldo pendiente.
+- Automatizaciones.
+- Asistente de IA.
+- WhatsApp Business Cloud API.
+
+La página presenta un flujo comercial de siete etapas:
+
+1. Consulta.
+2. Solicitud.
+3. Orden de trabajo.
+4. Presupuesto.
+5. Aprobación.
+6. Visita.
+7. Pago.
+
+La página también presenta tres planes:
+
+| Plan | Precio mensual publicado | Usuarios | Técnicos | Órdenes mensuales | Tokens de IA |
+|---|---:|---:|---:|---:|---:|
+| Starter | AR$ 29.900 | 1 | 1 | 100 | 50.000 |
+| Professional | AR$ 59.900 | 5 | 5 | 1.000 | 200.000 |
+| Business | AR$ 99.900 | 20 | 20 | 10.000 | 1.000.000 |
+
+Estos valores son los que aparecen en la versión pública analizada. No asumir que son los precios definitivos ni económicamente sostenibles.
+
+La página indica que la prueba gratuita de 14 días todavía está en implementación y que actualmente no se realiza ningún cobro al registrarse.
+
+No presentar como plenamente operativas las funciones que solamente están en desarrollo.
+
+La aplicación también comunica:
+
+- Que los presupuestos pueden aprobarse desde un enlace público.
+- Que la PWA no necesita instalación.
+- Que WhatsApp necesita credenciales de Meta.
+- Que el asistente consulta datos del negocio.
+- Que el asistente actualmente no ejecuta operaciones ni escribe SQL.
+- Que se registra el consumo de IA por empresa.
+- Que cada empresa trabaja dentro de un espacio separado.
+
+Todos estos puntos deben verificarse contra el código.
+
+# 3. PRINCIPIO PRINCIPAL: NO REESCRIBIR SIN AUDITAR
+
+Antes de cambiar código:
+
+1. Inspeccionar el repositorio.
+2. Identificar el stack.
+3. Revisar todos los directorios.
+4. Revisar dependencias.
+5. Revisar configuración.
+6. Revisar variables de entorno disponibles, sin exponer secretos.
+7. Revisar el estado de Git.
+8. Revisar las migraciones.
+9. Identificar endpoints.
+10. Revisar componentes.
+11. Identificar las rutas frontend.
+12. Revisar las funciones realmente implementadas.
+13. Revisar la conexión entre frontend y backend.
+14. Identificar funciones simuladas o con datos mock.
+15. Revisar la integración con la base de datos.
+16. Revisar las restricciones multi-tenant.
+
+Crear un inventario de funcionalidades con los siguientes estados:
+
+- Implementada y probada.
+- Implementada parcialmente.
+- Solo interfaz visual.
+- Simulada.
+- Planificada.
+- Rota o incompleta.
+- No encontrada.
+
+No afirmar que algo funciona por el simple hecho de que haya una pantalla que lo representa.
+
+# 4. AUDITORÍA VISUAL Y EXPERIENCIA DE USUARIO
+
+Realizar una auditoría detallada de todas las pantallas.
+
+Utilizar navegador automatizado, Playwright o las herramientas disponibles para interactuar con la aplicación.
+
+Si es posible, utilizar la cuenta de demostración que el sitio publica para realizar pruebas.
+
+IMPORTANTE:
+
+La cuenta de demostración es pública. Tratarla como un entorno potencialmente accesible por terceros.
+
+- No incorporar datos reales.
+- No asumir que los cambios son privados.
+- No modificar información que pueda afectar la experiencia de otros usuarios.
+- No utilizarla como entorno de producción.
+- Preferir un entorno de testing aislado.
+- Implementar un mecanismo de reinicio de los datos de demostración.
+
+Si no se dispone de un navegador automatizado, inspeccionar el código y documentar las limitaciones.
+
+No inventar observaciones visuales de pantallas que no se pudieron abrir.
+
+## Resoluciones que deben comprobarse
+
+- Desktop: 1440 × 900.
+- Laptop: 1366 × 768.
+- Tablet: 768 × 1024.
+- Mobile: 390 × 844.
+- Mobile compacto: 360 × 800.
+
+Probar tanto pantallas administrativas como la experiencia del técnico.
+
+## Criterios de diseño
+
+Queremos una interfaz:
+
+- Moderna.
+- Profesional.
+- Clara.
+- Consistente.
+- Rápida.
+- Responsive.
+- Accesible.
+- Fácil de aprender.
+
+Mantener la identidad visual existente cuando sea buena.
+
+No rediseñar por rediseñar.
+
+Evitar:
+
+- Exceso de tarjetas.
+- Gradientes decorativos innecesarios.
+- Animaciones excesivas.
+- Sombras exageradas.
+- Textos demasiado pequeños.
+- Tablas difíciles de leer.
+- Formularios excesivamente largos.
+- Modales innecesarios.
+- Información redundante.
+- Demasiados colores de estado.
+- Elementos que parecen botones pero no tienen acciones.
+- Elementos sin estados de carga o error.
+
+Usar jerarquía visual para priorizar información y acciones.
+
+Cada pantalla debe tener un objetivo principal.
+
+# 5. LANDING PAGE: QUÉ CONSERVAR Y QUÉ MEJORAR
+
+## 5.1. Conservar
+
+Mantener el concepto:
+
+"Del primer llamado al último cobro, todo en orden".
+
+Mantener:
+
+- El enfoque vertical en servicios técnicos.
+- La presentación del flujo de siete etapas.
+- Los módulos conectados entre sí.
+- Los presupuestos públicos.
+- La PWA.
+- La agenda.
+- La asignación de técnicos.
+- Los pagos.
+- La comunicación con clientes.
+- El tono argentino.
+- Los precios en ARS.
+- La transparencia sobre las funcionalidades.
+
+Es una buena base de comunicación comercial.
+
+## 5.2. Hero principal
+
+Revisar:
+
+- Jerarquía del título.
+- Descripción.
+- CTA principal.
+- CTA secundario.
+- Captura de producto.
+- Indicadores de confianza.
+
+El hero debe explicar rápidamente:
+
+1. A quién está dirigido Arreglo.
+2. Qué problema resuelve.
+3. Qué puede hacer el usuario.
+4. Cómo probarlo.
+
+No llenar el primer pantallazo de párrafos.
+
+El producto debe verse.
+
+Considerar un CTA principal como "Probar demo" y uno secundario como "Crear mi empresa".
+
+El acceso a la demostración debe ser sencillo.
+
+## 5.3. Recorrido comercial
+
+Conservar las siete etapas, pero asegurarse de que representen exactamente el funcionamiento implementado.
+
+Cada etapa debe responder:
+
+- Qué sucede.
+- Quién interviene.
+- Qué información utiliza.
+- Qué resultado produce.
+- Qué tarea deja preparada.
+
+Mostrar claramente la relación entre los distintos registros.
+
+## 5.4. Sección de funcionalidades
+
+Agrupar las funciones por beneficio.
+
+Propuesta:
+
+A. Gestioná clientes y solicitudes.
+
+B. Organizá trabajos y técnicos.
+
+C. Prepará presupuestos y cobros.
+
+D. Automatizá comunicaciones.
+
+E. Consultá tu negocio con IA.
+
+F. Trabajá desde el celular.
+
+Utilizar capturas reales siempre que existan.
+
+Si se usan maquetas, identificarlas como ilustraciones.
+
+No utilizar información ficticia presentada como resultados de clientes.
+
+## 5.5. Demo
+
+Actualmente, la demostración se apoya en credenciales públicas visibles.
+
+Mejorar este mecanismo.
+
+Prioridades:
+
+- Crear una demo aislada.
+- Incluir datos ficticios coherentes.
+- Proteger la información.
+- Reiniciar los datos periódicamente.
+- Permitir explorar las principales funcionalidades.
+- Evitar que una persona pueda modificar permanentemente el entorno compartido.
+- Evitar utilizar la demo para operaciones comerciales reales.
+
+Considerar un acceso de demostración de solo lectura con un recorrido guiado.
+
+No sacrificar la facilidad de prueba.
+
+## 5.6. Precios
+
+Mantener la comunicación clara de los importes en ARS.
+
+Pero revisar:
+
+- Qué funcionalidades tiene cada plan.
+- Qué límites existen.
+- Qué consumo genera IA.
+- Qué consumo genera WhatsApp.
+- Qué almacenamiento está incluido.
+- Cuántas automatizaciones pueden ejecutarse.
+- Si hay soporte incluido.
+- Si se cobra por usuario o por empresa.
+- Si los precios incluyen impuestos.
+- Si hay planes anuales.
+- Cómo se actualizan los precios.
+
+No utilizar tokens como única explicación comercial del consumo de IA.
+
+El usuario de una pequeña empresa no necesariamente entiende qué son 50.000 tokens.
+
+Traducir los límites a conceptos comprensibles, por ejemplo:
+
+- Consultas de IA incluidas.
+- Créditos de asistente.
+- Capacidad mensual del asistente.
+
+Si la medición real necesita tokens, conservar los tokens internamente y mostrar métricas amigables al usuario.
+
+No prometer IA ilimitada.
+
+No prometer WhatsApp ilimitado.
+
+No cobrar por una prueba que todavía no existe.
+
+Si no está implementado el trial de 14 días, comunicarlo como acceso de evaluación o beta gratuita, según lo que realmente suceda.
+
+## 5.7. Preguntas frecuentes
+
+Ampliar con:
+
+- ¿Cómo se protegen mis datos?
+- ¿Puedo cancelar?
+- ¿Puedo exportar mi información?
+- ¿Cómo funciona el uso de IA?
+- ¿Qué datos se envían a proveedores externos?
+- ¿Qué necesito para conectar WhatsApp?
+- ¿Qué incluye cada plan?
+- ¿Qué ocurre cuando consumo mi cuota?
+- ¿Mis técnicos necesitan instalar algo?
+- ¿Puedo importar clientes desde Excel?
+- ¿Tengo soporte?
+- ¿Puedo cambiar de plan?
+
+# 6. CORRECCIONES DE CONSISTENCIA DETECTADAS
+
+La landing utiliza algunos identificadores de demostración de forma inconsistente.
+
+Por ejemplo:
+
+- Una instalación de A/C aparece identificada como OT-0142 en el hero.
+- En otra sección aparece con OT-0141.
+- OT-0142 también aparece asociada a otro trabajo cerrado.
+- La sección de pagos vincula el importe de la instalación al OT-0142.
+
+Corregir todas estas inconsistencias.
+
+No resolverlas únicamente cambiando textos manualmente.
+
+Crear un dataset de demostración compartido.
+
+Las distintas secciones de la landing deberán reutilizar la misma información.
+
+Implementar reglas para verificar:
+
+- Identificadores únicos.
+- Relaciones válidas.
+- Estados coherentes.
+- Fechas coherentes.
+- Importes coherentes.
+- Datos del cliente.
+- Técnicos.
+- Presupuestos.
+- Pagos.
+- Órdenes.
+
+La misma operación no puede aparecer simultáneamente en situaciones incompatibles.
+
+## 6.1. Elementos duplicados
+
+La lista de funcionalidades aparece repetida.
+
+Determinar si se trata de un carrusel o ticker visual.
+
+Si se conserva el efecto visual, evitar contenido duplicado para lectores de pantalla.
+
+No generar duplicaciones semánticas o enlaces repetidos innecesariamente.
+
+## 6.2. Indicadores de datos ilustrativos
+
+Conservar la transparencia, pero mejorar su presentación.
+
+No presentar operaciones ficticias como actividad en vivo.
+
+Por ejemplo, si una operación es un ejemplo, usar "Ejemplo de operación" en lugar de "En vivo".
+
+La etiqueta de datos ilustrativos puede aparecer una vez por cada composición visual, evitando repetición excesiva.
+
+## 6.3. Afirmaciones funcionales
+
+Crear una matriz de veracidad comercial.
+
+Cada afirmación de la landing deberá tener:
+
+- Funcionalidad.
+- Implementación asociada.
+- Estado.
+- Endpoint o componente.
+- Prueba.
+- Limitaciones.
+
+Una función solo puede anunciarse como disponible cuando está implementada y probada.
+
+# 7. DASHBOARD: REVISIÓN Y REDISEÑO FUNCIONAL
+
+El dashboard debe ser el centro de operaciones del negocio.
+
+No debe ser una colección de indicadores decorativos.
+
+Su objetivo es ayudar al dueño y a la oficina a identificar qué necesita atención y actuar rápidamente.
+
+## 7.1. Preguntas que debe responder
+
+Al abrir el panel, el usuario debería identificar:
+
+- Qué trabajos tiene hoy.
+- Qué trabajos están atrasados.
+- Qué solicitudes necesitan revisión.
+- Qué presupuestos esperan respuesta.
+- Qué trabajos necesitan asignación.
+- Qué técnicos están disponibles.
+- Cuánto dinero está pendiente de cobrar.
+- Qué actividades ocurrieron recientemente.
+
+## 7.2. Layout sugerido
+
+### Header
+
+Mostrar:
+
+- Nombre del negocio.
+- Usuario activo.
+- Fecha.
+- Notificaciones.
+- Perfil.
+- Configuración.
+
+### Acciones rápidas
+
+Incluir:
+
+- Nueva solicitud.
+- Nuevo cliente.
+- Nueva orden.
+- Nuevo presupuesto.
+- Agendar visita.
+
+Evitar un botón para cada operación menor.
+
+### Indicadores principales
+
+Evaluar:
+
+1. Trabajos programados para hoy.
+2. Trabajos pendientes.
+3. Trabajos atrasados.
+4. Presupuestos sin respuesta.
+5. Saldo pendiente de cobro.
+
+Cada indicador debe tener una definición exacta.
+
+Por ejemplo, "Órdenes hoy" debe distinguir trabajos programados para hoy de órdenes creadas hoy.
+
+"Por cobrar" debe ser el saldo pendiente, no la suma de presupuestos todavía no aceptados.
+
+No mezclar métricas comerciales, operativas y financieras sin explicación.
+
+### Actividad del día
+
+Mostrar:
+
+- Próximas visitas.
+- Técnicos asignados.
+- Estado de los trabajos.
+- Horarios.
+- Direcciones.
+- Alertas de conflicto.
+
+### Trabajos que necesitan atención
+
+Dar prioridad a:
+
+- Trabajos atrasados.
+- Trabajos sin técnico.
+- Presupuestos próximos a vencer.
+- Visitas sin confirmación.
+- Saldos vencidos.
+
+No llenar la pantalla con información que no requiere ninguna acción.
+
+### Rendimiento del negocio
+
+Incorporar gradualmente:
+
+- Órdenes finalizadas.
+- Presupuestos aceptados.
+- Conversión.
+- Ingresos registrados.
+- Clientes recurrentes.
+
+Utilizar filtros temporales.
+
+No comparar períodos cuando no existan datos suficientes.
+
+## 7.3. Acciones sugeridas
+
+El dashboard puede recomendar acciones concretas.
+
+Ejemplos:
+
+- Hay tres presupuestos sin respuesta desde hace más de 72 horas.
+- Hay dos órdenes sin técnico asignado.
+- Hay una visita que se solapa con otra.
+- Hay cuatro trabajos finalizados con saldo pendiente.
+- Hay un mantenimiento que debería programarse.
+
+Inicialmente utilizar reglas deterministas.
+
+No utilizar IA para generar recomendaciones que se pueden calcular fácilmente.
+
+## 7.4. Roles y dashboards
+
+No mostrar exactamente el mismo panel a todos.
+
+Owner/Admin:
+
+- Estado general.
+- Finanzas.
+- Rendimiento.
+- Operaciones.
+- Técnicos.
+- Configuración.
+
+Dispatcher/Manager:
+
+- Solicitudes.
+- Órdenes.
+- Agenda.
+- Asignaciones.
+- Conflictos.
+- Seguimientos.
+
+Technician:
+
+- Agenda personal.
+- Próximo trabajo.
+- Trabajos pendientes.
+- Información necesaria del cliente.
+- Acciones de la visita.
+
+Viewer:
+
+- Información de solo lectura de acuerdo con permisos.
+
+# 8. EXPERIENCIA MÓVIL Y PWA
+
+La PWA es una funcionalidad estratégica.
+
+Revisar su implementación y comprobar:
+
+- Manifest.
+- Iconos.
+- Instalación.
+- Navegación.
+- Responsive.
+- Estados de conexión.
+- Captura de fotografías.
+- Permisos.
+- Sesiones.
+- Actualización de versiones.
+
+No asumir que una PWA se comporta de forma idéntica en Android y iOS.
+
+Probar en ambos entornos cuando sea posible.
+
+## Interfaz del técnico
+
+La pantalla inicial debería mostrar:
+
+1. Próximo trabajo.
+2. Agenda del día.
+3. Estado de los trabajos.
+4. Dirección.
+5. Instrucciones.
+6. Contacto autorizado.
+7. Botón para iniciar visita.
+8. Botón para agregar fotos y notas.
+9. Botón para cerrar visita.
+
+Las acciones más frecuentes deben poder realizarse con pocos toques.
+
+Evitar que el técnico tenga que navegar por el panel administrativo completo.
+
+Evaluar posteriormente modo sin conexión parcial con sincronización segura.
+
+No anunciar funcionamiento offline hasta haberlo implementado y probado.
+
+# 9. REFERENCIAS DE PRODUCTO DEL MERCADO
+
+Investigar y utilizar como referencias funcionales:
+
+## Jobber
+
+https://www.getjobber.com/
+
+Funciones que conviene estudiar:
+
+- Presupuestos interactivos.
+- Opciones adicionales dentro de cotizaciones.
+- Seguimiento automático.
+- Agenda drag and drop.
+- Organización de disponibilidad.
+- Rutas.
+- Pagos.
+- Recordatorios.
+- Portal de clientes.
+- Informes comerciales.
+- Aplicación móvil.
+
+No copiar su diseño ni su identidad visual.
+
+Utilizarlo para identificar buenas soluciones de experiencia y procesos.
+
+## AppTec
+
+https://apptec.com.ar/
+
+Estudiar:
+
+- Aplicación de técnicos.
+- Asignaciones.
+- Materiales.
+- Hojas de ruta.
+- GPS.
+- Portal de clientes.
+
+## Ordion
+
+https://app.ordion.com.ar/
+
+Estudiar:
+
+- Simplicidad.
+- Gestión de técnicos.
+- Sucursales.
+- Operación.
+
+## OrdenSoft
+
+https://ordensoft.com.ar/
+
+Estudiar:
+
+- Presupuestos.
+- Reparaciones.
+- Seguimiento.
+- IA administrativa.
+
+## GestiónPro
+
+https://trgestion.com/
+
+Estudiar:
+
+- WhatsApp.
+- Asistencia técnica con IA.
+- Gestión de caja.
+- Inventario.
+- Garantías.
+- Operación de talleres.
+
+Incorporar competidores nuevos al análisis, incluyendo SistemaLoop, Lumex y otros que se detecten.
+
+No considerar internacionalmente popular un producto automáticamente aplicable al mercado argentino.
+
+# 10. MEJORAS DE EXPERIENCIA INSPIRADAS EN BUENAS PRÁCTICAS
+
+## 10.1. Estados vacíos
+
+Toda lista debe tener distintos estados:
+
+- Cargando.
+- Sin datos iniciales.
+- Sin resultados de búsqueda.
+- Error de conexión.
+- Error de autorización.
+- Error recuperable.
+
+Si un negocio todavía no tiene órdenes, mostrar:
+
+"Acá vas a encontrar tus trabajos. Creá tu primera orden para comenzar."
+
+Incluir el botón de creación.
+
+No mostrar tablas vacías sin explicación.
+
+## 10.2. Formularios
+
+- Etiquetas claras.
+- Validación inmediata y también en backend.
+- Mensajes de error específicos.
+- Valores predeterminados razonables.
+- Guardado seguro.
+- Confirmación al abandonar formularios con cambios.
+- Prevención de duplicados.
+- Autocompletado cuando resulte útil.
+
+No perder toda la información cuando una validación falla.
+
+## 10.3. Acciones destructivas
+
+Eliminar o cancelar información debe requerir controles apropiados.
+
+No usar botones de eliminar sin confirmación cuando la operación sea irreversible.
+
+Registrar las acciones importantes.
+
+Preferir cancelación o archivado cuando corresponda a la lógica comercial.
+
+## 10.4. Accesibilidad
+
+Utilizar WCAG 2.2 AA como referencia de calidad.
+
+Comprobar:
+
+- Contraste.
+- Navegación por teclado.
+- Etiquetas.
+- Mensajes de error.
+- Focus visible.
+- Lectores de pantalla.
+- Estados que no dependan exclusivamente de colores.
+- Tamaños de controles.
+- Foco que no quede oculto.
+- Formularios accesibles.
+
+Fuente: https://www.w3.org/TR/WCAG22/
+
+## 10.5. Rendimiento
+
+Medir antes de optimizar.
+
+Tomar como referencias de Core Web Vitals:
+
+- LCP <= 2,5 s.
+- INP <= 200 ms.
+- CLS <= 0,1.
+
+Evaluar particularmente dispositivos móviles y conexiones normales del mercado argentino.
+
+Fuente: https://web.dev/articles/vitals?hl=es
+
+No agregar librerías pesadas por efectos visuales sin una necesidad concreta.
+
+# 11. SEGURIDAD Y CONFIANZA
+
+## 11.1. Multi-tenancy
+
+Comprobar mediante pruebas automatizadas que ninguna empresa pueda acceder a datos de otra.
+
+Probar:
+
+- Clientes.
+- Órdenes.
+- Presupuestos.
+- Pagos.
+- Archivos.
+- Técnicos.
+- Conversaciones.
+- Automatizaciones.
+
+No confiar en IDs enviados desde el frontend.
+
+## 11.2. Presupuestos públicos
+
+Los enlaces públicos son una funcionalidad muy importante.
+
+Deben contar con:
+
+- Tokens aleatorios de alta entropía.
+- Almacenamiento seguro de tokens.
+- Validación.
+- Posibilidad de revocación.
+- Expiración configurable.
+- Rate limiting.
+- Registro de acceso cuando corresponda.
+- Protección contra modificaciones no autorizadas.
+- Historial de aprobación.
+
+Un enlace público debe mostrar exclusivamente la información necesaria.
+
+La aprobación debe registrar:
+
+- Presupuesto.
+- Versión.
+- Fecha.
+- Estado anterior.
+- Estado nuevo.
+- Identificador del evento.
+- Evidencia técnica de la operación.
+
+Evitar aceptar dos veces el mismo presupuesto.
+
+## 11.3. Demo
+
+Mantener la separación absoluta entre demo y producción.
+
+## 11.4. Política de privacidad
+
+La versión pública indica:
+
+- Argon2id.
+- Cookies HttpOnly.
+- Tokens de corta duración.
+- Validación multi-tenant.
+- Proveedores externos.
+- Región de infraestructura pendiente.
+- Backup retention pendiente.
+
+Verificar cada afirmación.
+
+No modificar una declaración de seguridad para que parezca cumplida cuando técnicamente no lo está.
+
+## 11.5. Revisión legal
+
+La política y los términos actuales se identifican como borradores.
+
+Pendientes a resolver:
+
+- Identidad jurídica del prestador.
+- Responsable del tratamiento.
+- Región de alojamiento.
+- Proveedores externos.
+- Plazos de backups.
+- Retención y eliminación.
+- Jurisdicción.
+- Procedimiento de cancelación.
+- Condiciones de suscripción.
+- Alcance del soporte.
+- Disponibilidad del servicio.
+
+No presentar los borradores como documentos legales definitivos.
+
+# 12. WHATSAPP
+
+La integración debe ser con la API oficial.
+
+Verificar:
+
+- Autenticación.
+- Credenciales.
+- Webhooks.
+- Firmas.
+- Recepción.
+- Envío.
+- Estados.
+- Plantillas.
+- Ventana de atención.
+- Costos.
+- Permisos.
+
+Recordar que los mensajes iniciados por la empresa pueden necesitar plantillas aprobadas y que el canal tiene reglas temporales para las respuestas libres.
+
+La documentación de Twilio explica el funcionamiento general de las ventanas de atención y plantillas de WhatsApp, pero utilizar la documentación oficial de Meta como fuente final de implementación.
+
+No mostrar un mensaje como enviado solamente porque se hizo clic en un botón.
+
+Diferenciar:
+
+- Pendiente.
+- Enviado.
+- Entregado.
+- Leído, cuando el proveedor lo informe.
+- Fallido.
+
+Si WhatsApp está desconectado, la plataforma debe seguir funcionando normalmente.
+
+# 13. INTELIGENCIA ARTIFICIAL
+
+El asistente actual está planteado como asistente de consulta de datos reales.
+
+Esa es una buena decisión para la primera etapa.
+
+Mantener el enfoque read-only inicialmente.
+
+Mejorar:
+
+- Preguntas admitidas.
+- Respuestas.
+- Tablas.
+- Referencias a períodos.
+- Mensajes de información insuficiente.
+- Identificación del proveedor activo.
+- Registro de consumo.
+- Manejo de errores.
+
+No permitir que el agente invente cifras.
+
+No confundir saldo pendiente con facturación.
+
+No confundir presupuesto enviado con presupuesto aprobado.
+
+No afirmar que se enviaron mensajes si no existen confirmaciones del proveedor.
+
+No permitir acceso SQL generado libremente por el modelo.
+
+Cuando se incorporen herramientas de ejecución:
+
+- Validar permisos.
+- Validar tenant.
+- Validar argumentos.
+- Pedir confirmación para acciones importantes.
+- Auditar cada operación.
+
+Registrar costos y consumo por empresa.
+
+# 14. MODELO COMERCIAL
+
+Revisar los planes actuales.
+
+No cambiar los precios simplemente para parecer más competitivo.
+
+Calcular el costo real de:
+
+- Infraestructura.
+- IA.
+- WhatsApp.
+- Almacenamiento.
+- Procesamiento.
+- Soporte.
+- Comisiones.
+- Mantenimiento.
+
+Definir límites claros por plan.
+
+El precio debe estar respaldado por valor generado y costos sostenibles.
+
+Los tokens no deben ser la única unidad comercial visible.
+
+Considerar mostrar:
+
+- Usuarios.
+- Técnicos.
+- Órdenes.
+- Automatizaciones.
+- Créditos de IA.
+- Mensajes.
+- Archivos y almacenamiento.
+
+Los límites deben estar centralizados en un sistema de entitlements.
+
+No codificar precios en componentes de frontend.
+
+# 15. MEJORAS ADICIONALES DE NEGOCIO
+
+Evaluar, sin desarrollar automáticamente:
+
+- Seguimiento de presupuestos.
+- Portal de clientes.
+- Reserva de visitas.
+- Recordatorios.
+- Servicios recurrentes.
+- Mantenimientos preventivos.
+- Historial de equipos.
+- Opciones adicionales en presupuestos.
+- Solicitud de reseñas.
+- Reportes de conversión.
+- Análisis de rentabilidad.
+- Reasignación de técnicos.
+- Gestión de horarios.
+- Control de materiales.
+- Exportaciones CSV.
+- Integración con calendarios.
+
+Cada función debe justificarse por frecuencia, impacto y disposición a pagar.
+
+# 16. PAGOS Y SUSCRIPCIONES
+
+No confundir:
+
+A. Los pagos que registran las empresas usuarias por sus propios trabajos.
+
+B. Las suscripciones que esas empresas pagan a Arreglo.
+
+Son dos módulos distintos.
+
+Los pagos comerciales de cada orden ya forman parte del producto.
+
+Los cobros recurrentes del SaaS se pueden implementar en otra etapa.
+
+Evaluar Mercado Pago para suscripciones.
+
+La documentación oficial contempla pagos recurrentes y mecanismos de idempotencia.
+
+Nunca exponer Access Tokens en frontend.
+
+Fuente:
+https://www.mercadopago.com.ar/developers/es/docs/automatic-payments-orders/process-recurring-payments
+
+# 17. LISTA DE PRIORIDADES
+
+No implementar todo a la vez.
+
+## PRIORIDAD P0 — Calidad y confianza
+
+- Revisar el código de la landing.
+- Revisar todas las rutas.
+- Verificar afirmaciones comerciales.
+- Corregir IDs de demostración.
+- Unificar los datos ilustrativos.
+- Revisar demo.
+- Resolver estados de carga del dashboard.
+- Probar el login.
+- Verificar separación multi-tenant.
+- Revisar enlaces públicos.
+- Corregir afirmaciones de trial.
+- Comprobar las declaraciones legales y de seguridad.
+
+## PRIORIDAD P1 — Experiencia central
+
+- Mejorar dashboard.
+- Acciones rápidas.
+- Alertas operativas.
+- Ordenes atrasadas.
+- Presupuestos pendientes.
+- Agenda.
+- Carga de técnicos.
+- Estados vacíos.
+- Experiencia móvil.
+- Formularios.
+- Filtros.
+- Búsqueda.
+
+## PRIORIDAD P2 — Automatización
+
+- Seguimiento de presupuestos.
+- Recordatorios.
+- Notificaciones.
+- Historial de automatizaciones.
+- Estados de comunicaciones.
+- WhatsApp conectado y comprobado.
+
+## PRIORIDAD P3 — Inteligencia
+
+- Mejorar asistente.
+- Preguntas contextuales.
+- Reportes inteligentes.
+- Consumo y límites.
+- Herramientas de consulta.
+- Preparación de operaciones con aprobación humana.
+
+## PRIORIDAD P4 — Comercialización avanzada
+
+- Suscripciones.
+- Panel global.
+- Planes configurables.
+- Onboarding avanzado.
+- Importaciones.
+- Soporte.
+- Analytics.
+- Dominio propio.
+- Landing final.
+- Identidad de marca definitiva.
+
+# 18. RESULTADOS Y ENTREGABLES
+
+Crear o actualizar:
+
+- docs/PRODUCT_AUDIT_2026-11-09.md
+- docs/LANDING_AUDIT.md
+- docs/DASHBOARD_AUDIT.md
+- docs/UX_IMPROVEMENTS.md
+- docs/FEATURE_TRUTH_MATRIX.md
+- docs/COMPETITOR_BENCHMARK.md
+- docs/SECURITY_AUDIT.md
+- docs/DEMO_ENVIRONMENT.md
+- docs/PRIORITIZED_BACKLOG.md
+
+No crear archivos vacíos.
+
+## Matriz de funcionalidades
+
+Cada funcionalidad deberá incluir:
+
+- Nombre.
+- Estado actual.
+- Evidencia.
+- Problemas.
+- Prioridad.
+- Acción recomendada.
+- Criterios de aceptación.
+
+## Backlog
+
+Cada tarea debe incluir:
+
+- Identificador.
+- Prioridad.
+- Descripción.
+- Justificación.
+- Dependencias.
+- Criterios de aceptación.
+- Archivos o módulos involucrados, cuando se conozcan.
+- Pruebas necesarias.
+
+# 19. METODOLOGÍA DE IMPLEMENTACIÓN
+
+Trabajar en ciclos pequeños.
+
+En cada ciclo:
+
+1. Inspeccionar.
+2. Identificar problemas.
+3. Priorizar.
+4. Diseñar solución.
+5. Implementar.
+6. Ejecutar pruebas.
+7. Revisar visualmente.
+8. Corregir.
+9. Documentar.
+10. Actualizar estado del proyecto.
+
+No implementar veinte cambios sin verificar los primeros.
+
+No reemplazar toda la interfaz si se pueden corregir problemas concretos.
+
+No agregar mockups que aparenten ser funcionalidad.
+
+No alterar datos reales durante pruebas.
+
+No publicar automáticamente cambios de producción sin revisión.
+
+Utilizar Git y commits pequeños.
+
+Mantener la posibilidad de revertir cambios.
+
+# 20. PRIMERA EJECUCIÓN
+
+Empezá ahora.
+
+No respondas solamente con sugerencias.
+
+Realizá primero una auditoría del repositorio y compará el código con la versión desplegada.
+
+Después:
+
+1. Identificá el stack real.
+2. Identificá las rutas.
+3. Identificá las funcionalidades reales.
+4. Identificá las inconsistencias.
+5. Revisá todas las pantallas.
+6. Creá los documentos de auditoría.
+7. Elaborá un backlog priorizado.
+8. Seleccioná las mejoras P0.
+9. Implementá las correcciones seguras y bien definidas.
+10. Ejecutá pruebas.
+11. Prepará una nueva versión verificable.
+
+Si falta acceso a una API o credencial externa, no simules su funcionamiento.
+
+Si no podés interactuar con el dashboard desde un navegador, inspeccioná la implementación y documentá lo que falta validar.
+
+No pedir confirmación por cada decisión menor.
+
+Para decisiones irreversibles o que puedan afectar datos reales, solicitar autorización.
+
+# CRITERIO DE ÉXITO
+
+No buscamos una landing más bonita.
+
+Buscamos que Arreglo sea un producto real que pueda utilizar un negocio de servicios técnicos todos los días.
+
+El dueño debe poder organizar su operación.
+
+El técnico debe poder trabajar desde el celular sin fricción.
+
+El cliente debe poder consultar y aprobar fácilmente.
+
+El administrador debe poder hacer seguimiento.
+
+La IA debe aportar información confiable.
+
+Las automatizaciones deben reducir trabajo manual.
+
+El negocio debe poder justificar económicamente la suscripción.
+
+La plataforma debe ser segura, consistente, rápida y mantenible.
+
+**No construir por construir. Mejorar cada parte con una razón funcional y comercial.**

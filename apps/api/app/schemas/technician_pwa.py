@@ -14,6 +14,10 @@ TechnicianTransitionStatus = Literal["scheduled", "in_progress", "waiting", "fin
 class TechnicianWorkOrderResponse(WorkOrderResponse):
     customer_name: str | None
     customer_phone: str | None
+    customer_address: str | None
+    customer_city: str | None
+    customer_province: str | None
+    customer_postal_code: str | None
 
 
 class TechnicianWorkOrderListResponse(BaseModel):
@@ -30,12 +34,14 @@ class TechnicianTransitionRequest(BaseModel):
 
 class TechnicianNoteRequest(BaseModel):
     notes: str = Field(min_length=1, max_length=5000)
+    client_request_id: str | None = Field(default=None, max_length=64)
 
 
 class MaterialCreate(BaseModel):
     description: str = Field(min_length=1, max_length=200)
     quantity: Decimal = Field(gt=0, decimal_places=3)
     unit: str = Field(min_length=1, max_length=20)
+    client_request_id: str | None = Field(default=None, max_length=64)
 
 
 class MaterialResponse(ORMModel):

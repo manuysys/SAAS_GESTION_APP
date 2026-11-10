@@ -162,6 +162,10 @@ export function FeaturesBento() {
             );
           })}
         </div>
+        <p className="mt-8 text-xs text-slate">
+          Datos ilustrativos: todas las vistas muestran una misma operación de ejemplo, no clientes
+          reales.
+        </p>
       </div>
     </section>
   );

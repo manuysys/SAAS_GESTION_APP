@@ -4,6 +4,10 @@ CUSTOMER_PAYLOAD = {
     "name": "Carlos Perez",
     "phone": "+54 11 5555-1234",
     "email": "carlos@example.com",
+    "address": "Av. Siempre Viva 742",
+    "city": "CABA",
+    "province": "Buenos Aires",
+    "postal_code": "1425",
     "notes": "Cliente de prueba",
 }
 
@@ -42,6 +46,8 @@ async def test_customer_crud(client: AsyncClient) -> None:
     assert created.status_code == 201, created.text
     customer = created.json()
     assert customer["name"] == CUSTOMER_PAYLOAD["name"]
+    assert customer["address"] == CUSTOMER_PAYLOAD["address"]
+    assert customer["city"] == CUSTOMER_PAYLOAD["city"]
     assert customer["tenant_id"] == tenant_id
 
     listed = await client.get("/api/v1/customers", headers=_headers(token, tenant_id))

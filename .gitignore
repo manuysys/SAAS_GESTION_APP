@@ -58,6 +58,16 @@ apps/web/playwright/.cache/
 apps/api/.pytest_cache/
 *.log
 
+# Mobile (Expo)
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/dist-android/
+apps/mobile/web-build/
+apps/mobile/android/
+apps/mobile/ios/
+*.apk
+*.aab
+
 # OpenCode local
 .opencode/*.local.json
 .lane/

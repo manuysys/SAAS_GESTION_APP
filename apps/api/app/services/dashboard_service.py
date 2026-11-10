@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -44,4 +44,44 @@ async def get_tenant_summary(
         "payments_total": registered_total,
         "pending_balance": pending_balance,
         "appointments_today": appointments_today,
+    }
+
+
+async def get_tenant_operations(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    limit: int = 10,
+    today: date | None = None,
+    reference: datetime | None = None,
+) -> dict[str, object]:
+    today_appointments, today_appointments_count = await dashboard_repo.get_today_appointments(
+        db, tenant_id=tenant_id, limit=limit, today=today
+    )
+    overdue_orders, overdue_count = await dashboard_repo.get_overdue_orders(
+        db, tenant_id=tenant_id, limit=limit, reference=reference
+    )
+    unassigned_orders, unassigned_count = await dashboard_repo.get_unassigned_orders(
+        db, tenant_id=tenant_id, limit=limit
+    )
+    expiring_quotes, expiring_count = await dashboard_repo.get_expiring_quotes(
+        db, tenant_id=tenant_id, limit=limit, today=today
+    )
+    finished_with_balance, finished_count = await dashboard_repo.get_finished_orders_with_balance(
+        db, tenant_id=tenant_id, limit=limit
+    )
+
+    return {
+        "today_appointments": today_appointments,
+        "overdue_orders": overdue_orders,
+        "unassigned_orders": unassigned_orders,
+        "expiring_quotes": expiring_quotes,
+        "finished_with_balance": finished_with_balance,
+        "counts": {
+            "today_appointments": today_appointments_count,
+            "overdue_orders": overdue_count,
+            "unassigned_orders": unassigned_count,
+            "expiring_quotes": expiring_count,
+            "finished_with_balance": finished_count,
+        },
     }

@@ -1,7 +1,7 @@
 import io
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -90,6 +90,7 @@ async def add_technician_note(
         order_id=order_id,
         notes=payload.notes,
         technician_id=membership.user_id,
+        client_request_id=payload.client_request_id,
     )
     return MessageResponse(message="Note added")
 
@@ -150,6 +151,7 @@ async def list_technician_attachments(
 async def create_technician_attachment(
     order_id: UUID,
     file: UploadFile = File(...),
+    client_request_id: str | None = Form(default=None, max_length=64),
     membership: Membership = Depends(require_roles(*TECHNICIAN_ROLE)),
     db: AsyncSession = Depends(get_db),
 ) -> AttachmentResponse:
@@ -159,6 +161,7 @@ async def create_technician_attachment(
         order_id=order_id,
         file=file,
         technician_id=membership.user_id,
+        client_request_id=client_request_id,
     )
 
 

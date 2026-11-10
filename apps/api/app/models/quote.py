@@ -3,6 +3,7 @@ from __future__ import annotations
 import secrets
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import (
@@ -20,6 +21,9 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TenantMixin, TimestampMixin, UUIDMixin
+
+if TYPE_CHECKING:
+    from app.models.work_order import WorkOrder
 
 
 def generate_public_token() -> str:
@@ -64,6 +68,7 @@ class Quote(UUIDMixin, TenantMixin, TimestampMixin, Base):
         String(64), unique=True, index=True, default=generate_public_token, nullable=False
     )
 
+    work_order: Mapped["WorkOrder | None"] = relationship(back_populates="quotes")  # noqa: UP037
     items: Mapped[list[QuoteItem]] = relationship(
         back_populates="quote",
         cascade="all, delete-orphan",

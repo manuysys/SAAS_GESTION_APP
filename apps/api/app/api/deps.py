@@ -8,8 +8,8 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.db import get_db
-from app.core.security import decode_access_token
-from app.models import Membership, User
+from app.core.security import decode_access_token, decode_portal_token
+from app.models import Customer, Membership, Tenant, User
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -127,3 +127,54 @@ def require_platform_admin(
             detail="Platform admin access required",
         )
     return membership
+
+
+async def get_current_customer(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> tuple[Customer, Tenant]:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    try:
+        payload = decode_portal_token(credentials.credentials)
+        customer_id = UUID(str(payload["sub"]))
+        tenant_id = UUID(str(payload["tenant_id"]))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+    tenant = await db.get(Tenant, tenant_id)
+    if tenant is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found",
+        )
+
+    customer = await db.get(Customer, customer_id)
+    if customer is None or customer.tenant_id != tenant_id or customer.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Customer not found or inactive",
+        )
+    return customer, tenant
+
+
+async def require_customer_tenant_slug(
+    tenant_slug: str,
+    customer_tenant: tuple[Customer, Tenant] = Depends(get_current_customer),
+) -> tuple[Customer, Tenant]:
+    customer, tenant = customer_tenant
+    if tenant.slug != tenant_slug:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant mismatch",
+        )
+    return customer, tenant

@@ -75,6 +75,11 @@ class Settings(BaseSettings):
     lockout_window_minutes: int = 15
     audit_enabled: bool = True
 
+    portal_dev_mode: bool = False
+    portal_dev_tenant_slug: str = "servicios-demo"
+    portal_token_ttl_hours: int = 24
+    portal_magic_ttl_minutes: int = 15
+
     @model_validator(mode="after")
     def validate_production(self) -> "Settings":
         if self.app_env.lower() != "production":

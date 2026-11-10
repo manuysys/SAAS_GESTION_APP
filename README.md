@@ -72,6 +72,7 @@ La aplicación web queda en `http://localhost:3000` y la API en
 apps/
   web/          Frontend Next.js 16
   api/          Backend FastAPI (Python 3.12)
+  mobile/       App Expo / React Native (Android primero)
 docs/           Producto, arquitectura, seguridad y operación
 scripts/        Automatización local (PowerShell)
 infra/          Despliegue y CI
@@ -107,6 +108,19 @@ Estas credenciales son solo para desarrollo local. No usarlas en producción.
 Ver [`docs/DEMO.md`](docs/DEMO.md). La demo usa Neon Free y Vercel Hobby; no es
 un entorno productivo con SLA.
 
+## App móvil
+
+La app Expo / React Native está en `apps/mobile`, pensada para Android primero.
+Incluye experiencia de técnico y de cliente. Ver
+[`docs/MOBILE_BUILD.md`](docs/MOBILE_BUILD.md) y
+[`docs/MOBILE_API.md`](docs/MOBILE_API.md).
+
+```powershell
+cd apps/mobile
+pnpm install
+pnpm start
+```
+
 ## Documentación
 
 - [Contexto maestro](CONTEXTO_GUIA_PROYECTO.md)
@@ -123,6 +137,8 @@ un entorno productivo con SLA.
 - [Despliegue](docs/DEPLOYMENT.md)
 - [Despliegue en Vercel + Neon](docs/DEPLOY_VERCEL.md)
 - [Demo pública](docs/DEMO.md)
+- [API móvil](docs/MOBILE_API.md)
+- [Build móvil Android](docs/MOBILE_BUILD.md)
 - [Operaciones](docs/OPERATIONS.md)
 - [PWA para técnicos](docs/PWA_TECHNICIANS.md)
 - [Motor de automatizaciones](docs/AUTOMATION_ENGINE.md)

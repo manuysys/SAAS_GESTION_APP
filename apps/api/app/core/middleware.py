@@ -20,6 +20,9 @@ _AUTH_PATHS = frozenset(
         "/api/v1/auth/login",
         "/api/v1/auth/register",
         "/api/v1/auth/refresh",
+        "/api/v1/auth/mobile/login",
+        "/api/v1/auth/mobile/refresh",
+        "/api/v1/auth/mobile/logout",
     }
 )
 _PUBLIC_QUOTE_PREFIX = "/api/v1/public/quotes/"

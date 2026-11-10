@@ -22,7 +22,7 @@ from app.schemas.work_order import (
     WorkOrderTransition,
     WorkOrderUpdate,
 )
-from app.services import automation_service
+from app.services import automation_service, push_service
 
 
 async def validate_assignee(db: AsyncSession, tenant_id: UUID, user_id: UUID) -> None:
@@ -113,6 +113,17 @@ async def create_tenant_work_order(
     )
     await db.commit()
     await db.refresh(order)
+
+    if order.assigned_user_id is not None:
+        await push_service.send_push_to_user(
+            db,
+            tenant_id=tenant_id,
+            user_id=order.assigned_user_id,
+            title="Nueva orden asignada",
+            body=f"{order.code}: {order.title}",
+            data={"work_order_id": str(order.id), "event": "assigned"},
+        )
+
     return order
 
 
@@ -124,6 +135,7 @@ async def update_tenant_work_order(
     payload: WorkOrderUpdate,
 ) -> WorkOrder:
     order = await get_tenant_work_order(db, tenant_id=tenant_id, order_id=order_id)
+    previous_assigned_user_id = order.assigned_user_id
     data = payload.model_dump(exclude_unset=True)
     assigned_user_id = data.get("assigned_user_id")
     if assigned_user_id:
@@ -132,6 +144,17 @@ async def update_tenant_work_order(
         setattr(order, field, value)
     await db.commit()
     await db.refresh(order)
+
+    if assigned_user_id is not None and assigned_user_id != previous_assigned_user_id:
+        await push_service.send_push_to_user(
+            db,
+            tenant_id=tenant_id,
+            user_id=assigned_user_id,
+            title="Orden reasignada",
+            body=f"{order.code}: {order.title}",
+            data={"work_order_id": str(order.id), "event": "assigned"},
+        )
+
     return order
 
 
@@ -204,6 +227,22 @@ async def transition_tenant_work_order(
     )
     await db.commit()
     await db.refresh(order)
+
+    if order.assigned_user_id is not None and order.assigned_user_id != actor_user_id:
+        await push_service.send_push_to_user(
+            db,
+            tenant_id=tenant_id,
+            user_id=order.assigned_user_id,
+            title="Orden actualizada",
+            body=f"{order.code} pasó a {target}",
+            data={
+                "work_order_id": str(order.id),
+                "event": "status_changed",
+                "from_status": current,
+                "to_status": target,
+            },
+        )
+
     return order
 
 

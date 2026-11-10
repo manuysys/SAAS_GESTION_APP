@@ -9,6 +9,9 @@
     "typecheck:web": "pnpm --dir apps/web typecheck",
     "test:web": "pnpm --dir apps/web test",
     "format:web": "pnpm --dir apps/web format",
+    "dev:mobile": "pnpm --dir apps/mobile start",
+    "android:mobile": "pnpm --dir apps/mobile android",
+    "typecheck:mobile": "pnpm --dir apps/mobile exec tsc --noEmit",
     "verify": "powershell -ExecutionPolicy Bypass -File scripts/verify.ps1"
   }
 }

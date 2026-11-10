@@ -1,17 +1,19 @@
 # Estado del proyecto
 
-**Última actualización:** 2026-11-08
-**Fase:** Hito 2 completo + PWA, automatizaciones, IA determinista, suscripciones,
-panel global, esqueleto de WhatsApp y despliegue público 24/7 en Vercel + Neon.
+**Última actualización:** 2026-11-10
+**Fase:** Hito 2 completo + PWA, app móvil Android (técnicos y clientes),
+portal del cliente, dashboard operativo, automatizaciones, IA con Groq,
+suscripciones, panel global, WhatsApp y despliegue 24/7 en Vercel + Neon.
 
 ## Resumen
 
 La aplicación corre de punta a punta: registro, login, refresh de sesión,
 creación de empresa, aislamiento por tenant, clientes, solicitudes, órdenes de
 trabajo, presupuestos con PDF y aprobación pública, agenda, asignación de
-técnicos, pagos, dashboard operativo, PWA para técnicos, automatizaciones con
-notificaciones, asistente de IA, planes y suscripciones, panel global del SaaS y
-configuración de WhatsApp Cloud API.
+técnicos, pagos, dashboard operativo, PWA para técnicos, app móvil Android para
+técnicos y clientes, portal del cliente, automatizaciones con notificaciones,
+asistente de IA, planes y suscripciones, panel global del SaaS y configuración de
+WhatsApp Cloud API.
 
 El frontend y la API están desplegados en Vercel. La base PostgreSQL está en
 Neon (plan Free, región `gru1`). La demo ya no depende de una máquina local ni
@@ -39,10 +41,12 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
   `service_requests`, `work_orders`, `work_order_events`, `work_order_materials`,
   `work_order_attachments`, `quotes`, `quote_items`, `quote_events`,
   `appointments`, `payments`, `automation_rules`, `automation_executions`,
-  `notifications`, `ai_usage_logs`, `plans`, `subscriptions`, `whatsapp_configs`
-  y `whatsapp_messages`.
+  `notifications`, `ai_usage_logs`, `plans`, `subscriptions`, `whatsapp_configs`,
+  `whatsapp_messages`, `customer_access_tokens`, `device_tokens` y
+  `portal_settings` en `tenants`.
 - [x] Migraciones: `84e62c6788cb`, `ba3b1d3acd4d`, `50e8c050aada`,
-  `de0e021aa0ca`, `51fc582e7593` y `5ffb8399d836`.
+  `de0e021aa0ca`, `51fc582e7593`, `5ffb8399d836`, `c0cc7ae032ee` y
+  `76aba18b0e16` (aplicada en Neon).
 - [x] Auth: registro, login, refresh rotativo, logout, `/me`.
 - [x] Argon2id, JWT de acceso, cookies `HttpOnly`.
 - [x] Multi-tenancy por `X-Tenant-ID` validado contra membresía.
@@ -50,9 +54,19 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] Presupuestos con `Decimal`, ítems históricos, PDF y token público.
 - [x] Agenda, conflictos, reprogramación y asignación de técnicos.
 - [x] Pagos manuales, parciales, anulación y recálculo de estado.
-- [x] Dashboard summary.
+- [x] Dashboard summary y dashboard operativo (`/dashboard/operations`):
+  turnos de hoy, órdenes atrasadas, sin técnico, presupuestos por vencer y
+  trabajos finalizados con saldo.
 - [x] PWA de técnicos: órdenes asignadas, transiciones, notas, materiales y
   fotos con validación de tipo/tamaño.
+- [x] Auth móvil para técnicos: login, refresh rotativo y logout sin cookies.
+- [x] Portal del cliente: magic link con token hasheado, modo demo, resumen,
+  solicitudes, órdenes, turnos, presupuestos, pagos y aprobación/rechazo.
+- [x] Direcciones de cliente expuestas al técnico.
+- [x] Push con Expo para asignación y cambio de estado, sin revertir la
+  operación si falla el envío.
+- [x] Idempotencia móvil con `client_request_id` en notas, materiales y fotos.
+- [x] Trial de suscripción de 14 días.
 - [x] Automatizaciones: reglas por evento, condiciones, acciones `notify` y
   `notify_user`, ejecuciones idempotentes e historial. `send_whatsapp` queda
   `skipped` hasta configurar credenciales.
@@ -74,7 +88,7 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] `/docs`, `/redoc` y `/openapi.json` ocultos en producción.
 - [x] Cabeceras de seguridad HTTP.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 83 pruebas pytest.
+- [x] 97 pruebas pytest.
 
 ### Frontend
 
@@ -96,7 +110,7 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] Solicitudes con métricas, prioridad, origen y conversión a orden.
 - [x] Registro, login y cierre de sesión con identidad Arreglo.
 - [x] Contexto de autenticación con refresh automático y selector de empresa.
-- [x] Dashboard con métricas reales.
+- [x] Dashboard con métricas reales y centro de operaciones accionable.
 - [x] Clientes, solicitudes, órdenes y detalle con historial.
 - [x] Presupuestos, PDF y página pública `/q/[token]` rediseñada.
 - [x] Agenda, pagos y asignación de técnicos.
@@ -109,19 +123,37 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] WhatsApp `/settings/whatsapp` con configuración, mensajes y envío.
 - [x] Navegación por rol; técnicos usan su propio shell.
 - [x] Cliente API tipado, TanStack Query, React Hook Form + Zod.
-- [x] Vitest con 70 pruebas.
+- [x] Landing con dataset único de demo (`demo-data.ts`), IDs y estados
+  coherentes, 27 tests de integridad y copy honesto.
+- [x] Vitest con 95 pruebas.
+
+### App móvil
+
+- [x] Expo SDK 58 + React Native 0.88 + Expo Router + TypeScript estricto.
+- [x] Android primero, package `com.arreglo.mobile`, scheme `arreglo`.
+- [x] Experiencia de técnico: login, trabajos, filtros, detalle, transiciones,
+  llamada, dirección, notas, materiales, fotos, historial y logout.
+- [x] Experiencia de cliente: login por email o teléfono, demo, resumen,
+  solicitud, órdenes, turnos, presupuestos, pagos y detalle con ítems.
+- [x] Cola offline persistente para notas, materiales y fotos con idempotencia.
+- [x] Registro de push con Expo, tolerante a fallos.
+- [x] Tokens en `expo-secure-store`; refresh rotativo persistido.
+- [x] `pnpm exec tsc --noEmit`, `expo export --platform android` y
+  `expo-doctor` 20/20.
+- [ ] APK release generado y probado en dispositivo físico (en curso).
 
 ### Verificación ejecutada
 
 ```text
 ruff check          -> All checks passed
-ruff format --check -> 119 files already formatted
+ruff format --check -> 130 files already formatted
 basedpyright        -> 0 errors, 0 warnings, 0 notes
-pytest              -> 83 passed
+pytest              -> 97 passed
 pnpm lint           -> sin errores
 pnpm typecheck      -> sin errores
-pnpm test           -> 70 passed
+pnpm test           -> 95 passed
 pnpm build          -> 27 rutas generadas
+expo-doctor         -> 20/20 checks passed
 ```
 
 Flujo probado en navegador contra Vercel + Neon: registro, clientes, solicitud,
@@ -144,11 +176,20 @@ GET /api/v1/admin/metrics (fundador)                        -> 200
 SELECT count(*) FROM audit_logs                             -> 1
 SELECT count(*) FROM rate_limit_buckets                     -> 1
 SELECT count(*) FROM auth_attempts                          -> 1
+POST /api/v1/auth/mobile/login (técnico)                    -> 200, 1 tenant technician
+POST /api/v1/auth/mobile/refresh                            -> 200, token rotado
+POST /api/v1/auth/mobile/logout                             -> 204
+GET  /api/v1/portal/servicios-demo                          -> 200, demo_available=true
+POST /api/v1/portal/servicios-demo/auth/demo                -> 200, Carlos Gomez
+GET  /api/v1/portal/servicios-demo/summary                  -> 200
+GET  /api/v1/portal/servicios-demo/orders|quotes|appointments|payments -> 200
+GET  /api/v1/dashboard/operations (demo)                    -> 200
 ```
 
 El refresh de sesión cross-site se verificó recargando el dashboard después del
-login. El asistente determinista devolvió `QT-2026-0002` con datos reales de
-Neon.
+login. El asistente devolvió `QT-2026-0002` con datos reales de Neon. La
+migración `76aba18b0e16` quedó aplicada en Neon y la API se redesplegó el
+2026-11-10.
 
 ## Demo pública
 
@@ -157,40 +198,53 @@ Neon.
 - Base de datos: Neon PostgreSQL (`gru1`, plan Free).
 - Admin demo: `demo@saasgestion.com` / `Demo12345!`.
 - Técnico demo: `tecnico@saasgestion.com` / `Tecnico12345!`.
+- Cliente demo del portal: empresa `servicios-demo`, `carlos@example.com`.
 
 Ver `docs/DEMO.md`. La demo ya no depende de esta máquina. Limitación: el plan
 Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 
 ## Pendiente
 
+- [ ] Instalar el APK en un Android real y recorrer técnico, cliente, fotos y
+  offline.
+- [ ] Publicar en Google Play con keystore de release, ficha, privacidad y data
+  safety.
+- [ ] Entregar magic links del portal por email o WhatsApp.
 - [ ] WhatsApp end-to-end con número y credenciales de Meta.
 - [ ] Cobros reales con Mercado Pago y webhooks.
-- [ ] Proveedor de IA externo con API key (o Ollama local en producción).
 - [ ] Enforcement completo de límites por plan en todos los endpoints.
 - [ ] Recordatorios automáticos programados (cron/worker).
-- [ ] Correo electrónico transaccional.
+- [ ] Reset y modo de solo lectura de la demo.
 - [ ] Entrevistas a clientes.
 - [ ] Dominio propio, política de privacidad y revisión legal.
 - [ ] Backups verificados y plan de restauración de Neon.
 
 ## Próximo paso concreto
 
-1. Configurar un dominio propio y HTTPS para el frontend y la API.
-2. Probar WhatsApp y Mercado Pago con credenciales reales en sandbox.
-3. Implementar enforcement de límites y recordatorios programados.
-4. Verificar backups/restauración de Neon y monitoreo de errores.
+1. Probar el APK en un dispositivo Android real y corregir lo que falle.
+2. Configurar una keystore de release y publicar una prueba interna en Play
+   Console.
+3. Implementar entrega real de magic links (Resend o WhatsApp) y desactivar
+   `PORTAL_DEV_MODE` fuera de la demo.
+4. Configurar dominio propio, backups verificados y monitoreo de errores.
 
 ## Limitaciones conocidas
 
 - Neon Free y Vercel Hobby tienen límites de almacenamiento, conexiones y
   ejecución; no son un entorno productivo con SLA.
-- Sin credenciales de Meta, Mercado Pago ni proveedores de IA externos.
+- Sin credenciales de Meta ni Mercado Pago. Groq está configurado en producción
+  con fallback determinista.
 - El rate limiting usa PostgreSQL con fallback en memoria; para varias instancias
   conviene Redis/Upstash o el WAF del proveedor.
 - Las fotos de técnicos se guardan como `BYTEA` en PostgreSQL; migrar a S3 en
   producción.
-- El asistente determinista responde intenciones predefinidas; no es un LLM.
+- El asistente responde con Groq y cae a intenciones deterministas si se agota
+  la cuota; el modo determinista no es un LLM.
 - `send_whatsapp` en automatizaciones queda `skipped` hasta configurar WhatsApp.
-- La suscripción se crea en modo `trialing`, pero todavía no se cobra.
+- La suscripción se crea en modo `trialing` de 14 días, pero todavía no se cobra.
 - Los cold starts de Vercel pueden agregar latencia a la primera request.
 - Falta RLS, 2FA y recuperación de contraseña con email.
+- El APK release usa firma de debug; no es publicable.
+- El portal del cliente no envía magic links reales: usa `dev_token` en la demo.
+- Push requiere `eas projectId` y un development build; no se probó en
+  dispositivo.

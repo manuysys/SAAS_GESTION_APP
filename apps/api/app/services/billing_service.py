@@ -83,7 +83,7 @@ async def create_trial_subscription(db: AsyncSession, tenant_id: UUID) -> Subscr
         plan_id=plan.id,
         status="trialing",
         started_at=now,
-        current_period_end=now + timedelta(days=30),
+        current_period_end=now + timedelta(days=14),
         price_snapshot=plan.price_ars,
     )
     return subscription

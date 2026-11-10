@@ -14,6 +14,8 @@ CUSTOMER = {
     "email": "dashboard@example.com",
 }
 
+_ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
+
 
 async def _register(client: AsyncClient, email: str, company: str) -> tuple[str, str, str]:
     response = await client.post(
@@ -41,24 +43,50 @@ def _headers(token: str, tenant_id: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "X-Tenant-ID": tenant_id}
 
 
-async def _create_customer(client: AsyncClient, token: str, tenant_id: str) -> str:
+async def _create_customer(
+    client: AsyncClient, token: str, tenant_id: str, name: str | None = None
+) -> str:
+    payload = {**CUSTOMER, "name": name or CUSTOMER["name"]}
     response = await client.post(
-        "/api/v1/customers", json=CUSTOMER, headers=_headers(token, tenant_id)
+        "/api/v1/customers", json=payload, headers=_headers(token, tenant_id)
     )
     assert response.status_code == 201, response.text
     return response.json()["id"]
 
 
 async def _create_work_order(
-    client: AsyncClient, token: str, tenant_id: str, customer_id: str
+    client: AsyncClient,
+    token: str,
+    tenant_id: str,
+    customer_id: str,
+    *,
+    title: str = "Orden de prueba",
+    scheduled_at: datetime | None = None,
+    assigned_user_id: str | None = None,
 ) -> str:
+    json: dict[str, object] = {"customer_id": customer_id, "title": title}
+    if scheduled_at is not None:
+        json["scheduled_at"] = scheduled_at.isoformat()
+    if assigned_user_id is not None:
+        json["assigned_user_id"] = assigned_user_id
     response = await client.post(
         "/api/v1/work-orders",
-        json={"customer_id": customer_id, "title": "Orden de prueba"},
+        json=json,
         headers=_headers(token, tenant_id),
     )
     assert response.status_code == 201, response.text
     return response.json()["id"]
+
+
+async def _transition_order(
+    client: AsyncClient, token: str, tenant_id: str, order_id: str, to_status: str
+) -> None:
+    response = await client.post(
+        f"/api/v1/work-orders/{order_id}/transition",
+        json={"to_status": to_status},
+        headers=_headers(token, tenant_id),
+    )
+    assert response.status_code == 200, response.text
 
 
 async def _add_technician(db_session: AsyncSession, tenant_id: str, user_id: str) -> None:
@@ -70,6 +98,55 @@ async def _add_technician(db_session: AsyncSession, tenant_id: str, user_id: str
         )
     )
     await db_session.commit()
+
+
+async def _create_quote(
+    client: AsyncClient,
+    token: str,
+    tenant_id: str,
+    customer_id: str,
+    work_order_id: str,
+    amount: str,
+    *,
+    valid_until: datetime | None = None,
+) -> dict[str, object]:
+    json: dict[str, object] = {
+        "customer_id": customer_id,
+        "work_order_id": work_order_id,
+        "items": [
+            {
+                "description": "Servicio vinculado",
+                "quantity": "1.000",
+                "unit_price": amount,
+            }
+        ],
+    }
+    if valid_until is not None:
+        json["valid_until"] = valid_until.date().isoformat()
+    response = await client.post("/api/v1/quotes", json=json, headers=_headers(token, tenant_id))
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+async def _create_appointment(
+    client: AsyncClient,
+    token: str,
+    tenant_id: str,
+    work_order_id: str,
+    technician_id: str,
+    starts_at: datetime,
+) -> None:
+    response = await client.post(
+        "/api/v1/appointments",
+        json={
+            "work_order_id": work_order_id,
+            "technician_id": technician_id,
+            "starts_at": starts_at.isoformat(),
+            "ends_at": (starts_at + timedelta(hours=1)).isoformat(),
+        },
+        headers=_headers(token, tenant_id),
+    )
+    assert response.status_code == 201, response.text
 
 
 async def test_dashboard_summary_returns_counts(
@@ -181,5 +258,144 @@ async def test_technician_cannot_access_dashboard(
 
     response = await client.get(
         "/api/v1/dashboard/summary", headers=_headers(tech_token, tenant_id)
+    )
+    assert response.status_code == 403
+
+
+async def test_dashboard_operations_returns_actionable_data(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    owner_token, tenant_id, _ = await _register(client, "owner-ops@example.com", "Empresa Ops")
+    _tech_token, _, tech_user_id = await _register(client, "tech-ops@example.com", "Tech Ops")
+    await _add_technician(db_session, tenant_id, tech_user_id)
+
+    customer_id = await _create_customer(client, owner_token, tenant_id)
+
+    now_arg = datetime.now(_ARG_TZ)
+    yesterday = (now_arg - timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0)
+    order_overdue = await _create_work_order(
+        client, owner_token, tenant_id, customer_id, title="Orden atrasada", scheduled_at=yesterday
+    )
+
+    order_unassigned = await _create_work_order(
+        client, owner_token, tenant_id, customer_id, title="Orden sin técnico"
+    )
+
+    order_balance = await _create_work_order(
+        client, owner_token, tenant_id, customer_id, title="Orden con saldo"
+    )
+    order_appointment = await _create_work_order(
+        client, owner_token, tenant_id, customer_id, title="Orden con turno"
+    )
+
+    today_noon = now_arg.replace(hour=12, minute=0, second=0, microsecond=0)
+    await _create_appointment(
+        client, owner_token, tenant_id, order_appointment, tech_user_id, today_noon
+    )
+
+    expiring_quote_data = await _create_quote(
+        client,
+        owner_token,
+        tenant_id,
+        customer_id,
+        order_balance,
+        "500.00",
+        valid_until=now_arg + timedelta(days=3),
+    )
+    await client.post(
+        f"/api/v1/quotes/{expiring_quote_data['id']}/send", headers=_headers(owner_token, tenant_id)
+    )
+
+    approved_quote_data = await _create_quote(
+        client, owner_token, tenant_id, customer_id, order_balance, "1000.00"
+    )
+    await client.post(
+        f"/api/v1/quotes/{approved_quote_data['id']}/send",
+        headers=_headers(owner_token, tenant_id),
+    )
+    public_token = approved_quote_data["public_token"]
+    approve_response = await client.post(f"/api/v1/public/quotes/{public_token}/approve", json={})
+    assert approve_response.status_code == 200, approve_response.text
+
+    await _transition_order(client, owner_token, tenant_id, order_balance, "scheduled")
+    await _transition_order(client, owner_token, tenant_id, order_balance, "in_progress")
+    await _transition_order(client, owner_token, tenant_id, order_balance, "finished")
+
+    payment_response = await client.post(
+        "/api/v1/payments",
+        json={
+            "work_order_id": order_balance,
+            "quote_id": approved_quote_data["id"],
+            "amount": "400.00",
+            "method": "cash",
+        },
+        headers=_headers(owner_token, tenant_id),
+    )
+    assert payment_response.status_code == 201, payment_response.text
+
+    response = await client.get(
+        "/api/v1/dashboard/operations", headers=_headers(owner_token, tenant_id)
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+
+    assert len(body["today_appointments"]) == 1
+    assert body["today_appointments"][0]["order_title"] == "Orden con turno"
+    assert body["today_appointments"][0]["technician_name"] == "Test User"
+    assert body["counts"]["today_appointments"] >= 1
+
+    overdue = [o for o in body["overdue_orders"] if o["id"] == order_overdue]
+    assert len(overdue) == 1
+    assert overdue[0]["days_overdue"] >= 1
+    assert body["counts"]["overdue_orders"] >= 1
+
+    unassigned = [o for o in body["unassigned_orders"] if o["id"] == order_unassigned]
+    assert len(unassigned) == 1
+    assert body["counts"]["unassigned_orders"] >= 1
+
+    expiring = [q for q in body["expiring_quotes"] if q["id"] == expiring_quote_data["id"]]
+    assert len(expiring) == 1
+    assert expiring[0]["days_left"] == 3
+    assert Decimal(expiring[0]["total"]) == Decimal("500.00")
+    assert body["counts"]["expiring_quotes"] >= 1
+
+    finished = [o for o in body["finished_with_balance"] if o["id"] == order_balance]
+    assert len(finished) == 1
+    assert Decimal(finished[0]["total"]) == Decimal("1000.00")
+    assert Decimal(finished[0]["paid"]) == Decimal("400.00")
+    assert Decimal(finished[0]["balance"]) == Decimal("600.00")
+    assert body["counts"]["finished_with_balance"] >= 1
+
+
+async def test_dashboard_operations_isolation_between_tenants(client: AsyncClient) -> None:
+    token_a, tenant_a, _ = await _register(client, "owner-ops-a@example.com", "Empresa A")
+    token_b, tenant_b, _ = await _register(client, "owner-ops-b@example.com", "Empresa B")
+    customer_a = await _create_customer(client, token_a, tenant_a, "Cliente A")
+    customer_b = await _create_customer(client, token_b, tenant_b, "Cliente B")
+    await _create_work_order(client, token_a, tenant_a, customer_a, title="Orden A")
+    await _create_work_order(client, token_b, tenant_b, customer_b, title="Orden B")
+
+    ops_a = await client.get("/api/v1/dashboard/operations", headers=_headers(token_a, tenant_a))
+    assert ops_a.status_code == 200, ops_a.text
+    ids_a = {o["id"] for o in ops_a.json()["unassigned_orders"]}
+
+    ops_b = await client.get("/api/v1/dashboard/operations", headers=_headers(token_b, tenant_b))
+    assert ops_b.status_code == 200, ops_b.text
+    ids_b = {o["id"] for o in ops_b.json()["unassigned_orders"]}
+
+    assert ids_a.isdisjoint(ids_b)
+    assert len(ids_a) == 1
+    assert len(ids_b) == 1
+
+
+async def test_technician_cannot_access_operations(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    _owner_token, tenant_id, _ = await _register(client, "owner-tech-ops@example.com", "Empresa A")
+    tech_token, _, tech_user_id = await _register(client, "tech-no-ops@example.com", "Tech Co")
+    await _add_technician(db_session, tenant_id, tech_user_id)
+
+    response = await client.get(
+        "/api/v1/dashboard/operations", headers=_headers(tech_token, tenant_id)
     )
     assert response.status_code == 403

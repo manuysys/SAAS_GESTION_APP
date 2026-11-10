@@ -15,6 +15,7 @@ from app.api.routes import (
     health,
     notifications,
     payments,
+    portal,
     public_quotes,
     quotes,
     service_requests,
@@ -78,6 +79,7 @@ app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")
 app.include_router(whatsapp.router, prefix="/api/v1")
 app.include_router(whatsapp_webhook.router, prefix="/api/v1")
+app.include_router(portal.router, prefix="/api/v1")
 
 
 @app.get("/")

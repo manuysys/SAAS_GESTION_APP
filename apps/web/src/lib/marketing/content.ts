@@ -35,7 +35,7 @@ export const trustItems = [
   {
     id: "pwa",
     label: "PWA sin instalación",
-    detail: "Los técnicos la usan desde el navegador del celular.",
+    detail: "Se usa desde el navegador del celular; agregarla a la pantalla de inicio es opcional.",
   },
   {
     id: "ars",
@@ -58,7 +58,7 @@ export const journeySteps = [
   {
     id: "consulta",
     title: "Consulta",
-    text: "Llega por teléfono, mail o formulario. Queda registrada en segundos, con datos y dirección del cliente.",
+    text: "Se registra en la oficina en segundos, con los datos y la dirección del cliente.",
   },
   {
     id: "solicitud",
@@ -68,7 +68,7 @@ export const journeySteps = [
   {
     id: "orden",
     title: "Orden de trabajo",
-    text: "Se crea la orden, se asigna un técnico y el horario se valida contra la agenda.",
+    text: "Se crea la orden, se asigna un técnico y el turno se controla contra la agenda para detectar solapamientos.",
   },
   {
     id: "presupuesto",
@@ -88,7 +88,7 @@ export const journeySteps = [
   {
     id: "cobro",
     title: "Pago",
-    text: "Se registra el cobro total o parcial, y el saldo pendiente queda visible para todo el equipo.",
+    text: "Se registra el cobro total o parcial. El saldo pendiente queda visible en la orden.",
   },
 ] as const;
 
@@ -115,8 +115,8 @@ export const featureCards = [
   },
   {
     id: "pwa",
-    title: "App para técnicos sin instalar",
-    text: "Agenda del día, fotos, materiales y cierre de visita desde el navegador.",
+    title: "Técnicos desde el celular",
+    text: "Agenda del día, fotos, materiales y cierre de visita desde el navegador. Sin tienda de apps.",
   },
   {
     id: "payments",
@@ -126,17 +126,17 @@ export const featureCards = [
   {
     id: "automations",
     title: "Automatizaciones",
-    text: "Reglas por evento que avisan al equipo cuando algo cambia en una orden.",
+    text: "Reglas por evento que avisan al equipo, por ejemplo cuando se aprueba un presupuesto. Las notificaciones se muestran dentro de la app.",
   },
   {
     id: "ai",
     title: "Asistente con datos reales",
-    text: "Responde con el estado de tu negocio. No ejecuta acciones ni escribe SQL.",
+    text: "Consulta los datos de tu negocio para responder. No ejecuta acciones ni escribe SQL.",
   },
   {
     id: "whatsapp",
     title: "WhatsApp Business oficial",
-    text: "Integración con WhatsApp Cloud API de Meta, para avisos y mensajes del negocio.",
+    text: "Integración con WhatsApp Cloud API de Meta para avisos y mensajes del negocio. Sin credenciales, no se envía nada.",
     badge: "Requiere credenciales de Meta",
   },
 ] as const;
@@ -190,43 +190,70 @@ export const tourTabs = [
 
 export type TourTabId = (typeof tourTabs)[number]["id"];
 
+/** Respuestas breves y verificables contra el comportamiento actual de la plataforma. */
 export const faqItems = [
   {
     question: "¿Los técnicos tienen que instalar una app?",
     answer:
-      "No. La experiencia para técnicos es una PWA: se abre desde el navegador del celular y se puede agregar a la pantalla de inicio. Funciona en Android y iPhone.",
+      "No. Usan la PWA desde el navegador del celular. Pueden agregarla a la pantalla de inicio; el paso exacto depende del sistema operativo y del navegador.",
   },
   {
     question: "¿El cliente necesita cuenta para aprobar un presupuesto?",
     answer:
-      "No. Cada presupuesto tiene un link público con un token aleatorio. Ese link funciona como un secreto: quien lo tenga puede verlo, así que conviene compartirlo solo con el cliente.",
+      "No. Cada presupuesto tiene un link público con un token aleatorio. Quien tiene el link puede verlo y aprobarlo, así que conviene compartirlo solo con el cliente.",
   },
   {
-    question: "¿Cómo se separan los datos de cada empresa?",
+    question: "¿Cómo se protegen mis datos?",
     answer:
-      "Cada empresa opera en su propio espacio. El backend valida la pertenencia a la empresa en cada operación, y no confía en datos enviados desde el navegador.",
+      "Cada empresa opera en su propio espacio y el backend valida la pertenencia en cada operación. Las contraseñas se guardan con Argon2id, las sesiones usan cookies HttpOnly con tokens de corta duración y las acciones importantes quedan auditadas. La política de privacidad es un borrador en revisión legal; la región de alojamiento y los plazos de backups todavía no están definidos.",
   },
   {
-    question: "¿WhatsApp ya está disponible?",
+    question: "¿Cómo funciona el asistente de IA y qué datos envía?",
     answer:
-      "La integración usa la API oficial WhatsApp Cloud API de Meta y requiere credenciales de Meta para activarse. Hoy se configura por empresa; no se simulan envíos.",
+      "Consulta los datos de tu empresa para responder, pero no ejecuta acciones ni escribe SQL. Con el modo local, los datos no salen de la plataforma. Con un proveedor externo (hoy Groq) se envía un resumen: nombres de clientes, números y montos de presupuestos, títulos y estados de órdenes, técnicos del día y saldo pendiente. No se envían contraseñas ni direcciones.",
   },
   {
-    question: "¿La IA envía datos de mi empresa a terceros?",
+    question: "¿Qué pasa cuando consumo mi cuota de IA?",
     answer:
-      "El asistente puede funcionar con un proveedor determinista local o con un proveedor externo configurado (hoy Groq). La app muestra qué proveedor está activo y registra el consumo por empresa. No ejecuta acciones ni escribe SQL.",
+      "Cada empresa tiene un límite mensual de tokens del asistente, que hoy es igual en todos los planes. Al alcanzarlo, el asistente deja de responder hasta el mes siguiente. Si se agota solo la cuota del proveedor externo, responde en modo local y lo indica. El resto de la plataforma no se ve afectado.",
+  },
+  {
+    question: "¿Qué necesito para conectar WhatsApp?",
+    answer:
+      "Una cuenta de WhatsApp Business y credenciales de la API oficial de Meta (WhatsApp Cloud API), que se cargan por empresa. Sin credenciales no se envía ningún mensaje y el resto de la plataforma funciona igual. Los mensajes que inicia el negocio pueden requerir plantillas aprobadas por Meta. Todavía no probamos el flujo completo con un número real.",
   },
   {
     question: "¿Cuánto cuesta y hay prueba gratis?",
     answer:
-      "Los precios son de lanzamiento, en ARS por mes. La prueba gratuita de 14 días está en implementación: hoy el registro crea una suscripción en prueba y todavía no se cobra.",
+      "Los precios son de lanzamiento, en ARS por mes. La prueba gratuita de 14 días está en implementación. Hoy no se cobra al registrarse, y los medios de pago y la facturación se informarán antes de cualquier cobro.",
+  },
+  {
+    question: "¿Puedo cambiar de plan?",
+    answer:
+      "Sí, desde Facturación podés cambiar de plan. Como todavía no hay cobros, el cambio no genera cargos.",
+  },
+  {
+    question: "¿Puedo cancelar?",
+    answer:
+      "Hoy no se cobra, así que no hay cargos que cancelar. Todavía no existe un flujo de cancelación de suscripción en la app; se definirá antes del primer cobro.",
+  },
+  {
+    question: "¿Puedo exportar mi información?",
+    answer:
+      "Podés descargar el PDF de cada presupuesto. La exportación completa de clientes, órdenes y pagos (por ejemplo, en CSV) todavía no está disponible.",
+  },
+  {
+    question: "¿Tengo soporte?",
+    answer: `Podés escribirnos a ${brand.email}. Todavía no definimos tiempos de respuesta ni un canal de soporte formal.`,
   },
 ] as const;
 
 export const pricingCopy = {
   title: "Precios de lanzamiento",
   description:
-    "Montos en pesos argentinos por mes. La prueba gratuita de 14 días está en implementación; hoy el registro crea una suscripción en prueba y todavía no se cobra.",
+    "Montos en pesos argentinos por mes. La prueba gratuita de 14 días está en implementación. Hoy no se cobra al registrarse.",
+  limitsNote:
+    "Los límites por plan todavía no se aplican en toda la plataforma. Hoy el límite mensual del asistente de IA es el mismo para todas las empresas.",
   included: "Incluido en todos los planes",
 } as const;
 

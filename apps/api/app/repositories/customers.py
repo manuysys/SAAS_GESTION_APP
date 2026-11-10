@@ -54,6 +54,10 @@ async def create_customer(
     name: str,
     phone: str | None,
     email: str | None,
+    address: str | None,
+    city: str | None,
+    province: str | None,
+    postal_code: str | None,
     notes: str | None,
 ) -> Customer:
     customer = Customer(
@@ -61,6 +65,10 @@ async def create_customer(
         name=name,
         phone=phone,
         email=email.lower() if email else None,
+        address=address,
+        city=city,
+        province=province,
+        postal_code=postal_code,
         notes=notes,
     )
     db.add(customer)

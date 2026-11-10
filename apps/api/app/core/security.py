@@ -47,6 +47,31 @@ def decode_access_token(token: str) -> dict[str, Any]:
     return payload
 
 
+def create_portal_token(customer_id: str, tenant_id: str) -> tuple[str, int]:
+    expires_in = settings.portal_token_ttl_hours * 60 * 60
+    now = datetime.now(UTC)
+    payload: dict[str, Any] = {
+        "sub": customer_id,
+        "tenant_id": tenant_id,
+        "type": "customer",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(seconds=expires_in)).timestamp()),
+    }
+    token = jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    return token, expires_in
+
+
+def decode_portal_token(token: str) -> dict[str, Any]:
+    payload = jwt.decode(
+        token,
+        settings.jwt_secret,
+        algorithms=[settings.jwt_algorithm],
+    )
+    if payload.get("type") != "customer":
+        raise jwt.InvalidTokenError("Invalid token type")
+    return payload
+
+
 def generate_refresh_token() -> str:
     return secrets.token_urlsafe(48)
 

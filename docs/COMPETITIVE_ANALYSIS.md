@@ -235,7 +235,7 @@ Plataforma SaaS multi-rubro (electrónica, mecánica, celulares, informática/SA
 3. **Escalón de precio abrupto para PyMEs de 2 a 5 técnicos a domicilio:**
    - En **AppTec**, pasar de 1 técnico (Gratis, 20 órdenes) a 2–3 técnicos exige saltar directamente a **AR$ 49.000/mes** (Starter), y si el negocio necesita subir fotos en las órdenes debe pagar **AR$ 65.000/mes** (Pro).
    - En **Ordion**, el plan inicial de AR$ 25.000/mes incluye hasta 3 técnicos y 1 admin, pero no incluye automatización de comunicación con clientes ni aprobación pública de presupuestos con seguimiento comercial automatizado.
-   - **Oportunidad accionable:** ofrecer en **SaaS Gestión** un escalón de entrada competitivo (rango AR$ 22.000–32.000/mes validado en entrevistas) para equipos pequeños de 1 a 5 técnicos donde **las fotos en la orden, el enlace público de aprobación de presupuesto (`/q/[token]`) y la agenda sin solapamientos estén disponibles desde el primer plan pago**, sin obligar a pagar AR$ 65.000/mes para adjuntar una foto del trabajo.
+   - **Oportunidad accionable:** ofrecer en **SaaS Gestión** un escalón de entrada competitivo (rango AR$ 22.000–32.000/mes a validar en entrevistas) para equipos pequeños de 1 a 5 técnicos donde **las fotos en la orden, el enlace público de aprobación de presupuesto (`/q/[token]`) y la agenda sin solapamientos estén disponibles desde el primer plan pago**, sin obligar a pagar AR$ 65.000/mes para adjuntar una foto del trabajo.
 
 4. **WhatsApp: entre el "botón manual", la contradicción documental y el riesgo de bloqueo por QR:**
    - **Nixora CRM**, **OrdenSoft**, **AppTec** y **TallerOS (`talleros.io`)** solo abren `wa.me` con un texto prearmado (requiere intervención humana en cada aviso).

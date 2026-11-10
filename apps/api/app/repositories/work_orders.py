@@ -85,6 +85,23 @@ async def create_work_order(
     return order
 
 
+async def get_work_order_event_by_client_request_id(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    work_order_id: UUID,
+    client_request_id: str,
+) -> WorkOrderEvent | None:
+    result = await db.execute(
+        select(WorkOrderEvent).where(
+            WorkOrderEvent.tenant_id == tenant_id,
+            WorkOrderEvent.work_order_id == work_order_id,
+            WorkOrderEvent.client_request_id == client_request_id,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
 async def create_work_order_event(
     db: AsyncSession,
     *,
@@ -95,6 +112,7 @@ async def create_work_order_event(
     to_status: str | None,
     actor_user_id: UUID | None,
     payload: dict[str, object] | None = None,
+    client_request_id: str | None = None,
 ) -> WorkOrderEvent:
     event = WorkOrderEvent(
         tenant_id=tenant_id,
@@ -104,6 +122,7 @@ async def create_work_order_event(
         to_status=to_status,
         actor_user_id=actor_user_id,
         payload=payload,
+        client_request_id=client_request_id,
     )
     db.add(event)
     await db.flush()

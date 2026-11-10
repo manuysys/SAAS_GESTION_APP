@@ -4,21 +4,32 @@ import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import type { ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 
-import { formatPlanPrice } from "@/lib/marketing/pricing";
+import {
+  demoOperation,
+  demoRefs,
+  getCustomer,
+  getOrder,
+  getQuote,
+  getQuoteBalance,
+  getQuoteTotalPaid,
+  getTechnician,
+  orderStatusLabel,
+} from "@/lib/marketing/demo-data";
+import { formatArs } from "@/lib/marketing/pricing";
 import { cn } from "@/lib/utils";
 
 import { HeroFallback } from "./hero-fallback";
 import { HeroScene } from "./hero-scene";
 import { delayStyle } from "./ui";
 
-type LiveCardProps = {
+type FloatCardProps = {
   className: string;
   delay: number;
   accent: "teal" | "amber";
   children: ReactNode;
 };
 
-function LiveCard({ className, delay, accent, children }: LiveCardProps) {
+function FloatCard({ className, delay, accent, children }: FloatCardProps) {
   return (
     <div
       className={cn(
@@ -41,7 +52,8 @@ function LiveCard({ className, delay, accent, children }: LiveCardProps) {
 
 /*
  * Visual del hero: escena isométrica (3D en desktop, SVG en el resto) con
- * tarjetas de producto que flotan. Las tarjetas muestran datos ilustrativos.
+ * tarjetas de producto que flotan. Las tarjetas leen el dataset de ejemplo
+ * (demo-data.ts) y se rotulan una sola vez como datos ilustrativos.
  * El parallax respeta prefers-reduced-motion.
  */
 export function HeroVisual() {
@@ -53,6 +65,16 @@ export function HeroVisual() {
   const cardsY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [-12, 40]);
 
   const handleReady = useCallback(() => setSceneReady(true), []);
+
+  const activeOrder = getOrder(demoRefs.activeOrderId);
+  const activeTechnician = getTechnician(demoRefs.technicianId);
+  const activeAppointment = demoOperation.appointments.find(
+    (item) => item.orderId === activeOrder.id,
+  );
+  const approvedQuote = getQuote(demoRefs.approvedQuoteId);
+  const paid = getQuoteTotalPaid(approvedQuote.id);
+  const balance = getQuoteBalance(approvedQuote.id);
+  const customer = getCustomer(activeOrder.customerId);
 
   return (
     <div
@@ -67,34 +89,32 @@ export function HeroVisual() {
       </motion.div>
 
       <motion.div className="pointer-events-none absolute inset-0" style={{ y: cardsY }}>
-        <LiveCard className="top-[4%] left-0" delay={200} accent="teal">
-          <p className="flex items-center gap-2 text-[11px] font-medium text-white/75">
-            <span className="mk-ping relative size-2 rounded-full bg-mk-teal text-mk-teal" />
-            En vivo · OT-0142
+        <FloatCard className="top-[4%] left-0" delay={200} accent="teal">
+          <p className="text-[11px] font-medium text-white/75">
+            Ejemplo de operación · {activeOrder.id}
           </p>
-          <p className="mt-2 text-sm font-semibold">Instalación de A/C</p>
-          <p className="text-[11px] text-white/70">Martín · 08:30 · En curso</p>
-          <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/15">
-            <span className="block h-full w-3/5 rounded-full bg-teal" />
-          </div>
-        </LiveCard>
+          <p className="mt-2 text-sm font-semibold">{activeOrder.title}</p>
+          <p className="text-[11px] text-white/70">
+            {activeTechnician.firstName}
+            {activeAppointment ? ` · ${activeAppointment.startTime}` : ""} ·{" "}
+            {orderStatusLabel[activeOrder.status]}
+          </p>
+        </FloatCard>
 
-        <LiveCard className="right-0 bottom-[12%]" delay={360} accent="amber">
+        <FloatCard className="right-0 bottom-[12%]" delay={360} accent="amber">
           <p className="text-[11px] font-medium text-amber">Presupuesto aprobado</p>
-          <p className="mt-1 text-sm font-semibold">QT-2026-0001</p>
-          <p className="font-mono text-xs text-white/85">{formatPlanPrice(95500)}</p>
+          <p className="mt-1 text-sm font-semibold">{approvedQuote.id}</p>
+          <p className="font-mono text-xs text-white/85">{formatArs(approvedQuote.total)}</p>
           <p className="mt-2 text-[10px] text-white/60">Aprobado desde el link público</p>
-        </LiveCard>
+        </FloatCard>
 
-        <LiveCard className="bottom-[34%] left-[3%] hidden sm:block" delay={520} accent="teal">
-          <p className="flex items-center gap-2 text-[11px] font-medium text-white/75">
-            <span className="mk-ping relative size-2 rounded-full bg-amber text-amber" />
-            Cobro registrado
-          </p>
+        <FloatCard className="bottom-[34%] left-[3%] hidden sm:block" delay={520} accent="teal">
+          <p className="text-[11px] font-medium text-white/75">Cobro parcial · {customer.name}</p>
           <p className="mt-2 text-xs text-white/80">
-            Saldo pendiente <span className="font-mono">{formatPlanPrice(45500)}</span>
+            Cobrado <span className="font-mono">{formatArs(paid)}</span> · Saldo{" "}
+            <span className="font-mono">{formatArs(balance)}</span>
           </p>
-        </LiveCard>
+        </FloatCard>
       </motion.div>
 
       <p className="absolute right-3 bottom-1 text-[10px] text-white/55">Datos ilustrativos</p>

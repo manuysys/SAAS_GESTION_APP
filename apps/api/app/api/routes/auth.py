@@ -9,6 +9,9 @@ from app.schemas.auth import (
     AuthResponse,
     LoginRequest,
     MeResponse,
+    MobileAuthResponse,
+    MobileLoginRequest,
+    RefreshTokenRequest,
     RegisterRequest,
     TenantResponse,
     TokenResponse,
@@ -157,4 +160,77 @@ async def me(
             )
             for membership in memberships
         ],
+    )
+
+
+@router.post("/mobile/login", response_model=MobileAuthResponse)
+async def mobile_login(
+    payload: MobileLoginRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> MobileAuthResponse:
+    user, access_token, expires_in, refresh_token = await auth_service.login(
+        db,
+        str(payload.email),
+        payload.password,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    _, memberships = await auth_service.get_me(db, user)
+    return MobileAuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=expires_in,
+        tenants=[
+            TenantResponse(
+                id=membership.tenant.id,
+                name=membership.tenant.name,
+                slug=membership.tenant.slug,
+                role=membership.role,
+            )
+            for membership in memberships
+        ],
+    )
+
+
+@router.post("/mobile/refresh", response_model=MobileAuthResponse)
+async def mobile_refresh(
+    payload: RefreshTokenRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> MobileAuthResponse:
+    user, access_token, expires_in, new_refresh = await auth_service.rotate_refresh_token(
+        db,
+        payload.refresh_token,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    _, memberships = await auth_service.get_me(db, user)
+    return MobileAuthResponse(
+        access_token=access_token,
+        refresh_token=new_refresh,
+        expires_in=expires_in,
+        tenants=[
+            TenantResponse(
+                id=membership.tenant.id,
+                name=membership.tenant.name,
+                slug=membership.tenant.slug,
+                role=membership.role,
+            )
+            for membership in memberships
+        ],
+    )
+
+
+@router.post("/mobile/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def mobile_logout(
+    payload: RefreshTokenRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    await auth_service.revoke_refresh_token(
+        db,
+        payload.refresh_token,
+        client_ip=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
     )

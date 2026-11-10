@@ -60,10 +60,32 @@ No publicar estas credenciales fuera del equipo.
 - Panel, clientes, solicitudes, órdenes, presupuestos, agenda y pagos.
 - `/tech` para el usuario técnico.
 - `/automations` y `/notifications`.
-- `/assistant` con proveedor determinista local.
+- `/assistant` con Groq y fallback determinista.
 - `/settings/billing` con plan y uso.
 - `/settings/whatsapp` (sin credenciales reales, no envía).
 - `/admin` solo para platform admins.
+- Portal del cliente en la app móvil (`/portal/servicios-demo` en la API).
+
+## App móvil
+
+### Técnico
+
+```text
+Email: tecnico@saasgestion.com
+Password: Tecnico12345!
+Empresa: Servicios Demo
+```
+
+### Cliente
+
+```text
+Empresa: servicios-demo
+Email: carlos@example.com
+```
+
+En la app, usar **“Probar demo de cliente”**. El backend devuelve un token de
+demostración solo para el tenant `servicios-demo` cuando `PORTAL_DEV_MODE=true`.
+En producción real, el acceso se envía por email o WhatsApp.
 
 ## Advertencia
 
