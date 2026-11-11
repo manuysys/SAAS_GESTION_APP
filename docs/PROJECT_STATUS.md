@@ -203,6 +203,11 @@ POST /api/v1/portal/servicios-demo/auth/demo                -> 200, Carlos Gomez
 GET  /api/v1/portal/servicios-demo/summary                  -> 200
 GET  /api/v1/portal/servicios-demo/orders|quotes|appointments|payments -> 200
 GET  /api/v1/dashboard/operations (demo)                    -> 200
+GET  /api/v1/team (demo)                                    -> 200, 2 miembros
+POST /api/v1/team/invitations (demo)                        -> 201, email_status=console
+POST /api/v1/customers/{id}/portal-access (demo)            -> 200, email_status=not_sent
+POST /api/v1/portal/servicios-demo/auth/verify              -> 200, Carlos Gomez
+POST /api/v1/portal/servicios-demo/auth/request             -> 200, dev_token ausente
 ```
 
 El refresh de sesión cross-site se verificó recargando el dashboard después del

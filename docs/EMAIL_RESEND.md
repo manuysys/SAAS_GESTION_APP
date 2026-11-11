@@ -1,9 +1,9 @@
 # Email transaccional con Resend
 
-Guía de configuración y verificación del correo saliente. Describe qué hay que
-configurar y cómo comprobar la entrega real; **no** afirma que la integración de
-código esté terminada. El estado del backend se registra en
-`docs/PROJECT_STATUS.md`.
+Guía de configuración y verificación del correo saliente. El módulo de código
+está implementado con proveedor `console` y Resend; **la entrega productiva no
+está verificada** porque faltan dominio, DNS y API key. El estado del backend se
+registra en `docs/PROJECT_STATUS.md`.
 
 ## Variables de entorno
 
