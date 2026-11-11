@@ -115,10 +115,19 @@ corregirlo antes de continuar.
 ## Flujo de trabajo con OpenCode
 
 - Antes de una tarea grande, usar el skill `project-context`.
+- El tech lead **solo orquesta**: define contrato, alcance y archivos disjuntos;
+  revisa evidencia y resuelve conflictos. No ejecuta implementación,
+  integración, pruebas, migraciones ni despliegues por su cuenta si puede
+  delegarlos.
 - Para implementación, delegar en los subagentes `backend`, `frontend`,
   `database`, `qa`, `security`, `research`, `docs` o `reviewer` según el caso.
-- Paralelizar solo tareas con archivos disjuntos. Si hay solapamiento, usar
-  worktrees o secuenciar.
+  Integración, pruebas, migraciones, despliegue y documentación también se
+  delegan en cadena: `backend` → `reviewer` → `database` → `devops` → `qa` →
+  `docs`.
+- Paralelizar siempre que sea posible con archivos disjuntos. Si hay
+  solapamiento, usar worktrees o secuenciar.
+- Exigir evidencia real: comandos ejecutados, salidas, pruebas y resultados de
+  producción. No aceptar reportes sin verificación.
 - Toda funcionalidad debe incluir: backend, frontend, persistencia, validaciones,
   permisos, manejo de errores, pruebas y documentación.
 - Antes de decir que algo está terminado, ejecutar `scripts/verify.ps1` o los
