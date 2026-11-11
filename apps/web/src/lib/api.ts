@@ -653,7 +653,7 @@ export type WhatsAppSendResult = {
  * Resultado del envío de email. `sent` = aceptado por el proveedor (no confirma
  * entrega), `failed` = el proveedor falló, `console` = modo desarrollo sin envío.
  */
-export type EmailStatus = "sent" | "failed" | "console";
+export type EmailStatus = "sent" | "failed" | "console" | "not_sent";
 
 export type TeamRole = "owner" | "admin" | "dispatcher" | "technician" | "viewer";
 

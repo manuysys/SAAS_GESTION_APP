@@ -67,6 +67,11 @@ class Settings(BaseSettings):
     whatsapp_api_version: str = "v23.0"
     whatsapp_verify_token: str = ""
 
+    email_provider: Literal["console", "resend"] = "console"
+    resend_api_key: str = ""
+    email_from: str = "DOVEXO <no-reply@example.com>"
+    app_public_url: str = "http://localhost:3000"
+
     rate_limit_enabled: bool = True
     rate_limit_auth_per_minute: int = 10
     rate_limit_public_per_minute: int = 30

@@ -83,28 +83,26 @@
 - **Dominio de DOVEXO no registrado ni verificado.** No hay dominio para el
   remitente de email, la landing ni los enlaces de invitación. Acción: búsqueda de
   marca, registro en NIC.ar y configuración DNS. Ver [`BRAND.md`](BRAND.md).
-- **Resend sin cuenta ni dominio verificado.** No hay `RESEND_API_KEY` configurada
-  y el módulo de email no existe en el código. Ninguna afirmación de "email entregado"
-  es válida. Bloquea invitaciones reales y enlaces de acceso al portal por email.
-- **Nombre en el código anterior a ADR-016.** `apps/web/src/lib/brand.ts` y
-  `apps/mobile/app.json` siguen con "Arreglo". Cambiar sin romper rutas ni
-  identificadores requiere un cambio de código aparte.
-- **`applicationId` anterior en Android.** `apps/mobile/app.json` usa
-  `com.arreglo.mobile`. Debe cambiarse a `com.dovexo.mobile` antes de generar la
-  keystore de release, porque después no se puede modificar en Play.
-- **Sin keystore de release.** No hay firma de producción. El APK publicado usa la
-  firma de debug y no es publicable.
+- **Resend sin cuenta ni dominio verificado.** El módulo de email existe con
+  proveedor `console` y Resend opcional, pero no hay `RESEND_API_KEY` ni dominio
+  verificado. Ninguna afirmación de "email entregado" es válida. Bloquea
+  invitaciones reales y enlaces de acceso por email; el enlace se copia a mano.
+- **Identidad de código actualizada.** `brand.ts` y `app.json` usan
+  DOVEXO/ARVOKTA. El `applicationId` es `com.dovexo.mobile` y no se puede cambiar
+  después de la primera subida a Play.
+- **Keystore de release generada; AAB no subido a Play.** El workflow
+  `android-release.yml` generó y verificó `dovexo-android-aab`. El APK
+  `mobile-apk-4` sigue firmado con debug y no es publicable. Falta el backup
+  seguro de la keystore y la cuenta de Play Console.
 - **Sin cuenta de Google Play Console.** No hay ficha, política de privacidad ni
   data safety. Bloquea la prueba interna.
 - **Sin prueba en Android físico.** Criterios 16 y 17 de `PROXIMOS_PASOS.txt`
   siguen abiertos. Ver [`PILOT_READINESS.md`](PILOT_READINESS.md).
-- **Discrepancia en el documento fuente.** `PROXIMOS_PASOS.txt`, sección 2, dice
-  que DOVEXO no está aprobado. ADR-016 lo registra como aprobado. Hay que
-  actualizar el documento fuente o revertir la decisión.
-- **Restauración de backups no probada.** Existe el workflow `backup.yml` y los
-  scripts `backup.ps1` y `restore.ps1`, pero no hay un registro de restauración en
-  staging. `docs/BACKUP_RESTORE.md` no existe todavía.
-- **Documentos de referencia pendientes.** No existen `docs/EMAIL_RESEND.md`,
-  `docs/ANDROID_RELEASE.md` ni `docs/BACKUP_RESTORE.md`. Hasta crearlos, los
-  procedimientos de email, release y restauración solo se pueden repetir a partir
-  del código y de los scripts existentes.
+- **Discrepancia documental resuelta.** `PROXIMOS_PASOS.txt` fue actualizado
+  para registrar DOVEXO como nombre aprobado, con dominio y marca pendientes.
+- **Restauración de backups no probada.** Existe el workflow `backup.yml`, los
+  scripts `backup.ps1`/`restore.ps1` y `docs/BACKUP_RESTORE.md`, pero no hay un
+  registro de restauración en staging.
+- **Documentación de referencia creada.** `docs/EMAIL_RESEND.md`,
+  `docs/ANDROID_RELEASE.md`, `docs/BACKUP_RESTORE.md` y `docs/TEAM_API.md` ya
+  existen. Mantenerlos actualizados cuando cambie el proceso.

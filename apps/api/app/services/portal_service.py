@@ -23,7 +23,8 @@ from app.models import (
 )
 from app.repositories.customer_access_tokens import (
     create_access_token,
-    get_access_token_by_hash,
+    get_active_access_token_by_hash,
+    revoke_customer_tokens,
 )
 from app.repositories.customers import create_customer
 from app.repositories.service_requests import create_service_request
@@ -42,7 +43,7 @@ from app.schemas.portal import (
     PortalTenantResponse,
     PortalWorkOrderDetailResponse,
 )
-from app.services import audit_service, automation_service
+from app.services import audit_service, automation_service, email_service
 
 
 def _setting_str(raw: dict[str, object], key: str, default: str | None = None) -> str | None:
@@ -133,10 +134,102 @@ async def request_magic_link(
         )
         await db.commit()
 
-        if settings.portal_dev_mode and tenant_slug == settings.portal_dev_tenant_slug:
+        if (
+            settings.app_env.lower() != "production"
+            and settings.portal_dev_mode
+            and tenant_slug == settings.portal_dev_tenant_slug
+        ):
             dev_token = raw
 
     return "Si los datos coinciden, te enviamos un acceso.", dev_token
+
+
+def _portal_access_url(raw_token: str, tenant_slug: str) -> str:
+    base = settings.app_public_url.rstrip("/")
+    return f"{base}/portal/{tenant_slug}?token={raw_token}"
+
+
+async def create_portal_access_for_customer(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    customer: Customer,
+    created_by_user_id: UUID,
+    send_email: bool,
+) -> tuple[str, datetime, str]:
+    raw = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    expires_at = datetime.now(UTC) + timedelta(hours=settings.portal_token_ttl_hours)
+    await create_access_token(
+        db,
+        tenant_id=tenant_id,
+        customer_id=customer.id,
+        token_hash=token_hash,
+        expires_at=expires_at,
+        created_by=created_by_user_id,
+        purpose="portal_access",
+    )
+    await db.flush()
+
+    tenant = await db.get(Tenant, tenant_id)
+    assert tenant is not None
+    access_url = _portal_access_url(raw, tenant.slug)
+
+    email_status = "not_sent"
+    if send_email:
+        email_result = await email_service.send_email(
+            db,
+            template="portal_access",
+            to_email=customer.email or "",
+            tenant_id=tenant_id,
+            variables={
+                "subject": f"Tu acceso a {tenant.name}",
+                "tenant_name": tenant.name,
+                "access_url": access_url,
+                "expires_hours": settings.portal_token_ttl_hours,
+                "customer_name": customer.name,
+            },
+            idempotency_key=hashlib.sha256(
+                f"portal_access:{tenant_id}:{customer.id}:{raw}".encode()
+            ).hexdigest(),
+        )
+        email_status = email_result.status
+
+    await audit_service.record(
+        db,
+        action="customer_portal_access_created",
+        entity_type="customer",
+        entity_id=str(customer.id),
+        tenant_id=tenant_id,
+        actor_user_id=created_by_user_id,
+        metadata={
+            "send_email": send_email,
+            "email_status": email_status,
+        },
+    )
+    await db.commit()
+    return access_url, expires_at, email_status
+
+
+async def revoke_portal_access_for_customer(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    customer: Customer,
+    revoked_by_user_id: UUID,
+) -> int:
+    revoked_count = await revoke_customer_tokens(db, tenant_id=tenant_id, customer_id=customer.id)
+    await audit_service.record(
+        db,
+        action="customer_portal_access_revoked",
+        entity_type="customer",
+        entity_id=str(customer.id),
+        tenant_id=tenant_id,
+        actor_user_id=revoked_by_user_id,
+        metadata={"revoked_count": revoked_count},
+    )
+    await db.commit()
+    return revoked_count
 
 
 async def verify_magic_link(
@@ -154,26 +247,15 @@ async def verify_magic_link(
         )
 
     token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
-    access_token = await get_access_token_by_hash(db, token_hash=token_hash)
-    now = datetime.now(UTC)
+    access_token = await get_active_access_token_by_hash(db, token_hash=token_hash)
 
     if access_token is None or access_token.tenant_id != tenant.id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         )
-    if access_token.used_at is not None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token already used",
-        )
-    if access_token.expires_at <= now:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-        )
 
-    access_token.used_at = now
+    access_token.used_at = datetime.now(UTC)
     customer = await db.get(Customer, access_token.customer_id)
     if customer is None or customer.status != "active" or customer.tenant_id != tenant.id:
         raise HTTPException(

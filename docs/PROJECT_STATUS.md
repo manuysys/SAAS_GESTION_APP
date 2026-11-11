@@ -1,24 +1,24 @@
 # Estado del proyecto
 
 **Última actualización:** 2026-11-10
-**Fase:** Hito 2 completo + PWA, app móvil Android (técnicos y clientes),
-portal del cliente, dashboard operativo, automatizaciones, IA con Groq,
-suscripciones, panel global, WhatsApp y despliegue 24/7 en Vercel + Neon.
+**Fase:** Hito 2 completo + PWA, app móvil Android DOVEXO, portal del cliente,
+dashboard operativo, automatizaciones, IA con Groq, suscripciones, panel global,
+WhatsApp y preparación para pilotos reales.
 
 ## Resumen
 
 La aplicación corre de punta a punta: registro, login, refresh de sesión,
 creación de empresa, aislamiento por tenant, clientes, solicitudes, órdenes de
 trabajo, presupuestos con PDF y aprobación pública, agenda, asignación de
-técnicos, pagos, dashboard operativo, PWA para técnicos, app móvil Android para
-técnicos y clientes, portal del cliente, automatizaciones con notificaciones,
-asistente de IA, planes y suscripciones, panel global del SaaS y configuración de
-WhatsApp Cloud API.
+técnicos, pagos, dashboard operativo, PWA para técnicos, app móvil Android
+DOVEXO para técnicos y clientes, portal del cliente, invitaciones de equipo,
+automatizaciones con notificaciones, asistente de IA, planes y suscripciones,
+panel global del SaaS y configuración de WhatsApp Cloud API.
 
 El frontend y la API están desplegados en Vercel. La base PostgreSQL está en
 Neon (plan Free, región `gru1`). La demo ya no depende de una máquina local ni
-de un túnel. La marca provisional es **Arreglo** y la landing pública está en
-`/`.
+de un túnel. La empresa es **ARVOKTA** y el producto **DOVEXO**; el dominio
+propio está pendiente.
 
 ## Hecho y verificado
 
@@ -42,11 +42,11 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
   `work_order_attachments`, `quotes`, `quote_items`, `quote_events`,
   `appointments`, `payments`, `automation_rules`, `automation_executions`,
   `notifications`, `ai_usage_logs`, `plans`, `subscriptions`, `whatsapp_configs`,
-  `whatsapp_messages`, `customer_access_tokens`, `device_tokens` y
-  `portal_settings` en `tenants`.
+  `whatsapp_messages`, `customer_access_tokens`, `device_tokens`,
+  `email_deliveries`, `invitations` y `portal_settings` en `tenants`.
 - [x] Migraciones: `84e62c6788cb`, `ba3b1d3acd4d`, `50e8c050aada`,
   `de0e021aa0ca`, `51fc582e7593`, `5ffb8399d836`, `c0cc7ae032ee`,
-  `76aba18b0e16` y `a1b2c3d4e5f6` (aplicadas en Neon).
+  `76aba18b0e16`, `a1b2c3d4e5f6` y `b2c3d4e5f6a7` (aplicadas en Neon).
 - [x] Auth: registro, login, refresh rotativo, logout, `/me`.
 - [x] Argon2id, JWT de acceso, cookies `HttpOnly`.
 - [x] Multi-tenancy por `X-Tenant-ID` validado contra membresía.
@@ -62,8 +62,14 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] PWA de técnicos: órdenes asignadas, transiciones, notas, materiales y
   fotos con validación de tipo/tamaño.
 - [x] Auth móvil para técnicos: login, refresh rotativo y logout sin cookies.
-- [x] Portal del cliente: magic link con token hasheado, modo demo, resumen,
+- [x] Invitaciones de equipo con token hasheado, expiración, reenvío, revocación
+  y aceptación; límites de usuarios/técnicos con lock.
+- [x] Email transaccional con proveedor `console` y Resend opcional; registro de
+  envíos e idempotencia. Sin dominio verificado no hay entrega productiva.
+- [x] Portal del cliente: acceso seguro generado desde la ficha del cliente,
+  envío por email o enlace copiable, token hasheado, revocación, resumen,
   solicitudes, órdenes, turnos, presupuestos, pagos y aprobación/rechazo.
+- [x] `dev_token` deshabilitado en producción.
 - [x] Direcciones de cliente expuestas al técnico.
 - [x] Push con Expo para asignación y cambio de estado, sin revertir la
   operación si falla el envío.
@@ -90,7 +96,7 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] `/docs`, `/redoc` y `/openapi.json` ocultos en producción.
 - [x] Cabeceras de seguridad HTTP.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 99 pruebas pytest.
+- [x] 123 pruebas pytest.
 
 ### Frontend
 
@@ -127,7 +133,10 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] Cliente API tipado, TanStack Query, React Hook Form + Zod.
 - [x] Landing con dataset único de demo (`demo-data.ts`), IDs y estados
   coherentes, 27 tests de integridad y copy honesto.
-- [x] Vitest con 95 pruebas.
+- [x] Identidad DOVEXO/ARVOKTA en landing, login, panel, PWA y páginas legales.
+- [x] Sección Equipo con invitaciones, reenvío, revocación y aceptación pública.
+- [x] Detalle de cliente con acceso al portal: enviar por email o copiar enlace.
+- [x] Vitest con 130 pruebas.
 
 ### App móvil
 
@@ -142,24 +151,28 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] Tokens en `expo-secure-store`; refresh rotativo persistido.
 - [x] `pnpm exec tsc --noEmit`, `expo export --platform android` y
   `expo-doctor` 20/20.
-- [x] APK release arm64 generado en GitHub Actions (release `mobile-apk-3`,
-  30.8 MB).
+- [x] APK release arm64 generado en GitHub Actions (release `mobile-apk-4`,
+  30.8 MB, identidad DOVEXO).
+- [x] AAB firmado con keystore de release generado y verificado en GitHub
+  Actions (artifact `dovexo-android-aab`, 36 MB).
 - [ ] APK instalado y probado en un dispositivo físico.
+- [ ] AAB subido a Google Play y prueba interna.
 
 ### Verificación ejecutada
 
 ```text
 ruff check          -> All checks passed
-ruff format --check -> 131 files already formatted
+ruff format --check -> 143 files already formatted
 basedpyright        -> 0 errors, 0 warnings, 0 notes
-pytest              -> 99 passed
+pytest              -> 123 passed
 pnpm lint           -> sin errores
 pnpm typecheck      -> sin errores
-pnpm test           -> 95 passed
+pnpm test           -> 130 passed
 pnpm build          -> 27 rutas generadas
 expo-doctor         -> 20/20 checks passed
 scripts/verify.ps1  -> Todo OK
-Android APK         -> release mobile-apk-3, 30.8 MB (arm64)
+Android APK         -> mobile-apk-4 (DOVEXO, debug)
+Android AAB         -> artifact dovexo-android-aab (release, 36 MB)
 ```
 
 Flujo probado en navegador contra Vercel + Neon: registro, clientes, solicitud,
@@ -228,12 +241,13 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 
 ## Próximo paso concreto
 
-1. Probar el APK en un dispositivo Android real y corregir lo que falle.
-2. Configurar una keystore de release y publicar una prueba interna en Play
-   Console.
-3. Implementar entrega real de magic links (Resend o WhatsApp) y desactivar
-   `PORTAL_DEV_MODE` fuera de la demo.
-4. Configurar dominio propio, backups verificados y monitoreo de errores.
+1. Probar el APK `mobile-apk-4` en un dispositivo Android real y corregir lo que
+   falle.
+2. Subir el AAB firmado a Google Play Console y crear la prueba interna.
+3. Comprar y verificar un dominio; configurar Resend y `EMAIL_FROM` para enviar
+   invitaciones y accesos reales.
+4. Implementar importador CSV/XLSX, onboarding y reset de demo.
+5. Configurar backups verificados y monitoreo de errores.
 
 ## Limitaciones conocidas
 
@@ -251,7 +265,12 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 - La suscripción se crea en modo `trialing` de 14 días, pero todavía no se cobra.
 - Los cold starts de Vercel pueden agregar latencia a la primera request.
 - Falta RLS, 2FA y recuperación de contraseña con email.
-- El APK release usa firma de debug; no es publicable.
-- El portal del cliente no envía magic links reales: usa `dev_token` en la demo.
+- El APK `mobile-apk-4` usa firma de debug; el AAB firmado con release existe
+  como artifact, pero todavía no se subió a Play.
+- Resend está implementado, pero sin dominio verificado el proveedor productivo
+  no puede entregar. En producción se usa `console` y el enlace se copia a mano.
+- `dev_token` está deshabilitado en producción; el login demo del portal sigue
+  disponible solo para `servicios-demo`.
 - Push requiere `eas projectId` y un development build; no se probó en
   dispositivo.
+- El importador, el onboarding y el reset de demo todavía no existen.

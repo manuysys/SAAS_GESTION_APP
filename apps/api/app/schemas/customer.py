@@ -6,6 +6,16 @@ from pydantic import BaseModel, EmailStr, Field
 from app.schemas.common import ORMModel
 
 
+class PortalAccessRequest(BaseModel):
+    send_email: bool = False
+
+
+class PortalAccessResponse(BaseModel):
+    access_url: str
+    expires_at: datetime
+    email_status: str
+
+
 class CustomerCreate(BaseModel):
     name: str = Field(min_length=2, max_length=160)
     phone: str | None = Field(default=None, max_length=40)

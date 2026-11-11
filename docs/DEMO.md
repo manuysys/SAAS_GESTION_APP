@@ -83,16 +83,25 @@ Empresa: servicios-demo
 Email: carlos@example.com
 ```
 
-En la app, usar **“Probar demo de cliente”**. El backend devuelve un token de
+En la app, usar **“Probar demo de cliente”**. El backend devuelve una sesión de
 demostración solo para el tenant `servicios-demo` cuando `PORTAL_DEV_MODE=true`.
-En producción real, el acceso se envía por email o WhatsApp.
+En producción real, el acceso se genera desde la ficha del cliente y se envía
+por email o se copia como enlace; `dev_token` está deshabilitado en producción.
+
+### Acceso al portal desde el panel
+
+1. Abrir el cliente en `/customers/[id]`.
+2. Usar **Enviar acceso por email** o **Copiar enlace**.
+3. El cliente abre el enlace, instala la app si hace falta y pega el código en
+   **Soy cliente**.
+4. El acceso vence y se puede revocar desde la misma ficha.
 
 ### APK de prueba
 
 Descargar el APK arm64 desde la release pública:
 
 ```text
-https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-3
+https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-4
 ```
 
 El APK está firmado con la keystore de debug: sirve para probar en un Android

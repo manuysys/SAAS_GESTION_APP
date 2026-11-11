@@ -32,6 +32,11 @@ export function emailDeliveryFeedback(
         message:
           "El envío por email está desactivado en este entorno: no salió ningún correo. Copiá el enlace y compartilo manualmente.",
       };
+    case "not_sent":
+      return {
+        tone: "info",
+        message: "No se envió email. El enlace está listo para copiar y compartir.",
+      };
     default:
       return {
         tone: "info",

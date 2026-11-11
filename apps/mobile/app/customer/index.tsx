@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -82,12 +82,17 @@ export default function CustomerScreen() {
 
 function CustomerLogin() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const routeSlug = typeof params.slug === "string" ? params.slug : DEMO_TENANT_SLUG;
+  const routeToken = typeof params.token === "string" ? params.token : "";
   const { customerLogin } = useAuth();
-  const [tenantSlug, setTenantSlug] = useState(DEMO_TENANT_SLUG);
+  const [tenantSlug, setTenantSlug] = useState(routeSlug);
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [contact, setContact] = useState("carlos@example.com");
-  const [token, setToken] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [token, setToken] = useState(routeToken);
+  const [message, setMessage] = useState<string | null>(
+    routeToken ? "Código recibido. Presioná Ingresar para continuar." : null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

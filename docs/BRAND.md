@@ -124,6 +124,7 @@ Recomendación: usar **ARVOKTA** como dominio corporativo y **DOVEXO** como marc
 
 - [ ] Búsqueda de marca DOVEXO.
 - [ ] Registro del dominio y confirmación en NIC.ar.
-- [ ] Cambio de `brand.ts` y `app.json` (código, fuera de este documento).
-- [ ] Diseño del monograma D.
-- [ ] Revalidar taglines y textos de la landing.
+- [x] Cambio de `brand.ts` y `app.json` a DOVEXO/ARVOKTA.
+- [x] Monograma D aplicado en web y Android (provisorio, sin diseño definitivo).
+- [ ] Revisión final de taglines y textos legales.
+- [ ] Backup de la keystore de release fuera de esta máquina.

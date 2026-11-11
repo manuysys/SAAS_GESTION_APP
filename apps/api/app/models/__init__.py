@@ -6,6 +6,8 @@ from app.models.base import Base
 from app.models.customer import Customer
 from app.models.customer_access_token import CustomerAccessToken
 from app.models.device_token import DeviceToken
+from app.models.email_delivery import EmailDelivery
+from app.models.invitation import Invitation
 from app.models.notification import Notification
 from app.models.payment import Payment
 from app.models.plan import Plan
@@ -31,6 +33,8 @@ __all__ = [
     "Customer",
     "CustomerAccessToken",
     "DeviceToken",
+    "EmailDelivery",
+    "Invitation",
     "Membership",
     "Notification",
     "Payment",

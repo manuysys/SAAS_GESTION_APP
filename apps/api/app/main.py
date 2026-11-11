@@ -16,9 +16,11 @@ from app.api.routes import (
     notifications,
     payments,
     portal,
+    public_invitations,
     public_quotes,
     quotes,
     service_requests,
+    team,
     technician,
     technicians,
     tenants,
@@ -67,6 +69,8 @@ app.include_router(service_requests.router, prefix="/api/v1")
 app.include_router(work_orders.router, prefix="/api/v1")
 app.include_router(quotes.router, prefix="/api/v1")
 app.include_router(public_quotes.router, prefix="/api/v1")
+app.include_router(public_invitations.router, prefix="/api/v1")
+app.include_router(team.router, prefix="/api/v1")
 app.include_router(appointments.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(technicians.router, prefix="/api/v1")

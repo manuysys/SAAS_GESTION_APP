@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import require_roles
@@ -11,14 +11,17 @@ from app.schemas.customer import (
     CustomerListResponse,
     CustomerResponse,
     CustomerUpdate,
+    PortalAccessRequest,
+    PortalAccessResponse,
 )
-from app.services import customer_service
+from app.services import customer_service, portal_service, security_service
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
 READ_ROLES = ("owner", "admin", "dispatcher", "technician", "viewer")
 WRITE_ROLES = ("owner", "admin", "dispatcher")
 ADMIN_ROLES = ("owner", "admin")
+PORTAL_ACCESS_ROLES = ("owner", "admin", "dispatcher")
 
 
 @router.get("", response_model=CustomerListResponse)
@@ -98,5 +101,65 @@ async def delete_customer(
         db,
         tenant_id=membership.tenant_id,
         customer_id=customer_id,
+    )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{customer_id}/portal-access", response_model=PortalAccessResponse)
+async def create_customer_portal_access(
+    customer_id: UUID,
+    payload: PortalAccessRequest,
+    request: Request,
+    membership: Membership = Depends(require_roles(*PORTAL_ACCESS_ROLES)),
+    db: AsyncSession = Depends(get_db),
+) -> PortalAccessResponse:
+    await security_service.check_rate_limit(
+        db,
+        request,
+        scope="portal-access-create",
+        limit=10,
+    )
+    customer = await customer_service.get_tenant_customer(
+        db,
+        tenant_id=membership.tenant_id,
+        customer_id=customer_id,
+    )
+    access_url, expires_at, email_status = await portal_service.create_portal_access_for_customer(
+        db,
+        tenant_id=membership.tenant_id,
+        customer=customer,
+        created_by_user_id=membership.user_id,
+        send_email=payload.send_email,
+    )
+    return PortalAccessResponse(
+        access_url=access_url,
+        expires_at=expires_at,
+        email_status=email_status,
+    )
+
+
+@router.post("/{customer_id}/portal-access/revoke", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_customer_portal_access(
+    customer_id: UUID,
+    request: Request,
+    membership: Membership = Depends(require_roles(*PORTAL_ACCESS_ROLES)),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    await security_service.check_rate_limit(
+        db,
+        request,
+        scope="portal-access-revoke",
+        limit=10,
+    )
+    customer = await customer_service.get_tenant_customer(
+        db,
+        tenant_id=membership.tenant_id,
+        customer_id=customer_id,
+    )
+    await portal_service.revoke_portal_access_for_customer(
+        db,
+        tenant_id=membership.tenant_id,
+        customer=customer,
+        revoked_by_user_id=membership.user_id,
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)

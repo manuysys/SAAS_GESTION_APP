@@ -5,13 +5,17 @@ Estado verificado el 2026-11-10.
 
 ## Estado real hoy
 
-- El APK publicado (`mobile-apk-3`) está firmado con la **keystore de debug** que
-  genera Expo. Sirve para probar, **no** para Google Play.
-- El APK **no** fue instalado ni probado todavía en un dispositivo Android real.
-- No existe cuenta de Google Play Console, ni keystore de release, ni AAB
-  generado. Nada de eso está hecho.
-- El workflow `.github/workflows/android-release.yml` está escrito y validado en
-  sintaxis, pero **nunca se ejecutó** porque faltan los secretos de firma.
+- La **keystore de release** fue generada en `.local/android-keystore/` y sus
+  cuatro secretos están cargados en GitHub Actions.
+- El workflow `android-release.yml` **ya se ejecutó con éxito** y generó el
+  artifact `dovexo-android-aab` (36 MB), firmado con la keystore de release y
+  verificado contra su huella SHA-256.
+- El AAB **no se subió a Google Play**: falta la cuenta de Play Console y la
+  prueba interna.
+- El APK publicado (`mobile-apk-3`) está firmado con la **keystore de debug** y
+  corresponde a la identidad anterior. Sirve para probar, **no** para Google
+  Play.
+- La app **no** fue instalada ni probada todavía en un dispositivo Android real.
 
 ## Identificadores definitivos
 

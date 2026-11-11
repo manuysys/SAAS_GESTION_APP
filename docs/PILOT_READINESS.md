@@ -13,32 +13,32 @@
 | **Pendiente** | No hay código. Puede desarrollarse sin dependencias externas. |
 | **Bloqueado** | Falta una cuenta, credencial, dominio o dispositivo externo. Ver sección 3. |
 
-**Resumen:** 0 hechos, 6 en curso, 11 pendientes, 3 bloqueados (sobre 20 criterios).
+**Resumen:** 10 hechos, 3 en curso, 6 pendientes y 1 bloqueado (sobre 20 criterios).
 
 ## 1. Checklist de criterios
 
 | # | Criterio | Estado | Evidencia verificada | Dependencia externa / nota |
 |---|---|---|---|---|
-| 1 | El propietario puede invitar técnicos desde la web | Pendiente | No hay rutas `/team`, modelo `invitations` ni pantalla de equipo en `apps/`. Solo existe el contrato en `docs/TEAM_API.md`. | Ninguna para construir. Requiere email para completar (criterio 2). |
-| 2 | El técnico recibe una invitación real | Bloqueado | No hay módulo de email en `apps/api`. Búsqueda de `resend` sin resultados en código. | Dominio DOVEXO verificado, cuenta Resend y `RESEND_API_KEY`. Ver sección 3. |
-| 3 | Puede aceptar la invitación | Pendiente | Sin endpoints `/public/invitations/*`. | Ninguna para construir. |
-| 4 | Aparece en el equipo | Pendiente | Sin listado de equipo (`GET /api/v1/team`). | Depende de 1 y 3. |
-| 5 | Los límites del plan son respetados | En curso | Límite de órdenes por mes aplicado en creación y conversión (`PROJECT_STATUS.md`). Límites de usuarios y técnicos sin endpoint de alta. | Se cierra al implementar invitaciones (`max_users`, `max_technicians` con lock). |
-| 6 | El propietario puede habilitar acceso al portal de clientes | Pendiente | Sin `POST /api/v1/customers/{id}/portal-access`. Hoy el acceso demo usa `dev_token` (`portal_service.py`). | Ninguna para construir. |
-| 7 | Puede enviar o copiar un enlace seguro | Pendiente | Sin generación de enlace administrativo. Envío bloqueado por email. | Copiar enlace no depende de Resend; enviarlo sí. |
-| 8 | El cliente puede ingresar | En curso | Login demo funciona en `servicios-demo` con `PORTAL_DEV_MODE=true` (`DEMO_ENVIRONMENT.md`, sección 1.1). | Entrega real del acceso: bloqueada por email. `dev_token` debe salir de producción. |
-| 9 | El cliente ve exclusivamente sus datos | En curso | Existe `apps/api/tests/test_portal.py`, que verifica el tenant de la sesión. No se revisó en esta sesión si cubre el aislamiento entre dos clientes del mismo tenant; hay que confirmarlo antes de cerrar el criterio. | Completar pruebas de aislamiento de cliente. |
+| 1 | El propietario puede invitar técnicos desde la web | Hecho | `apps/api/app/api/routes/team.py`, `apps/web/src/app/(app)/settings/team/page.tsx`; `tests/test_invitations.py` | Falta probarlo con un usuario real. |
+| 2 | El técnico recibe una invitación real | En curso | `email_service.py` con proveedor `console` y Resend; `tests/test_email_service.py` | Sin dominio verificado ni `RESEND_API_KEY` no hay entrega real. Ver sección 3. |
+| 3 | Puede aceptar la invitación | Hecho | `POST /api/v1/public/invitations/{token}/accept`; `tests/test_invitations.py`; página `/invitations/[token]` | Requiere que el email coincida con el invitado. |
+| 4 | Aparece en el equipo | Hecho | `GET /api/v1/team`; `tests/test_invitations.py`; UI de equipo | — |
+| 5 | Los límites del plan son respetados | Hecho | `plan_limits_service.py` valida órdenes, usuarios y técnicos con lock; tests de límites | Los planes reales deben tener los límites cargados. |
+| 6 | El propietario puede habilitar acceso al portal de clientes | Hecho | `POST /api/v1/customers/{id}/portal-access`; sección en el detalle del cliente | — |
+| 7 | Puede enviar o copiar un enlace seguro | Hecho | `access_url` con token crudo una vez; `CopyLinkField`; email opcional | El envío real por email sigue bloqueado por Resend/dominio. |
+| 8 | El cliente puede ingresar | Hecho | `/portal/[slug]?token=...`, deep link `dovexo://customer`, verificación de token; prueba de producción | Falta probarlo en un dispositivo con la app instalada. |
+| 9 | El cliente ve exclusivamente sus datos | Hecho | `tests/test_portal.py::test_portal_orders_and_quotes_are_customer_scoped`; dependencia de portal por cliente/tenant | — |
 | 10 | El administrador puede importar clientes desde CSV | Pendiente | Sin endpoint ni UI de importación. | Ninguna. |
 | 11 | Puede importar clientes desde XLSX | Pendiente | Sin soporte XLSX en el código. | Ninguna. Definir librería compatible en Python antes de implementar. |
 | 12 | El importador muestra errores y duplicados | Pendiente | No implementado. | Depende de 10 y 11. |
 | 13 | El onboarding permite configurar una empresa sin intervención técnica | Pendiente | No hay rutas ni componentes de onboarding (`CONTEXTO`/`ROADMAP` lo listan como pendiente). | Depende de 1 (paso de equipo) y 10 (paso de datos). |
 | 14 | La demo puede restaurarse | Pendiente | `DEMO_ENVIRONMENT.md` documenta que no existe seed versionado ni reset. El seed vive en `.local/` (no versionado). | Ninguna para construir; requiere decidir base de demo (opciones A/B/C en `DEMO_ENVIRONMENT.md`). |
-| 15 | La aplicación tiene un build firmado | Bloqueado | APK actual firmado con debug (`KNOWN_ISSUES.md`). `apps/mobile/app.json` usa `com.arreglo.mobile`. No hay keystore de release. | Keystore de release fuera de Git, decisión de `applicationId` (`com.dovexo.mobile`) antes de generarla. |
-| 16 | La aplicación se instala en Android real | Bloqueado | No hay evidencia de instalación en dispositivo físico. | Dispositivo Android físico y APK o AAB firmado (criterio 15). |
+| 15 | La aplicación tiene un build firmado | Hecho (AAB) | Keystore de release generada; workflow `android-release.yml` produjo `dovexo-android-aab` firmado y verificado | Falta subirlo a Play Console. El APK `mobile-apk-4` sigue siendo debug. |
+| 16 | La aplicación se instala en Android real | Bloqueado | No hay evidencia de instalación en dispositivo físico. | Dispositivo Android físico y APK/AAB de prueba. |
 | 17 | El flujo técnico principal funciona | En curso | PWA `/tech` probada en navegador contra Vercel + Neon (`PROJECT_STATUS.md`). App Expo sin prueba en dispositivo. | Dispositivo físico para cerrar la parte móvil. |
-| 18 | Los backups tienen una restauración comprobada | Pendiente | Existen `.github/workflows/backup.yml`, `scripts/backup.ps1` y `scripts/restore.ps1`. No hay registro de una restauración probada. `docs/BACKUP_RESTORE.md` no existe todavía. | Almacenamiento externo independiente y base de staging para la prueba. |
-| 19 | Las pruebas de seguridad correspondientes pasan | En curso | 99 pruebas pytest existentes (`PROJECT_STATUS.md`). No hay pruebas para invitaciones, magic link de cliente, importación ni reutilización de tokens, porque esas funciones no existen. | Se completa al implementar cada bloque (lista de `PROXIMOS_PASOS.txt`, sección 13). |
-| 20 | La documentación permite repetir los procesos | En curso | Hay documentación de demo, deploy, móvil y operación. Faltan `EMAIL_RESEND.md`, `BACKUP_RESTORE.md` y `ANDROID_RELEASE.md`. | Crear esos documentos cuando se implementen los procesos. |
+| 18 | Los backups tienen una restauración comprobada | Pendiente | Existen `.github/workflows/backup.yml`, `scripts/backup.ps1`, `scripts/restore.ps1` y `docs/BACKUP_RESTORE.md`. No hay restauración probada. | Almacenamiento externo independiente y base de staging. |
+| 19 | Las pruebas de seguridad correspondientes pasan | En curso | 123 pruebas pytest; tests de invitaciones, portal, revocación y aislamiento. Faltan importación y onboarding. | Se completa al implementar importación/onboarding. |
+| 20 | La documentación permite repetir los procesos | Hecho | `docs/EMAIL_RESEND.md`, `docs/ANDROID_RELEASE.md`, `docs/BACKUP_RESTORE.md`, `docs/TEAM_API.md`, `docs/PILOT_READINESS.md` | Mantenerla actualizada. |
 
 ## 2. Estado de identidad
 
@@ -46,11 +46,13 @@
 |---|---|
 | Empresa | ARVOKTA (decisión de `PROXIMOS_PASOS.txt`). |
 | Producto | DOVEXO, registrado como nombre aprobado en ADR-016. Dominio pendiente. |
-| UI web | Todavía muestra "Arreglo" (`apps/web/src/lib/brand.ts`). |
-| App Android | `apps/mobile/app.json`: nombre "Arreglo", slug y scheme `arreglo`, package `com.arreglo.mobile`. |
-| Email | Sin módulo. Cuando exista, remitente `DOVEXO <no-reply@dominio-verificado>` (`TEAM_API.md`). |
+| UI web | DOVEXO/ARVOKTA (`apps/web/src/lib/brand.ts`). |
+| App Android | DOVEXO, slug/scheme `dovexo`, package `com.dovexo.mobile`. |
+| Email | Módulo con proveedor `console` y Resend; falta dominio verificado y API key. |
 
-Antes de generar la keystore de release hay que decidir el `applicationId` definitivo. Ver ADR-016.
+La keystore de release ya fue generada y el AAB firmado está en GitHub Actions.
+El `applicationId` `com.dovexo.mobile` queda fijo para la primera subida a Play.
+Ver ADR-016.
 
 ## 3. Bloqueos externos
 
@@ -59,7 +61,7 @@ Antes de generar la keystore de release hay que decidir el `applicationId` defin
 | Dominio DOVEXO no registrado ni verificado | 2, 7, 14 (remitente), sección 12 de `PROXIMOS_PASOS.txt` | Búsqueda de marca, registro del dominio en NIC.ar, DNS con SPF, DKIM y DMARC verificados en Resend. | Fundador / ARVOKTA |
 | Cuenta Resend y `RESEND_API_KEY` | 2, 7 | Crear cuenta, verificar dominio y cargar la clave como secreto en Vercel (no en el frontend). | Fundador / ARVOKTA |
 | Cuenta de Google Play Console | 15, 16 | Crear cuenta de desarrollador, ficha, política de privacidad y data safety. | Fundador / ARVOKTA |
-| Keystore de release | 15 | Generar la keystore, guardar backup seguro fuera de Git y definir `applicationId` antes del primer upload. | Fundador / ARVOKTA |
+| Keystore de release | 15 | **Hecho:** keystore generada y secretos en GitHub. Falta backup seguro fuera de esta máquina. | Fundador / ARVOKTA |
 | Dispositivo Android físico | 16, 17 | Instalar el build firmado y recorrer la lista de pruebas de `PROXIMOS_PASOS.txt`, sección 10. | Equipo de QA |
 | Almacenamiento externo para backups y base de staging | 18 | Definir proveedor de backup independiente, cifrado y retención. Restaurar en staging, nunca en producción. | Fundador / ARVOKTA |
 

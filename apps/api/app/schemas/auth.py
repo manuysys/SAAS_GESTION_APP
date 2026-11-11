@@ -57,6 +57,7 @@ class MobileAuthResponse(BaseModel):
     token_type: str = "bearer"  # noqa: S105
     expires_in: int
     tenants: list[TenantResponse]
+    user: UserResponse | None = None
 
 
 class RefreshTokenRequest(BaseModel):

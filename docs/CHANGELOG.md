@@ -1,6 +1,25 @@
 # Changelog
 
-## 2026-11-10 — DOVEXO y preparación de pilotos
+## 2026-11-10 — DOVEXO, equipo, portal seguro y AAB firmado
+
+- Identidad: ARVOKTA como empresa y DOVEXO como producto; web, PWA y Android
+  actualizados. Android `com.dovexo.mobile`, scheme `dovexo`.
+- Email transaccional con módulo único, plantillas HTML/texto, proveedor
+  `console` y Resend opcional, registro de envíos e idempotencia.
+- Invitaciones de equipo: crear, listar, reenviar, revocar y aceptar; token
+  hasheado, expiración de 7 días, validación de email y límites de plan.
+- Portal del cliente: acceso generado desde la ficha, enlace copiable o email,
+  token hasheado, expiración, revocación y `dev_token` deshabilitado en
+  producción.
+- Migración `b2c3d4e5f6a7` aplicada en Neon.
+- Android: keystore de release generada, secretos en GitHub Actions y AAB
+  firmado `dovexo-android-aab` (36 MB) generado y verificado.
+- APK debug DOVEXO `mobile-apk-4` publicado.
+- 123 pruebas pytest y 130 pruebas Vitest.
+- Nuevos documentos: `TEAM_API.md`, `PILOT_READINESS.md`, `ANDROID_RELEASE.md`,
+  `EMAIL_RESEND.md`, `BACKUP_RESTORE.md`.
+
+## 2026-11-10 — DOVEXO y preparación de pilotos (documentación)
 
 Solo cambios documentales. No hay código nuevo en esta entrada.
 
