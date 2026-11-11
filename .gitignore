@@ -75,3 +75,9 @@ apps/mobile/ios/
 # Local secrets
 APIKEYS.txt
 *.tt
+
+# Android signing material (never commit)
+*.keystore
+*.jks
+keystore.properties
+android-keystore/

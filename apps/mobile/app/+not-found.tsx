@@ -8,7 +8,7 @@ export default function NotFoundScreen() {
     <View style={styles.container}>
       <Text style={styles.code}>404</Text>
       <Text style={styles.title}>No encontramos esta pantalla</Text>
-      <Text style={styles.text}>Volvé al inicio de Arreglo.</Text>
+      <Text style={styles.text}>Volvé al inicio de DOVEXO.</Text>
       <Link href="/" style={styles.link}>
         <Text style={styles.linkText}>Ir al inicio</Text>
       </Link>

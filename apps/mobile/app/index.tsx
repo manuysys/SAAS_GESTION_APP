@@ -11,9 +11,9 @@ export default function WelcomeScreen() {
     <Screen>
       <View style={styles.hero}>
         <View style={styles.logo}>
-          <Text style={styles.logoText}>A</Text>
+          <Text style={styles.logoText}>D</Text>
         </View>
-        <Text style={styles.brand}>Arreglo</Text>
+        <Text style={styles.brand}>DOVEXO</Text>
         <Text style={styles.heroTitle}>Del primer llamado al último cobro, todo en orden.</Text>
         <Text style={styles.heroText}>
           La app para técnicos y clientes de empresas de servicios técnicos.

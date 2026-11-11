@@ -6,8 +6,8 @@ import { api, setTechTokens, setTechTokensRefreshedHandler } from "@/src/lib/api
 import { registerForPush } from "@/src/lib/push";
 import type { PortalSession, TechSession } from "@/src/lib/types";
 
-const TECH_KEY = "arreglo.tech.session";
-const CUSTOMER_KEY = "arreglo.customer.session";
+const TECH_KEY = "dovexo.tech.session";
+const CUSTOMER_KEY = "dovexo.customer.session";
 
 async function readStorage(key: string): Promise<string | null> {
   if (Platform.OS === "web") {

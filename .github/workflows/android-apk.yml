@@ -1,4 +1,8 @@
-name: Android APK
+name: Android APK (debug signing)
+
+# Genera un APK de prueba firmado con la keystore de debug que crea Expo.
+# NO es publicable en Google Play: para eso existe .github/workflows/android-release.yml,
+# que produce un AAB firmado con la keystore de release y falla si faltan los secretos.
 
 on:
   workflow_dispatch:
@@ -10,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: Build release APK
+    name: Build test APK
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,9 +54,13 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
+      - name: Warn about signing
+        run: |
+          echo "::warning::APK firmado con la keystore de debug. Sirve para probar en un dispositivo, no para Google Play."
+
       - uses: actions/upload-artifact@v4
         with:
-          name: arreglo-android-apk
+          name: dovexo-android-apk-debug
           path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
 
@@ -60,7 +68,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-apk-${{ github.run_number }}
-          name: Arreglo Android APK ${{ github.run_number }}
+          name: DOVEXO Android APK (debug) ${{ github.run_number }}
+          body: |
+            APK de prueba firmado con la keystore de debug.
+            No es publicable en Google Play. Ver docs/ANDROID_RELEASE.md.
           prerelease: true
           files: ${{ github.workspace }}/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Arreglo",
-    "slug": "arreglo",
+    "name": "DOVEXO",
+    "slug": "dovexo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "arreglo",
+    "scheme": "dovexo",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.arreglo.mobile"
+      "bundleIdentifier": "com.dovexo.mobile"
     },
     "android": {
-      "package": "com.arreglo.mobile",
+      "package": "com.dovexo.mobile",
       "versionCode": 1,
       "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "POST_NOTIFICATIONS"],
       "adaptiveIcon": {
@@ -41,8 +41,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Arreglo usa tus fotos para adjuntarlas a la orden de trabajo.",
-          "cameraPermission": "Arreglo usa la cámara para documentar el trabajo."
+          "photosPermission": "DOVEXO usa tus fotos para adjuntarlas a la orden de trabajo.",
+          "cameraPermission": "DOVEXO usa la cámara para documentar el trabajo."
         }
       ],
       [

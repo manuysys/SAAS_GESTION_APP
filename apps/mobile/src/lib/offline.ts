@@ -31,7 +31,7 @@ export type PendingAction =
     };
 
 function key(tenantId: string) {
-  return `arreglo.offline.${tenantId}`;
+  return `dovexo.offline.${tenantId}`;
 }
 
 export async function getPendingActions(tenantId: string): Promise<PendingAction[]> {

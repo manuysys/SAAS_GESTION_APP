@@ -78,3 +78,35 @@ Las migraciones se prueban en CI contra PostgreSQL limpio.
 - Frontend: rollback de Vercel.
 - Base: migración reversible o restauración de backup.
 - Documentar cada incidente en `docs/KNOWN_ISSUES.md`.
+## App móvil Android
+
+```powershell
+# Iconos de la app (letra D, paleta ink/teal)
+.\scripts\generate-mobile-icons.ps1
+
+# Keystore de release (una sola vez; no se commitea)
+.\scripts\generate-android-keystore.ps1
+
+# SDK/JDK para builds locales
+. .\scripts\android-env.ps1
+```
+
+- Detalle de firma, AAB y Play Console: `docs/ANDROID_RELEASE.md`.
+- Build local y EAS: `docs/MOBILE_BUILD.md`.
+- El APK de `android-apk.yml` usa firma de debug y no es publicable.
+- El AAB firmado sale de `.github/workflows/android-release.yml`, que falla si
+  faltan los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
+  `ANDROID_KEY_ALIAS` y `ANDROID_KEY_PASSWORD`.
+
+## Backups y restauración
+
+- Estrategia, cifrado, retención y prueba de restauración:
+  `docs/BACKUP_RESTORE.md`.
+- El workflow `.github/workflows/backup.yml` usa el secreto
+  `NEON_DATABASE_URL`.
+- No restaurar nunca sobre producción durante una prueba.
+
+## Email transaccional
+
+- Configuración de Resend, DNS y verificación de entrega:
+  `docs/EMAIL_RESEND.md`.

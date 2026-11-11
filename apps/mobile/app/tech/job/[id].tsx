@@ -205,7 +205,7 @@ export default function TechJobScreen() {
         try {
           const actionId = clientId();
           const extension = (asset.fileName?.split(".").pop() ?? "jpg").toLowerCase();
-          const target = `${FileSystem.documentDirectory}arreglo-${actionId}.${extension}`;
+          const target = `${FileSystem.documentDirectory}dovexo-${actionId}.${extension}`;
           await FileSystem.copyAsync({ from: asset.uri, to: target });
           await enqueueAction(tenantId, {
             id: actionId,

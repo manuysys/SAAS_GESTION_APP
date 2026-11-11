@@ -1,0 +1,202 @@
+name: Android AAB (release signing)
+
+# Genera el Android App Bundle firmado con la keystore de release.
+# Requiere los secretos: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD.
+# Si falta cualquiera, el workflow falla: nunca firma con la keystore de debug.
+# No sube nada a Google Play; solo publica el AAB como artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: "versionCode de Android (vacio = el de app.json)"
+        required: false
+        default: ""
+      version_name:
+        description: "versionName visible (vacio = el de app.json)"
+        required: false
+        default: ""
+  push:
+    tags:
+      - "android-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bundle:
+    name: Build signed AAB
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=""
+          [ -z "$KEYSTORE_BASE64" ] && missing="$missing ANDROID_KEYSTORE_BASE64"
+          [ -z "$KEYSTORE_PASSWORD" ] && missing="$missing ANDROID_KEYSTORE_PASSWORD"
+          [ -z "$KEY_ALIAS" ] && missing="$missing ANDROID_KEY_ALIAS"
+          [ -z "$KEY_PASSWORD" ] && missing="$missing ANDROID_KEY_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Faltan secretos de firma:$missing. Configuralos en Settings > Secrets and variables > Actions (ver docs/ANDROID_RELEASE.md). Sin keystore de release no se genera AAB."
+            exit 1
+          fi
+          echo "Secretos de firma presentes."
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: apps/mobile/pnpm-lock.yaml
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply version override
+        if: ${{ inputs.version_code != '' || inputs.version_name != '' }}
+        env:
+          VERSION_CODE: ${{ inputs.version_code }}
+          VERSION_NAME: ${{ inputs.version_name }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = "app.json";
+            const config = JSON.parse(fs.readFileSync(path, "utf8"));
+            if (process.env.VERSION_CODE) config.expo.android.versionCode = Number(process.env.VERSION_CODE);
+            if (process.env.VERSION_NAME) config.expo.version = process.env.VERSION_NAME;
+            fs.writeFileSync(path, JSON.stringify(config, null, 2) + "\n");
+            console.log(`versionCode=${config.expo.android.versionCode} version=${config.expo.version}`);
+          '
+
+      - name: Prebuild Android
+        env:
+          EXPO_PUBLIC_API_URL: https://saas-gestion-api.vercel.app
+          EXPO_PUBLIC_DEMO_TENANT_SLUG: servicios-demo
+        run: pnpm exec expo prebuild -p android --no-install
+
+      - name: Restore release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          keystore="$RUNNER_TEMP/dovexo-release.keystore"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore" || true
+          chmod 600 "$keystore"
+          if [ ! -s "$keystore" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 no produjo un archivo valido."
+            exit 1
+          fi
+          echo "ANDROID_KEYSTORE_PATH=$keystore" >> "$GITHUB_ENV"
+          echo "Keystore restaurada ($(wc -c < "$keystore") bytes)."
+
+      - name: Configure release signing
+        working-directory: apps/mobile
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import re
+
+          path = pathlib.Path("android/app/build.gradle")
+          source = path.read_text()
+
+          release_config = """
+                  release {
+                      storeFile file(System.getenv('ANDROID_KEYSTORE_PATH'))
+                      storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                      keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                      keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+                  }
+          """
+
+          if "signingConfigs {" not in source:
+              raise SystemExit("No se encontro signingConfigs en android/app/build.gradle")
+          if "ANDROID_KEYSTORE_PATH" not in source:
+              source = source.replace("signingConfigs {", "signingConfigs {" + release_config, 1)
+
+          marker = "buildTypes {"
+          index = source.index(marker)
+          head, tail = source[:index], source[index:]
+          match = re.search(r"release \{(.*?)\n    \}", tail, re.S)
+          if not match:
+              raise SystemExit("No se encontro el bloque release en buildTypes")
+          block = match.group(1)
+          if "signingConfig signingConfigs.debug" not in block:
+              raise SystemExit("El bloque release no usa signingConfigs.debug; revisar la plantilla de Expo")
+          new_block = block.replace("signingConfig signingConfigs.debug", "signingConfig signingConfigs.release", 1)
+          tail = tail[:match.start(1)] + new_block + tail[match.end(1):]
+          path.write_text(head + tail)
+          print("Firma de release configurada en android/app/build.gradle")
+          PY
+          grep -n "signingConfig signingConfigs" android/app/build.gradle
+
+      - name: Build AAB
+        working-directory: apps/mobile/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+
+      - name: Verify AAB signature
+        working-directory: apps/mobile/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          aab="app/build/outputs/bundle/release/app-release.aab"
+          if [ ! -f "$aab" ]; then
+            echo "::error::No se genero el AAB en $aab"
+            exit 1
+          fi
+          expected=$(keytool -list -v -keystore "$ANDROID_KEYSTORE_PATH" -alias "$ANDROID_KEY_ALIAS" "-storepass:env" ANDROID_KEYSTORE_PASSWORD \
+            | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d ' ')
+          rm -rf "$RUNNER_TEMP/cert" && mkdir -p "$RUNNER_TEMP/cert"
+          unzip -o -q "$aab" 'META-INF/*.RSA' -d "$RUNNER_TEMP/cert" || true
+          cert=$(find "$RUNNER_TEMP/cert" -name '*.RSA' | head -1)
+          if [ -z "$cert" ]; then
+            echo "::error::El AAB no tiene firma JAR (META-INF/*.RSA). No subir a Play."
+            exit 1
+          fi
+          actual=$(keytool -printcert -file "$cert" | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d ' ')
+          echo "Keystore: $expected"
+          echo "AAB:      $actual"
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::El AAB no esta firmado con la keystore de release configurada."
+            exit 1
+          fi
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dovexo-android-aab
+          path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "AAB firmado y subido como artifact dovexo-android-aab." >> "$GITHUB_STEP_SUMMARY"
+          echo "No se subio a Google Play: la carga es manual desde Play Console (prueba interna)." >> "$GITHUB_STEP_SUMMARY"

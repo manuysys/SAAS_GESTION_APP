@@ -123,10 +123,14 @@ AAB para Google Play.
 
 ## Build en GitHub Actions
 
-El workflow `.github/workflows/android-apk.yml` compila un APK arm64 en Ubuntu y
-lo publica como artifact `arreglo-android-apk` y como release asset. Se ejecuta
-al cambiar `apps/mobile/**` o manualmente con `workflow_dispatch`. Evita los
-límites de ruta de Windows y no requiere una máquina local.
+El workflow `.github/workflows/android-apk.yml` compila un APK arm64 **firmado
+con la keystore de debug** y lo publica como artifact
+`dovexo-android-apk-debug` y como release asset. Se ejecuta al cambiar
+`apps/mobile/**` o manualmente con `workflow_dispatch`. Evita los límites de ruta
+de Windows y no requiere una máquina local.
+
+Para el AAB firmado con la keystore de release ver
+`.github/workflows/android-release.yml` y `docs/ANDROID_RELEASE.md`.
 
 APK de prueba publicado:
 
@@ -136,10 +140,13 @@ https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-3
 
 ## Android
 
-- Package: `com.arreglo.mobile`.
-- Version code inicial: `1`.
+- Nombre: `DOVEXO`.
+- Package / applicationId: `com.dovexo.mobile`.
+- Slug y scheme: `dovexo`. Deep link: `dovexo://tech/job/{id}` y
+  `dovexo://customer/order/{id}`.
+- Version code inicial: `1`. Version name: `1.0.0`.
 - Permisos: cámara, imágenes y notificaciones.
-- Deep link: `arreglo://tech/job/{id}` y `arreglo://customer/order/{id}`.
+- El applicationId no se puede cambiar después de la primera subida a Play.
 
 ## Publicación
 
