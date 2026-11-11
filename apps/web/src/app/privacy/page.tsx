@@ -16,7 +16,7 @@ const sections: readonly LegalSection[] = [
   {
     title: "1. Responsable",
     paragraphs: [
-      `${brand.name} es el nombre provisional del servicio. La razón social responsable del tratamiento está pendiente de definición. Contacto: ${brand.email}.`,
+      `${brand.name} es un producto de ${brand.legalName}. La razón social responsable del tratamiento está pendiente de definición. Contacto: ${brand.email}.`,
     ],
   },
   {

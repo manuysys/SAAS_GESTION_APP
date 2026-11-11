@@ -22,9 +22,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://saas-gestion-web.vercel.app",
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? brand.appUrl),
   title: {
     default: `${brand.name} — ${brand.tagline}`,
     template: `%s | ${brand.name}`,
@@ -63,7 +61,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es-AR"
       className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body className="bg-paper text-ink min-h-full">
+      <body className="min-h-full bg-paper text-ink">
         <Providers>{children}</Providers>
         <PwaRegister />
       </body>

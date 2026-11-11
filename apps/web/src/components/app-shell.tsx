@@ -26,8 +26,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="text-slate flex min-h-screen items-center justify-center gap-3 text-sm">
-        <span className="border-teal h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center gap-3 text-sm text-slate">
+        <span className="h-5 w-5 animate-spin rounded-full border-2 border-teal border-t-transparent" />
         Cargando sesión...
       </div>
     );
@@ -46,21 +46,27 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="bg-paper min-h-screen">
-      <aside className="bg-ink fixed inset-y-0 left-0 hidden w-64 flex-col text-white md:flex">
+    <div className="min-h-screen bg-paper">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-ink text-white md:flex">
         <Link href="/dashboard" className="flex items-center gap-3 px-5 py-5">
-          <span className="bg-teal flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-white">
-            A
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal text-sm font-bold text-white"
+          >
+            D
           </span>
           <span>
-            <span className="font-display block text-sm leading-tight font-semibold">
+            <span className="block font-display text-sm leading-tight font-semibold">
               {brand.name}
             </span>
             <span className="block text-xs text-white/55">Panel de empresa</span>
           </span>
         </Link>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Navegación principal">
+        <nav
+          className="flex-1 space-y-1 overflow-y-auto px-3 py-2"
+          aria-label="Navegación principal"
+        >
           {items.map((item) => {
             const active = isActivePath(pathname, item.href);
             const Icon = item.icon;
@@ -78,7 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 {item.label}
-                {active && <span className="bg-teal ml-auto h-1.5 w-1.5 rounded-full" />}
+                {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-teal" />}
               </Link>
             );
           })}
@@ -102,11 +108,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
-            className="bg-ink/50 absolute inset-0 backdrop-blur-sm"
+            className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
             aria-label="Cerrar menú"
           />
-          <div className="bg-ink relative flex h-full w-72 max-w-[85vw] flex-col text-white shadow-2xl">
+          <div className="relative flex h-full w-72 max-w-[85vw] flex-col bg-ink text-white shadow-2xl">
             <div className="flex items-center justify-between px-4 py-4">
               <span className="font-display text-sm font-semibold">{brand.name}</span>
               <button
@@ -118,7 +124,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Navegación móvil">
+            <nav
+              className="flex-1 space-y-1 overflow-y-auto px-3 py-2"
+              aria-label="Navegación móvil"
+            >
               {items.map((item) => {
                 const active = isActivePath(pathname, item.href);
                 const Icon = item.icon;
@@ -156,23 +165,23 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="md:pl-64">
-        <header className="border-mist bg-paper/85 sticky top-0 z-30 border-b backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-mist bg-paper/85 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-8">
             <div className="flex min-w-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => setMobileOpen(true)}
-                className="border-mist text-ink rounded-xl border bg-white p-2 md:hidden"
+                className="rounded-xl border border-mist bg-white p-2 text-ink md:hidden"
                 aria-label="Abrir menú"
                 aria-expanded={mobileOpen}
               >
                 <Menu className="h-4 w-4" />
               </button>
               <div className="min-w-0">
-                <p className="text-ink truncate text-sm font-semibold">
+                <p className="truncate text-sm font-semibold text-ink">
                   {activeTenant?.name ?? "Mi empresa"}
                 </p>
-                <p className="text-slate text-xs">
+                <p className="text-xs text-slate">
                   {role === "owner"
                     ? "Owner"
                     : role === "admin"
@@ -195,7 +204,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 aria-label="Empresa activa"
                 value={activeTenantId ?? ""}
                 onChange={(event) => setActiveTenant(event.target.value)}
-                className="border-mist text-ink hidden max-w-[220px] rounded-xl border bg-white px-3 py-2 text-sm sm:block"
+                className="hidden max-w-[220px] rounded-xl border border-mist bg-white px-3 py-2 text-sm text-ink sm:block"
               >
                 {tenants.map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>

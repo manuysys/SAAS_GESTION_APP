@@ -20,7 +20,7 @@ export function TechShell({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="text-slate flex min-h-dvh items-center justify-center gap-3 text-sm">
+      <div className="flex min-h-dvh items-center justify-center gap-3 text-sm text-slate">
         <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
         Cargando sesión...
       </div>
@@ -39,22 +39,25 @@ export function TechShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="bg-paper min-h-dvh">
-      <header className="border-mist bg-paper/90 sticky top-0 z-20 border-b backdrop-blur">
+    <div className="min-h-dvh bg-paper">
+      <header className="sticky top-0 z-20 border-b border-mist bg-paper/90 backdrop-blur">
         <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="bg-ink flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white">
-              A
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-sm font-bold text-white"
+            >
+              D
             </span>
             <div className="min-w-0">
-              <p className="text-ink truncate text-sm font-semibold">{brand.name}</p>
-              <p className="text-slate truncate text-xs">{user.full_name}</p>
+              <p className="truncate text-sm font-semibold text-ink">{brand.name}</p>
+              <p className="truncate text-xs text-slate">{user.full_name}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => void handleLogout()}
-            className="border-mist text-ink inline-flex min-h-11 items-center gap-2 rounded-xl border bg-white px-3 text-sm font-medium"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-mist bg-white px-3 text-sm font-medium text-ink"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />
             Salir
@@ -69,7 +72,7 @@ export function TechShell({ children }: { children: ReactNode }) {
               id="tech-tenant"
               value={activeTenantId ?? ""}
               onChange={(event) => setActiveTenant(event.target.value)}
-              className="border-mist text-ink min-h-11 w-full rounded-xl border bg-white px-3 text-sm"
+              className="min-h-11 w-full rounded-xl border border-mist bg-white px-3 text-sm text-ink"
             >
               {tenants.map((tenant) => (
                 <option key={tenant.id} value={tenant.id}>
@@ -80,7 +83,7 @@ export function TechShell({ children }: { children: ReactNode }) {
           </div>
         ) : (
           activeTenant && (
-            <p className="text-slate mx-auto max-w-xl truncate px-4 pb-3 text-xs">
+            <p className="mx-auto max-w-xl truncate px-4 pb-3 text-xs text-slate">
               {activeTenant.name}
             </p>
           )

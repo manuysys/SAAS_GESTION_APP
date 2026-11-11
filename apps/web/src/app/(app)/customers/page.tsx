@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Mail, Phone, Plus, Search, Trash2, Users, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -89,7 +90,8 @@ export default function CustomersPage() {
       setDeleteTarget(null);
       void queryClient.invalidateQueries({ queryKey: ["customers"] });
     },
-    onError: (error) => toast.error(error instanceof ApiError ? error.detail : "No se pudo archivar"),
+    onError: (error) =>
+      toast.error(error instanceof ApiError ? error.detail : "No se pudo archivar"),
   });
 
   async function onSubmit(values: CustomerFormValues) {
@@ -141,19 +143,19 @@ export default function CustomersPage() {
         <Card className="border-teal/20 bg-teal/5">
           <CardHeader>
             <CardTitle>Nuevo cliente</CardTitle>
-            <p className="text-slate text-sm">Cargá los datos básicos para empezar el historial.</p>
+            <p className="text-sm text-slate">Cargá los datos básicos para empezar el historial.</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label htmlFor="name" className="text-ink mb-1 block text-sm font-medium">
+                <label htmlFor="name" className="mb-1 block text-sm font-medium text-ink">
                   Nombre *
                 </label>
                 <Input id="name" autoComplete="name" {...register("name")} />
                 {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>}
               </div>
               <div>
-                <label htmlFor="phone" className="text-ink mb-1 block text-sm font-medium">
+                <label htmlFor="phone" className="mb-1 block text-sm font-medium text-ink">
                   Teléfono
                 </label>
                 <Input id="phone" type="tel" autoComplete="tel" {...register("phone")} />
@@ -162,7 +164,7 @@ export default function CustomersPage() {
                 )}
               </div>
               <div>
-                <label htmlFor="email" className="text-ink mb-1 block text-sm font-medium">
+                <label htmlFor="email" className="mb-1 block text-sm font-medium text-ink">
                   Email
                 </label>
                 <Input id="email" type="email" autoComplete="email" {...register("email")} />
@@ -171,13 +173,13 @@ export default function CustomersPage() {
                 )}
               </div>
               <div className="sm:col-span-2">
-                <label htmlFor="notes" className="text-ink mb-1 block text-sm font-medium">
+                <label htmlFor="notes" className="mb-1 block text-sm font-medium text-ink">
                   Observaciones
                 </label>
                 <textarea
                   id="notes"
                   rows={3}
-                  className="border-mist text-ink placeholder:text-slate/60 focus:border-teal focus:ring-teal/20 w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:ring-2"
+                  className="w-full rounded-xl border border-mist bg-white px-3 py-2 text-sm text-ink outline-none placeholder:text-slate/60 focus:border-teal focus:ring-2 focus:ring-teal/20"
                   {...register("notes")}
                 />
                 {errors.notes && (
@@ -185,7 +187,10 @@ export default function CustomersPage() {
                 )}
               </div>
               {formError && (
-                <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">
+                <p
+                  role="alert"
+                  className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2"
+                >
                   {formError}
                 </p>
               )}
@@ -203,8 +208,8 @@ export default function CustomersPage() {
       )}
 
       <Card>
-        <div className="border-mist flex items-center gap-2 border-b px-4 py-3">
-          <Search className="text-slate h-4 w-4" aria-hidden="true" />
+        <div className="flex items-center gap-2 border-b border-mist px-4 py-3">
+          <Search className="h-4 w-4 text-slate" aria-hidden="true" />
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -215,7 +220,7 @@ export default function CustomersPage() {
         </div>
 
         {customersQuery.isLoading ? (
-          <p className="text-slate p-6 text-sm">Cargando clientes...</p>
+          <p className="p-6 text-sm text-slate">Cargando clientes...</p>
         ) : customersQuery.isError ? (
           <p className="p-6 text-sm text-red-600">No se pudieron cargar los clientes.</p>
         ) : customers.length === 0 ? (
@@ -235,7 +240,7 @@ export default function CustomersPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-left text-sm">
-              <thead className="bg-paper text-slate text-xs tracking-wide uppercase">
+              <thead className="bg-paper text-xs tracking-wide text-slate uppercase">
                 <tr>
                   <th className="px-4 py-3 font-medium">Cliente</th>
                   <th className="px-4 py-3 font-medium">Contacto</th>
@@ -244,18 +249,23 @@ export default function CustomersPage() {
                   <th className="px-4 py-3 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-mist divide-y">
+              <tbody className="divide-y divide-mist">
                 {customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-paper/70 transition-colors">
+                  <tr key={customer.id} className="transition-colors hover:bg-paper/70">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="bg-teal/10 text-teal flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal/10 text-xs font-bold text-teal">
                           {initials(customer.name)}
                         </span>
                         <div className="min-w-0">
-                          <p className="text-ink font-semibold">{customer.name}</p>
+                          <Link
+                            href={`/customers/${customer.id}`}
+                            className="font-semibold text-ink underline-offset-4 hover:text-teal hover:underline"
+                          >
+                            {customer.name}
+                          </Link>
                           {customer.notes && (
-                            <p className="text-slate mt-0.5 max-w-xs truncate text-xs">
+                            <p className="mt-0.5 max-w-xs truncate text-xs text-slate">
                               {customer.notes}
                             </p>
                           )}
@@ -263,7 +273,7 @@ export default function CustomersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-slate space-y-1 text-xs">
+                      <div className="space-y-1 text-xs text-slate">
                         <p className="flex items-center gap-1.5">
                           <Phone className="h-3 w-3" aria-hidden="true" />
                           {customer.phone ?? "—"}
@@ -279,14 +289,14 @@ export default function CustomersPage() {
                         {customer.status === "active" ? "Activo" : customer.status}
                       </Badge>
                     </td>
-                    <td className="text-slate px-4 py-3 text-xs">
+                    <td className="px-4 py-3 text-xs text-slate">
                       {formatDate(customer.created_at)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
                         onClick={() => setDeleteTarget({ id: customer.id, name: customer.name })}
-                        className="text-slate hover:bg-red-50 hover:text-red-600 rounded-lg p-2"
+                        className="rounded-lg p-2 text-slate hover:bg-red-50 hover:text-red-600"
                         aria-label={`Archivar ${customer.name}`}
                       >
                         <Trash2 className="h-4 w-4" />

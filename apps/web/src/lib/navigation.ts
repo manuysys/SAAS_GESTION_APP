@@ -8,6 +8,7 @@ import {
   MessageCircle,
   ShieldCheck,
   Sparkles,
+  UserPlus,
   Users,
   Wallet,
   Workflow,
@@ -80,6 +81,12 @@ export const navigation: NavItem[] = [
     roles: ADMIN_ROLES,
   },
   {
+    href: "/settings/team",
+    label: "Equipo",
+    icon: UserPlus,
+    roles: ADMIN_ROLES,
+  },
+  {
     href: "/settings/whatsapp",
     label: "WhatsApp",
     icon: MessageCircle,
@@ -97,10 +104,7 @@ export function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function visibleNavigation(
-  role: string,
-  isPlatformAdmin: boolean | undefined,
-): NavItem[] {
+export function visibleNavigation(role: string, isPlatformAdmin: boolean | undefined): NavItem[] {
   return navigation.filter((item) => {
     if (item.platformAdminOnly) {
       return isPlatformAdmin === true;

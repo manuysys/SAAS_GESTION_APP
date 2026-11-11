@@ -26,6 +26,8 @@ type AuthContextValue = {
   }) => Promise<void>;
   logout: () => Promise<void>;
   setActiveTenant: (tenantId: string) => void;
+  /** Adopta un access token emitido por el backend (p. ej. al aceptar una invitación). */
+  adoptSession: (accessToken: string, tenantId: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -122,6 +124,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(ACTIVE_TENANT_KEY, tenantId);
   }, []);
 
+  const adoptSession = useCallback(
+    async (accessToken: string, tenantId: string) => {
+      setAccessToken(accessToken);
+      window.localStorage.setItem(SESSION_HINT_KEY, "1");
+      window.localStorage.setItem(ACTIVE_TENANT_KEY, tenantId);
+      const me = await api.auth.me();
+      applySession(me.user, me.tenants);
+    },
+    [applySession],
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -132,8 +145,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       setActiveTenant,
+      adoptSession,
     }),
-    [user, tenants, activeTenantId, loading, login, register, logout, setActiveTenant],
+    [
+      user,
+      tenants,
+      activeTenantId,
+      loading,
+      login,
+      register,
+      logout,
+      setActiveTenant,
+      adoptSession,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

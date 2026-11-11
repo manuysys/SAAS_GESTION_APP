@@ -60,7 +60,7 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
 
   if (quoteQuery.isLoading) {
     return (
-      <div role="status" className="text-slate flex items-center gap-2 text-sm">
+      <div role="status" className="flex items-center gap-2 text-sm text-slate">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         Cargando presupuesto...
       </div>
@@ -70,10 +70,10 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
   if (quoteQuery.isError || !quoteQuery.data) {
     return (
       <Card className="p-8 text-center">
-        <h1 className="text-ink font-display text-xl font-semibold">
+        <h1 className="font-display text-xl font-semibold text-ink">
           No encontramos este presupuesto
         </h1>
-        <p className="text-slate mx-auto mt-2 max-w-md text-sm">
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate">
           El enlace puede estar incompleto o ya no es válido. Pedile a la empresa que te envíe un
           nuevo presupuesto.
         </p>
@@ -92,16 +92,16 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
 
   return (
     <div className="space-y-5">
-      <header className="border-mist bg-ink overflow-hidden rounded-3xl border text-white">
+      <header className="overflow-hidden rounded-3xl border border-mist bg-ink text-white">
         <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="flex items-center gap-2 text-sm text-white/70">
-              <span className="bg-teal flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal text-xs font-bold text-white">
                 A
               </span>
               {quote.tenant_name}
             </p>
-            <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
               Presupuesto {quote.number}
             </h1>
             <p className="mt-1 text-sm text-white/60">
@@ -129,12 +129,12 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
       )}
 
       {quote.status === "rejected" && (
-        <div role="status" className="border-mist rounded-2xl border bg-white p-5">
-          <p className="text-ink flex items-center gap-2 font-semibold">
+        <div role="status" className="rounded-2xl border border-mist bg-white p-5">
+          <p className="flex items-center gap-2 font-semibold text-ink">
             <X className="h-5 w-5" aria-hidden="true" />
             Rechazaste este presupuesto
           </p>
-          <p className="text-slate mt-1 text-sm">
+          <p className="mt-1 text-sm text-slate">
             Si cambiás de opinión, comunicate con {quote.tenant_name}.
           </p>
         </div>
@@ -147,7 +147,7 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-sm">
-              <thead className="bg-paper text-slate text-xs tracking-wide uppercase">
+              <thead className="bg-paper text-xs tracking-wide text-slate uppercase">
                 <tr>
                   <th scope="col" className="px-5 py-3 font-medium">
                     Concepto
@@ -163,22 +163,22 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-mist divide-y">
+              <tbody className="divide-y divide-mist">
                 {quote.items.map((item, index) => (
                   <tr key={`${index}-${item.description}`}>
-                    <td className="text-ink px-5 py-3 font-medium">{item.description}</td>
-                    <td className="text-slate px-4 py-3 text-right">
+                    <td className="px-5 py-3 font-medium text-ink">{item.description}</td>
+                    <td className="px-4 py-3 text-right text-slate">
                       {formatNumber(item.quantity)}
                     </td>
-                    <td className="text-slate px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right text-slate">
                       {formatCurrency(item.unit_price)}
                       {Number(item.discount_rate) > 0 && (
-                        <span className="text-slate/70 block text-xs">
+                        <span className="block text-xs text-slate/70">
                           Desc. {formatNumber(item.discount_rate, 2)}%
                         </span>
                       )}
                     </td>
-                    <td className="text-ink px-5 py-3 text-right font-medium">
+                    <td className="px-5 py-3 text-right font-medium text-ink">
                       {formatCurrency(item.line_total)}
                     </td>
                   </tr>
@@ -187,22 +187,22 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
             </table>
           </div>
 
-          <dl className="border-mist ml-auto space-y-1.5 border-t px-5 py-4 text-sm sm:max-w-xs">
+          <dl className="ml-auto space-y-1.5 border-t border-mist px-5 py-4 text-sm sm:max-w-xs">
             <div className="flex justify-between gap-4">
               <dt className="text-slate">Subtotal</dt>
-              <dd className="text-ink font-medium">{formatCurrency(quote.subtotal)}</dd>
+              <dd className="font-medium text-ink">{formatCurrency(quote.subtotal)}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-slate">Descuentos</dt>
-              <dd className="text-ink font-medium">− {formatCurrency(quote.discount_total)}</dd>
+              <dd className="font-medium text-ink">− {formatCurrency(quote.discount_total)}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-slate">IVA</dt>
-              <dd className="text-ink font-medium">{formatCurrency(quote.tax_total)}</dd>
+              <dd className="font-medium text-ink">{formatCurrency(quote.tax_total)}</dd>
             </div>
-            <div className="border-mist flex justify-between gap-4 border-t pt-2 text-base">
-              <dt className="text-ink font-semibold">Total</dt>
-              <dd className="text-ink font-semibold">{formatCurrency(quote.total)}</dd>
+            <div className="flex justify-between gap-4 border-t border-mist pt-2 text-base">
+              <dt className="font-semibold text-ink">Total</dt>
+              <dd className="font-semibold text-ink">{formatCurrency(quote.total)}</dd>
             </div>
           </dl>
         </CardContent>
@@ -214,20 +214,20 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
             <CardTitle>Notas</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-ink text-sm whitespace-pre-line">{quote.notes}</p>
+            <p className="text-sm whitespace-pre-line text-ink">{quote.notes}</p>
           </CardContent>
         </Card>
       )}
 
       {canDecide ? (
-        <Card className="border-teal/30 bg-teal/5 sticky bottom-4">
+        <Card className="sticky bottom-4 border-teal/30 bg-teal/5">
           <CardContent className="p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-ink font-display text-lg font-semibold">
+                <h2 className="font-display text-lg font-semibold text-ink">
                   ¿Querés aprobar este presupuesto?
                 </h2>
-                <p className="text-slate mt-1 text-sm">
+                <p className="mt-1 text-sm text-slate">
                   Tu respuesta queda registrada y {quote.tenant_name} la ve de inmediato.
                 </p>
               </div>
@@ -264,22 +264,22 @@ export function PublicQuoteView({ token }: PublicQuoteViewProps) {
           </CardContent>
         </Card>
       ) : quote.status === "expired" ? (
-        <p className="text-slate text-sm">
+        <p className="text-sm text-slate">
           Este presupuesto venció. Pedile a {quote.tenant_name} que te envíe uno nuevo.
         </p>
       ) : (
         quote.status !== "approved" &&
         quote.status !== "rejected" && (
-          <p className="text-slate text-sm">
+          <p className="text-sm text-slate">
             Este presupuesto todavía no está disponible para responder. Consultá con{" "}
             {quote.tenant_name}.
           </p>
         )
       )}
 
-      <footer className="text-slate flex items-center justify-center gap-1.5 pb-4 text-xs">
+      <footer className="flex items-center justify-center gap-1.5 pb-4 text-xs text-slate">
         <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-        Presupuesto gestionado con Arreglo
+        Presupuesto gestionado con DOVEXO
       </footer>
 
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>

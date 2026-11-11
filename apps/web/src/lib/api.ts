@@ -647,6 +647,87 @@ export type WhatsAppSendResult = {
   wa_message_id: string | null;
 };
 
+/* ───────────────────────── Equipo, invitaciones y portal ───────────────────────── */
+
+/**
+ * Resultado del envío de email. `sent` = aceptado por el proveedor (no confirma
+ * entrega), `failed` = el proveedor falló, `console` = modo desarrollo sin envío.
+ */
+export type EmailStatus = "sent" | "failed" | "console";
+
+export type TeamRole = "owner" | "admin" | "dispatcher" | "technician" | "viewer";
+
+export type TeamMember = {
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  status: string;
+  last_login_at: string | null;
+};
+
+export type TeamInvitation = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+};
+
+export type TeamResponse = {
+  members: TeamMember[];
+  invitations: TeamInvitation[];
+};
+
+export type TeamInvitationInput = {
+  email: string;
+  full_name: string;
+  role: TeamRole;
+};
+
+/** `invitation_url` trae el token en claro: solo se muestra una vez, nunca se persiste. */
+export type TeamInvitationCreated = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  invitation_url: string;
+  email_status: EmailStatus;
+};
+
+export type PublicInvitationStatus = "pending" | "expired" | "accepted" | "revoked";
+
+/** Vista pública de una invitación: sin email completo ni IDs internos. */
+export type PublicInvitation = {
+  tenant_name: string;
+  email_masked: string;
+  role: string;
+  expires_at: string;
+  status: PublicInvitationStatus;
+};
+
+export type InvitationAcceptInput = {
+  full_name: string;
+  password: string;
+};
+
+export type InvitationAcceptResponse = {
+  access_token: string;
+  token_type: string;
+  tenant: { id: string; name: string; slug: string; role: string };
+  user: { id: string; email: string; full_name: string };
+};
+
+/** `access_url` trae el token en claro: se muestra una sola vez y expira. */
+export type PortalAccess = {
+  access_url: string;
+  expires_at: string;
+  email_status: EmailStatus;
+};
+
 function tenantHeaders(tenantId: string): HeadersInit {
   return { "X-Tenant-ID": tenantId };
 }
@@ -736,6 +817,23 @@ export function refreshSession() {
   return refreshPromise;
 }
 
+/**
+ * Como `request`, pero ante 401 intenta un refresh de sesión (una vez) y reintenta.
+ * Usar solo en endpoints autenticados; los públicos no deben refrescar.
+ */
+async function requestWithRefresh<T>(path: string, options: RequestInit = {}): Promise<T> {
+  try {
+    return await request<T>(path, options);
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 401) {
+      throw error;
+    }
+    const refreshed = await refreshSession();
+    setAccessToken(refreshed.access_token);
+    return request<T>(path, options);
+  }
+}
+
 export const api = {
   auth: {
     register: (input: {
@@ -780,6 +878,10 @@ export const api = {
         method: "POST",
         headers: tenantHeaders(tenantId),
         body: JSON.stringify(input),
+      }),
+    get: (tenantId: string, customerId: string) =>
+      request<Customer>(`/api/v1/customers/${customerId}`, {
+        headers: tenantHeaders(tenantId),
       }),
     update: (tenantId: string, customerId: string, input: Partial<CustomerInput>) =>
       request<Customer>(`/api/v1/customers/${customerId}`, {
@@ -1144,6 +1246,62 @@ export const api = {
         method: "POST",
         headers: tenantHeaders(tenantId),
         body: JSON.stringify({ to_phone: toPhone, body }),
+      }),
+  },
+  /** Solo owner/admin. El backend valida rol, límites de asientos y aislamiento. */
+  team: {
+    get: (tenantId: string) =>
+      requestWithRefresh<TeamResponse>("/api/v1/team", { headers: tenantHeaders(tenantId) }),
+    createInvitation: (tenantId: string, input: TeamInvitationInput) =>
+      requestWithRefresh<TeamInvitationCreated>("/api/v1/team/invitations", {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify(input),
+      }),
+    /** Invalida el token anterior y devuelve uno nuevo (se muestra una vez). */
+    resendInvitation: (tenantId: string, invitationId: string) =>
+      requestWithRefresh<TeamInvitationCreated>(`/api/v1/team/invitations/${invitationId}/resend`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
+      }),
+    revokeInvitation: (tenantId: string, invitationId: string) =>
+      requestWithRefresh<void>(`/api/v1/team/invitations/${invitationId}`, {
+        method: "DELETE",
+        headers: tenantHeaders(tenantId),
+      }),
+  },
+  /** Endpoints públicos por token de invitación. Nunca se envía sesión salvo en `acceptWithSession`. */
+  publicInvitations: {
+    get: (token: string) =>
+      publicRequest<PublicInvitation>(`/api/v1/public/invitations/${encodeURIComponent(token)}`),
+    /** Usuario nuevo: crea la cuenta y la membresía. */
+    acceptNewUser: (token: string, input: InvitationAcceptInput) =>
+      publicRequest<InvitationAcceptResponse>(
+        `/api/v1/public/invitations/${encodeURIComponent(token)}/accept`,
+        { method: "POST", body: JSON.stringify(input) },
+      ),
+    /** Usuario ya autenticado: el backend valida que el email coincida con la invitación. */
+    acceptWithSession: (token: string) =>
+      requestWithRefresh<InvitationAcceptResponse>(
+        `/api/v1/public/invitations/${encodeURIComponent(token)}/accept`,
+        { method: "POST", body: JSON.stringify({}) },
+      ),
+  },
+  /** Acceso al portal del cliente desde su ficha. El frontend nunca genera tokens. */
+  portalAccess: {
+    create: (tenantId: string, customerId: string, sendEmail: boolean) =>
+      requestWithRefresh<PortalAccess>(`/api/v1/customers/${customerId}/portal-access`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({ send_email: sendEmail }),
+      }),
+    /** Revoca los accesos vigentes del cliente. */
+    revoke: (tenantId: string, customerId: string) =>
+      requestWithRefresh<void>(`/api/v1/customers/${customerId}/portal-access/revoke`, {
+        method: "POST",
+        headers: tenantHeaders(tenantId),
+        body: JSON.stringify({}),
       }),
   },
 };

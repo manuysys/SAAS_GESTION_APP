@@ -1,11 +1,21 @@
+/**
+ * Identidad centralizada. DOVEXO es el nombre comercial del producto y ARVOKTA la
+ * empresa titular. El dominio propio está pendiente: no se inventa aquí; la URL
+ * pública actual es la del despliegue en Vercel.
+ */
 export const brand = {
-  name: "Arreglo",
-  legalName: "Arreglo",
-  tagline: "El sistema de tu empresa de servicios técnicos.",
+  name: "DOVEXO",
+  legalName: "ARVOKTA",
+  company: "ARVOKTA",
+  tagline: "Gestión para empresas de servicios técnicos.",
   description:
     "Recibí solicitudes, asigná técnicos, enviá presupuestos y cobrá. Todo en un solo lugar, desde la oficina o el celular.",
-  domain: "arreglo.com.ar",
-  email: "hola@arreglo.com.ar",
+  /** URL pública vigente. Cambiar cuando el dominio propio esté confirmado. */
+  appUrl: "https://saas-gestion-web.vercel.app",
+  /** Dominio propio: pendiente de confirmar. No usar para enlaces ni emails. */
+  domain: null,
+  /** Pendiente de activación cuando ARVOKTA tenga dominio y buzón. */
+  email: "hola@arvokta.com",
   colors: {
     ink: "#0B1F33",
     teal: "#0F766E",
