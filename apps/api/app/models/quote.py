@@ -67,6 +67,9 @@ class Quote(UUIDMixin, TenantMixin, TimestampMixin, Base):
     public_token: Mapped[str] = mapped_column(
         String(64), unique=True, index=True, default=generate_public_token, nullable=False
     )
+    public_token_revoked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     work_order: Mapped["WorkOrder | None"] = relationship(back_populates="quotes")  # noqa: UP037
     items: Mapped[list[QuoteItem]] = relationship(

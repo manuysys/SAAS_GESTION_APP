@@ -45,13 +45,15 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
   `whatsapp_messages`, `customer_access_tokens`, `device_tokens` y
   `portal_settings` en `tenants`.
 - [x] Migraciones: `84e62c6788cb`, `ba3b1d3acd4d`, `50e8c050aada`,
-  `de0e021aa0ca`, `51fc582e7593`, `5ffb8399d836`, `c0cc7ae032ee` y
-  `76aba18b0e16` (aplicada en Neon).
+  `de0e021aa0ca`, `51fc582e7593`, `5ffb8399d836`, `c0cc7ae032ee`,
+  `76aba18b0e16` y `a1b2c3d4e5f6` (aplicadas en Neon).
 - [x] Auth: registro, login, refresh rotativo, logout, `/me`.
 - [x] Argon2id, JWT de acceso, cookies `HttpOnly`.
 - [x] Multi-tenancy por `X-Tenant-ID` validado contra membresía.
 - [x] Clientes, solicitudes, órdenes, transiciones y auditoría.
 - [x] Presupuestos con `Decimal`, ítems históricos, PDF y token público.
+- [x] Revocación del enlace público de presupuesto y rate limit en aprobación.
+- [x] Límite de órdenes por mes del plan aplicado en creación y conversión.
 - [x] Agenda, conflictos, reprogramación y asignación de técnicos.
 - [x] Pagos manuales, parciales, anulación y recálculo de estado.
 - [x] Dashboard summary y dashboard operativo (`/dashboard/operations`):
@@ -88,7 +90,7 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 - [x] `/docs`, `/redoc` y `/openapi.json` ocultos en producción.
 - [x] Cabeceras de seguridad HTTP.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 97 pruebas pytest.
+- [x] 99 pruebas pytest.
 
 ### Frontend
 
@@ -148,9 +150,9 @@ de un túnel. La marca provisional es **Arreglo** y la landing pública está en
 
 ```text
 ruff check          -> All checks passed
-ruff format --check -> 130 files already formatted
+ruff format --check -> 131 files already formatted
 basedpyright        -> 0 errors, 0 warnings, 0 notes
-pytest              -> 97 passed
+pytest              -> 99 passed
 pnpm lint           -> sin errores
 pnpm typecheck      -> sin errores
 pnpm test           -> 95 passed

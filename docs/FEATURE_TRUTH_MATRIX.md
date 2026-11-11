@@ -13,7 +13,7 @@
 | Lectura de componentes de landing y dashboard. | No hay capturas ni verificación visual en los viewports de [`MEJORAS_Y_PROGRESO.txt`](../MEJORAS_Y_PROGRESO.txt) §4. |
 | Fetch del HTML visible de la landing desplegada. | No se midieron Core Web Vitals. |
 
-**Actualización 2026-11-10:** se ejecutaron `pytest` (97 pruebas), `ruff`,
+**Actualización 2026-11-10:** se ejecutaron `pytest` (99 pruebas), `ruff`,
 `basedpyright`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (95 pruebas) y
 `pnpm build`. También se probaron contra producción el login móvil, el refresh,
 el logout, el portal demo, los listados del portal y `GET /dashboard/operations`.
@@ -165,7 +165,7 @@ Prioridad: P0 (confianza o seguridad, bloquea), P1 (experiencia central), P2 (au
 | F61 | Catálogo de planes en DB (Starter, Professional, Business) | Implementada y probada | Migración `5ffb8399d836` (precios 29.900 / 59.900 / 99.900); `GET /billing/plans`; `test_billing.py::test_list_plans_returns_three` | Los precios de la landing salen de `lib/brand.ts`, otra fuente. Dos fuentes de verdad. | P0 |
 | F62 | Suscripción automática al registro en `trialing` | Implementada y probada | `billing_service.create_trial_subscription`; `test_billing.py::test_register_creates_trial_subscription` | No tiene fecha de fin de prueba ni cobro. | P0 |
 | F63 | Cambio de plan por el owner | Implementada y probada | `POST /billing/subscription/change`; `test_change_subscription_updates_price_snapshot`; `test_technician_cannot_change_plan` | Sin cobro. | — |
-| F64 | Enforcement de límites de usuarios, técnicos y órdenes por plan | No encontrada | Límites en `plans.limits` (`max_users`, `max_technicians`, `max_orders_per_month`) sin referencias en `app/` durante esta revisión. | La landing promete "100 órdenes por mes", "1 usuario", etc. Ver [`LANDING_AUDIT.md`](LANDING_AUDIT.md). | P0 |
+| F64 | Enforcement de límites de usuarios, técnicos y órdenes por plan | Parcial | `services/plan_limits_service.py`; `tests/test_billing.py::test_order_limit_is_enforced` | Órdenes por mes aplicado en creación y conversión. Usuarios/técnicos siguen sin endpoint de alta, así que no se pueden aplicar todavía. | P0 |
 | F65 | Cobro recurrente de la suscripción (Mercado Pago) | Planificada | [`SAAS_BILLING.md`](SAAS_BILLING.md) y `KNOWN_ISSUES.md`. | Sin credenciales ni webhooks. | P3 |
 
 ## 12. Landing, demo y legal
@@ -194,7 +194,7 @@ Prioridad: P0 (confianza o seguridad, bloquea), P1 (experiencia central), P2 (au
 | "Funciona en Android y iPhone" (PWA) | FAQ de la landing | No verificado en dispositivos (F43). |
 | "Los datos se actualizan al volver" (offline) | Tour de la landing | No implementado (F44). |
 | "Una prueba de 14 días" | Hero, pricing, FAQ, términos | En implementación; sin fecha de fin (F62). |
-| "100 órdenes por mes" y similares | Tarjetas de planes | Sin enforcement (F64). |
+| "100 órdenes por mes" y similares | Tarjetas de planes | Órdenes por mes aplicado; usuarios/técnicos todavía no (F64). |
 | "Aprobado desde el link público" con datos de ejemplo | Mockup del hero | Ilustrativo; la contradicción está en [`LANDING_AUDIT.md`](LANDING_AUDIT.md). |
 | Mecanismos de SistemaLoop, Lumex, Jobber | [`MEJORAS_Y_PROGRESO.txt`](../MEJORAS_Y_PROGRESO.txt) §9 | No aplican al producto: son referencias de mercado, no funciones. Sin investigación en [`COMPETITIVE_ANALYSIS.md`](COMPETITIVE_ANALYSIS.md). |
 </content>

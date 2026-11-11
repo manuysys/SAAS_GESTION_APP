@@ -458,3 +458,49 @@ async def test_public_reject_does_not_regress_approved_order(
         f"/api/v1/work-orders/{work_order_id}", headers=_headers(token, tenant_id)
     )
     assert order_after_reject.json()["commercial_status"] == "approved"
+
+
+async def test_revoke_public_quote_link(client: AsyncClient) -> None:
+    token, tenant_id, _ = await _register(client, "revoke-owner@example.com", "Empresa Revoke")
+    customer_id = await _create_customer(client, token, tenant_id)
+    work_order_id = await _create_work_order(client, token, tenant_id, customer_id)
+
+    created = await client.post(
+        "/api/v1/quotes",
+        json={
+            "customer_id": customer_id,
+            "work_order_id": work_order_id,
+            "items": [
+                {
+                    "description": "Servicio",
+                    "quantity": "1",
+                    "unit_price": "100.00",
+                }
+            ],
+        },
+        headers=_headers(token, tenant_id),
+    )
+    assert created.status_code == 201, created.text
+    quote = created.json()
+    public_token = quote["public_token"]
+
+    sent = await client.post(
+        f"/api/v1/quotes/{quote['id']}/send", headers=_headers(token, tenant_id)
+    )
+    assert sent.status_code == 200, sent.text
+
+    public_get = await client.get(f"/api/v1/public/quotes/{public_token}")
+    assert public_get.status_code == 200, public_get.text
+
+    revoked = await client.post(
+        f"/api/v1/quotes/{quote['id']}/revoke-public-link",
+        headers=_headers(token, tenant_id),
+    )
+    assert revoked.status_code == 200, revoked.text
+    assert revoked.json()["public_token_revoked_at"] is not None
+
+    public_get_after = await client.get(f"/api/v1/public/quotes/{public_token}")
+    assert public_get_after.status_code == 404
+
+    approve_after = await client.post(f"/api/v1/public/quotes/{public_token}/approve", json={})
+    assert approve_after.status_code == 404

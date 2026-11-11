@@ -377,6 +377,28 @@ async def list_tenant_quote_events(db: AsyncSession, *, tenant_id: UUID, quote_i
     return await list_events(db, tenant_id=tenant_id, quote_id=quote_id)
 
 
+async def revoke_public_link(
+    db: AsyncSession,
+    *,
+    tenant_id: UUID,
+    quote_id: UUID,
+    actor_user_id: UUID,
+) -> Quote:
+    quote = await get_tenant_quote(db, tenant_id=tenant_id, quote_id=quote_id, lock=True)
+    quote.public_token_revoked_at = datetime.now(UTC)
+    await create_event(
+        db,
+        tenant_id=tenant_id,
+        quote_id=quote.id,
+        event_type="public_link_revoked",
+        actor_user_id=actor_user_id,
+        payload=None,
+    )
+    await db.commit()
+    await db.refresh(quote)
+    return quote
+
+
 async def public_get_quote(db: AsyncSession, *, token: str) -> PublicQuoteResponse:
     quote = await get_by_public_token(db, token=token)
     if quote is None:

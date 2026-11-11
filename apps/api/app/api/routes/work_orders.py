@@ -14,7 +14,7 @@ from app.schemas.work_order import (
     WorkOrderTransition,
     WorkOrderUpdate,
 )
-from app.services import work_order_service
+from app.services import plan_limits_service, work_order_service
 
 router = APIRouter(prefix="/work-orders", tags=["work-orders"])
 
@@ -78,6 +78,7 @@ async def create_work_order(
     membership: Membership = Depends(require_roles(*WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> WorkOrderResponse:
+    await plan_limits_service.assert_can_create_work_order(db, tenant_id=membership.tenant_id)
     order = await work_order_service.create_tenant_work_order(
         db,
         tenant_id=membership.tenant_id,

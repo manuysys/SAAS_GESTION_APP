@@ -14,7 +14,7 @@ from app.schemas.service_request import (
     ServiceRequestUpdate,
 )
 from app.schemas.work_order import WorkOrderResponse
-from app.services import service_request_service
+from app.services import plan_limits_service, service_request_service
 
 router = APIRouter(prefix="/service-requests", tags=["service-requests"])
 
@@ -93,6 +93,7 @@ async def convert_service_request(
     membership: Membership = Depends(require_roles(*WRITE_ROLES)),
     db: AsyncSession = Depends(get_db),
 ) -> WorkOrderResponse:
+    await plan_limits_service.assert_can_create_work_order(db, tenant_id=membership.tenant_id)
     _, order = await service_request_service.convert_service_request(
         db,
         tenant_id=membership.tenant_id,

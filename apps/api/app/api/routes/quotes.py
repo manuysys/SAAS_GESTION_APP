@@ -169,6 +169,25 @@ async def reject_quote(
     return QuoteResponse.model_validate(quote)
 
 
+@router.post("/{quote_id}/revoke-public-link", response_model=QuoteResponse)
+async def revoke_public_link(
+    quote_id: UUID,
+    request: Request,
+    membership: Membership = Depends(require_roles(*WRITE_ROLES)),
+    db: AsyncSession = Depends(get_db),
+) -> QuoteResponse:
+    quote = await quote_service.revoke_public_link(
+        db,
+        tenant_id=membership.tenant_id,
+        quote_id=quote_id,
+        actor_user_id=membership.user_id,
+    )
+    await _audit_quote_action(
+        db, request, membership, QuoteResponse.model_validate(quote), "quote_public_link_revoked"
+    )
+    return QuoteResponse.model_validate(quote)
+
+
 @router.get("/{quote_id}/pdf")
 async def get_quote_pdf(
     quote_id: UUID,

@@ -73,6 +73,7 @@ class QuoteResponse(ORMModel):
     approved_at: datetime | None
     rejected_at: datetime | None
     public_token: str
+    public_token_revoked_at: datetime | None
     items: list[QuoteItemResponse]
     created_at: datetime
     updated_at: datetime

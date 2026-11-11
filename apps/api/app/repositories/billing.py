@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -70,8 +71,8 @@ async def count_tenant_technicians(db: AsyncSession, tenant_id: UUID) -> int:
 
 
 async def count_work_orders_this_month(db: AsyncSession, tenant_id: UUID) -> int:
-    now = datetime.now(UTC)
-    start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    now = datetime.now(ZoneInfo("America/Argentina/Buenos_Aires"))
+    start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).astimezone(UTC)
     result = await db.scalar(
         select(func.count())
         .select_from(WorkOrder)

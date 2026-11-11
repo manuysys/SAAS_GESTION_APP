@@ -258,3 +258,39 @@ async def test_admin_list_tenants_isolated(
     tenant_ids = {item["id"] for item in body["items"]}
     assert tenant_id_a in tenant_ids
     assert _tenant_id_b in tenant_ids
+
+
+async def test_order_limit_is_enforced(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    plans_fixture: list[Plan],
+) -> None:
+    starter = plans_fixture[0]
+    starter.limits = {"max_users": 1, "max_technicians": 1, "max_orders_per_month": 1}
+    await db_session.commit()
+
+    token, tenant_id = await _register(client, "owner-limit@example.com", "Empresa Limit")
+    headers = _headers(token, tenant_id)
+
+    customer_response = await client.post(
+        "/api/v1/customers",
+        json={"name": "Cliente Limit"},
+        headers=headers,
+    )
+    assert customer_response.status_code == 201, customer_response.text
+    customer_id = customer_response.json()["id"]
+
+    first = await client.post(
+        "/api/v1/work-orders",
+        json={"customer_id": customer_id, "title": "Primera orden"},
+        headers=headers,
+    )
+    assert first.status_code == 201, first.text
+
+    second = await client.post(
+        "/api/v1/work-orders",
+        json={"customer_id": customer_id, "title": "Segunda orden"},
+        headers=headers,
+    )
+    assert second.status_code == 403, second.text
+    assert "1 órdenes por mes" in second.json()["detail"]

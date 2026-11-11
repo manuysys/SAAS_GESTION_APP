@@ -70,7 +70,7 @@ async def rate_limit_middleware(
     if path in _AUTH_PATHS and request.method == "POST":
         scope = "auth"
         limit = settings.rate_limit_auth_per_minute
-    elif path.startswith(_PUBLIC_QUOTE_PREFIX) and request.method == "GET":
+    elif path.startswith(_PUBLIC_QUOTE_PREFIX) and request.method in ("GET", "POST"):
         scope = "public-quote"
         limit = settings.rate_limit_public_per_minute
 

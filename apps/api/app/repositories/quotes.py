@@ -180,7 +180,14 @@ async def list_events(db: AsyncSession, *, tenant_id: UUID, quote_id: UUID) -> l
 
 
 async def get_by_public_token(db: AsyncSession, *, token: str, lock: bool = False) -> Quote | None:
-    statement = select(Quote).where(Quote.public_token == token).options(selectinload(Quote.items))
+    statement = (
+        select(Quote)
+        .where(
+            Quote.public_token == token,
+            Quote.public_token_revoked_at.is_(None),
+        )
+        .options(selectinload(Quote.items))
+    )
     if lock:
         statement = statement.with_for_update()
     result = await db.execute(statement)

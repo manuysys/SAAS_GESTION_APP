@@ -32,8 +32,9 @@
 
 ## Producto
 
-- **Enforcement de límites parcial.** Los planes y límites existen, pero todavía
-  no se valida cada límite en todos los endpoints.
+- **Enforcement de límites parcial.** Las órdenes por mes ya se validan al crear
+  una orden o convertir una solicitud. Usuarios y técnicos todavía no tienen un
+  endpoint de alta donde aplicar su límite.
 - **Suscripción sin cobro.** El registro crea una suscripción `trialing`; no se
   cobra ni se procesa pago.
 - **Automatizaciones sin worker.** Las acciones se ejecutan en la transacción del
