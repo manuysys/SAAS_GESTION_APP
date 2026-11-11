@@ -129,11 +129,12 @@ Respuesta `201`:
   "status": "pending",
   "expires_at": "2026-11-17T12:00:00Z",
   "invitation_url": "https://.../invitations/raw-token",
-  "email_status": "sent|failed|console"
+  "email_status": "sent|failed|console|not_sent"
 }
 ```
 
-`POST /api/v1/team/invitations/{id}/resend` → mismo shape.
+`POST /api/v1/team/invitations/{id}/resend` → mismo shape. Cada reenvío rota el
+token y envía un correo nuevo; una invitación vencida libera el cupo.
 
 `DELETE /api/v1/team/invitations/{id}` → `204`.
 
@@ -201,6 +202,8 @@ Reglas:
 - Solo owner/admin/dispatcher.
 - Token aleatorio, hash SHA-256, expiración configurable (24 h inicial).
 - Uso único para crear la sesión; luego se usa el JWT de portal.
+- Regenerar el acceso revoca los tokens pendientes e invalida las sesiones de
+  portal ya abiertas (versión de sesión por cliente).
 - `dev_token` no se devuelve en producción.
 - Rate limiting, auditoría y aislamiento por tenant.
 - El cliente solo accede a sus propios datos.

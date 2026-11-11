@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TenantMixin, TimestampMixin, UUIDMixin
@@ -20,4 +20,7 @@ class Customer(UUIDMixin, TenantMixin, TimestampMixin, Base):
     postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
     notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)
+    portal_access_version: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

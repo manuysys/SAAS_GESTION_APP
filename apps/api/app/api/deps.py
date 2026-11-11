@@ -36,9 +36,12 @@ def validate_cookie_origin(request: Request) -> None:
 
 
 def get_client_ip(request: Request) -> str | None:
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip.strip() or None
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        return forwarded.split(",")[0].strip() or None
+        return forwarded.split(",")[-1].strip() or None
     if request.client is not None:
         return request.client.host
     return None
@@ -163,6 +166,12 @@ async def get_current_customer(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Customer not found or inactive",
+        )
+    if payload.get("ver") != customer.portal_access_version:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session revoked",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return customer, tenant
 

@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import CustomerAccessToken
@@ -29,6 +29,30 @@ async def get_active_access_token_by_hash(
         )
     )
     return result.scalar_one_or_none()
+
+
+async def consume_access_token(db: AsyncSession, *, token_hash: str) -> CustomerAccessToken | None:
+    """Marca el token como usado de forma atómica y devuelve el registro.
+
+    Dos verificaciones concurrentes no pueden consumir el mismo token: el
+    `UPDATE ... WHERE used_at IS NULL` solo afecta una fila.
+    """
+    now = datetime.now(UTC)
+    result = await db.execute(
+        update(CustomerAccessToken)
+        .where(
+            CustomerAccessToken.token_hash == token_hash,
+            CustomerAccessToken.revoked_at.is_(None),
+            CustomerAccessToken.used_at.is_(None),
+            CustomerAccessToken.expires_at > now,
+        )
+        .values(used_at=now)
+        .returning(CustomerAccessToken.id)
+    )
+    token_id = result.scalar_one_or_none()
+    if token_id is None:
+        return None
+    return await db.get(CustomerAccessToken, token_id)
 
 
 async def create_access_token(

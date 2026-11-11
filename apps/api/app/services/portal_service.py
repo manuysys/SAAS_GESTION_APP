@@ -22,8 +22,8 @@ from app.models import (
     WorkOrder,
 )
 from app.repositories.customer_access_tokens import (
+    consume_access_token,
     create_access_token,
-    get_active_access_token_by_hash,
     revoke_customer_tokens,
 )
 from app.repositories.customers import create_customer
@@ -44,6 +44,8 @@ from app.schemas.portal import (
     PortalWorkOrderDetailResponse,
 )
 from app.services import audit_service, automation_service, email_service
+
+_DEMO_TENANT_SLUG = "servicios-demo"
 
 
 def _setting_str(raw: dict[str, object], key: str, default: str | None = None) -> str | None:
@@ -69,7 +71,7 @@ async def get_public_portal(db: AsyncSession, *, tenant_slug: str) -> PortalPubl
         support_phone=_setting_str(raw_settings, "support_phone"),
         welcome_message=_setting_str(raw_settings, "welcome_message"),
     )
-    demo_available = settings.portal_dev_mode and tenant_slug == settings.portal_dev_tenant_slug
+    demo_available = settings.portal_dev_mode and tenant_slug == _DEMO_TENANT_SLUG
     return PortalPublicResponse(
         tenant=PortalTenantResponse(id=tenant.id, name=tenant.name, slug=tenant.slug),
         portal=portal,
@@ -160,6 +162,9 @@ async def create_portal_access_for_customer(
     raw = secrets.token_urlsafe(32)
     token_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()
     expires_at = datetime.now(UTC) + timedelta(hours=settings.portal_token_ttl_hours)
+    await revoke_customer_tokens(db, tenant_id=tenant_id, customer_id=customer.id)
+    # Un enlace nuevo invalida las sesiones de portal ya abiertas.
+    customer.portal_access_version += 1
     await create_access_token(
         db,
         tenant_id=tenant_id,
@@ -219,6 +224,7 @@ async def revoke_portal_access_for_customer(
     revoked_by_user_id: UUID,
 ) -> int:
     revoked_count = await revoke_customer_tokens(db, tenant_id=tenant_id, customer_id=customer.id)
+    customer.portal_access_version += 1
     await audit_service.record(
         db,
         action="customer_portal_access_revoked",
@@ -247,7 +253,7 @@ async def verify_magic_link(
         )
 
     token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
-    access_token = await get_active_access_token_by_hash(db, token_hash=token_hash)
+    access_token = await consume_access_token(db, token_hash=token_hash)
 
     if access_token is None or access_token.tenant_id != tenant.id:
         raise HTTPException(
@@ -255,7 +261,6 @@ async def verify_magic_link(
             detail="Invalid or expired token",
         )
 
-    access_token.used_at = datetime.now(UTC)
     customer = await db.get(Customer, access_token.customer_id)
     if customer is None or customer.status != "active" or customer.tenant_id != tenant.id:
         raise HTTPException(
@@ -264,12 +269,14 @@ async def verify_magic_link(
         )
 
     await db.commit()
-    access_token_value, expires_in = create_portal_token(str(customer.id), str(tenant.id))
+    access_token_value, expires_in = create_portal_token(
+        str(customer.id), str(tenant.id), customer.portal_access_version
+    )
     return _auth_response(customer, tenant, access_token_value, expires_in)
 
 
 async def demo_login(db: AsyncSession, *, tenant_slug: str) -> PortalAuthResponse:
-    if not settings.portal_dev_mode or tenant_slug != settings.portal_dev_tenant_slug:
+    if not settings.portal_dev_mode or tenant_slug != _DEMO_TENANT_SLUG:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Demo not available",
@@ -302,7 +309,9 @@ async def demo_login(db: AsyncSession, *, tenant_slug: str) -> PortalAuthRespons
         await db.commit()
         await db.refresh(customer)
 
-    access_token_value, expires_in = create_portal_token(str(customer.id), str(tenant.id))
+    access_token_value, expires_in = create_portal_token(
+        str(customer.id), str(tenant.id), customer.portal_access_version
+    )
     return _auth_response(customer, tenant, access_token_value, expires_in)
 
 

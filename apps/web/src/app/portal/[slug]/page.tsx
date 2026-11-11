@@ -7,6 +7,7 @@ import { PortalAccessPanel } from "./portal-access-panel";
 export const metadata: Metadata = {
   title: `Acceso al portal | ${brand.name}`,
   robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 export default async function PortalAccessPage(props: PageProps<"/portal/[slug]">) {

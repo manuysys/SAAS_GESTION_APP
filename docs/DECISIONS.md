@@ -245,7 +245,9 @@ documentación. No invertir en piezas definitivas hasta validar marca/dominio.
 - El dominio de DOVEXO está **pendiente**. No se usa un dominio en `EMAIL_FROM` productivo hasta verificarlo en Resend.
 - Android: `applicationId` `com.dovexo.mobile`, scheme `dovexo`, slug `dovexo`. El cambio debe hacerse antes de generar la keystore de release y de la primera subida a Play, porque el `applicationId` no se puede cambiar después.
 - **No se renombran** rutas (`/api/v1/...`, `/q/[token]`, `/tech`, `/portal/...`), tablas, migraciones, slug del tenant demo `servicios-demo`, nombres de proyectos Vercel y repositorio, paquete Python ni variables de entorno.
-- ARREGLO queda como nombre histórico. `apps/web/src/lib/brand.ts` y `apps/mobile/app.json` siguen con el valor anterior hasta un cambio de código aparte.
+- ARREGLO queda como nombre histórico. `apps/web/src/lib/brand.ts` y
+  `apps/mobile/app.json` ya usan DOVEXO/ARVOKTA y `com.dovexo.mobile`. La
+  keystore de release fue generada después del cambio.
 
 **Consecuencias:**
 

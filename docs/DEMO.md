@@ -101,7 +101,7 @@ por email o se copia como enlace; `dev_token` está deshabilitado en producción
 Descargar el APK arm64 desde la release pública:
 
 ```text
-https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-4
+https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-5
 ```
 
 El APK está firmado con la keystore de debug: sirve para probar en un Android

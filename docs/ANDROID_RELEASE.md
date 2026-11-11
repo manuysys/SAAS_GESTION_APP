@@ -12,9 +12,8 @@ Estado verificado el 2026-11-10.
   verificado contra su huella SHA-256.
 - El AAB **no se subió a Google Play**: falta la cuenta de Play Console y la
   prueba interna.
-- El APK publicado (`mobile-apk-3`) está firmado con la **keystore de debug** y
-  corresponde a la identidad anterior. Sirve para probar, **no** para Google
-  Play.
+- El APK publicado (`mobile-apk-5`) está firmado con la **keystore de debug** y
+  corresponde a DOVEXO. Sirve para probar, **no** para Google Play.
 - La app **no** fue instalada ni probada todavía en un dispositivo Android real.
 
 ## Identificadores definitivos

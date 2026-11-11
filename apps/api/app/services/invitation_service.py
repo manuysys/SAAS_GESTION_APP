@@ -135,10 +135,15 @@ async def create_invitation(
 
     existing_pending = await get_pending_invitation_by_email(db, tenant_id=tenant_id, email=email)
     if existing_pending is not None:
-        raise InvitationError(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Ya existe una invitación pendiente para ese email",
-        )
+        if existing_pending.expires_at > datetime.now(UTC):
+            raise InvitationError(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Ya existe una invitación pendiente para ese email",
+            )
+        # Una invitación vencida ya no ocupa cupo ni bloquea el índice parcial:
+        # se marca revocada para poder emitir una nueva.
+        existing_pending.revoked_at = datetime.now(UTC)
+        await db.flush()
 
     await plan_limits_service.assert_can_invite_user(db, tenant_id=tenant_id)
     if role == "technician":
@@ -246,7 +251,10 @@ async def resend_invitation(
             "expires_hours": INVITATION_TTL_DAYS * 24,
         },
         idempotency_key=hashlib.sha256(
-            f"invitation_resend:{tenant_id}:{invitation.email_normalized}:{invitation.id}".encode()
+            (
+                f"invitation_resend:{tenant_id}:{invitation.email_normalized}:"
+                f"{invitation.id}:{token_hash}"
+            ).encode()
         ).hexdigest(),
     )
 

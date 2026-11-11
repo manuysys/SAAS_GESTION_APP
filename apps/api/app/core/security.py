@@ -47,13 +47,16 @@ def decode_access_token(token: str) -> dict[str, Any]:
     return payload
 
 
-def create_portal_token(customer_id: str, tenant_id: str) -> tuple[str, int]:
+def create_portal_token(
+    customer_id: str, tenant_id: str, access_version: int = 0
+) -> tuple[str, int]:
     expires_in = settings.portal_token_ttl_hours * 60 * 60
     now = datetime.now(UTC)
     payload: dict[str, Any] = {
         "sub": customer_id,
         "tenant_id": tenant_id,
         "type": "customer",
+        "ver": access_version,
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(seconds=expires_in)).timestamp()),
     }

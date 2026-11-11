@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token, hash_password
-from app.models import Invitation, Membership, Plan, User
+from app.models import EmailDelivery, Invitation, Membership, Plan, User
 
 
 @pytest.fixture
@@ -199,6 +199,40 @@ async def test_resend_changes_token(
     assert second_url != first_url
 
 
+async def test_resend_sends_a_new_email_each_time(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    plans_fixture: list[Plan],
+) -> None:
+    token, tenant_id = await _register(
+        client, "owner-resend-twice@example.com", "Empresa Resend Dos"
+    )
+
+    created = await client.post(
+        "/api/v1/team/invitations",
+        json={"email": "resend-twice@example.com", "role": "viewer"},
+        headers=_headers(token, tenant_id),
+    )
+    assert created.status_code == 201
+    invitation_id = created.json()["id"]
+
+    first = await client.post(
+        f"/api/v1/team/invitations/{invitation_id}/resend",
+        headers=_headers(token, tenant_id),
+    )
+    second = await client.post(
+        f"/api/v1/team/invitations/{invitation_id}/resend",
+        headers=_headers(token, tenant_id),
+    )
+    assert first.status_code == 200, first.text
+    assert second.status_code == 200, second.text
+
+    result = await db_session.execute(
+        select(EmailDelivery).where(EmailDelivery.to_email == "resend-twice@example.com")
+    )
+    assert len(list(result.scalars().all())) == 3
+
+
 async def test_revoke_prevents_accept(
     client: AsyncClient,
     plans_fixture: list[Plan],
@@ -366,6 +400,58 @@ async def test_expired_invitation_is_rejected(
         json={"full_name": "Expired", "password": "super-secret-123"},
     )
     assert accept.status_code == 410
+
+
+async def test_expired_invitation_allows_reinvite(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    plans_fixture: list[Plan],
+) -> None:
+    owner_token, tenant_id = await _register(
+        client, "owner-reinvite@example.com", "Empresa Reinvite"
+    )
+
+    created = await client.post(
+        "/api/v1/team/invitations",
+        json={"email": "reinvite@example.com", "role": "viewer"},
+        headers=_headers(owner_token, tenant_id),
+    )
+    assert created.status_code == 201
+
+    result = await db_session.execute(
+        select(Invitation).where(Invitation.email_normalized == "reinvite@example.com")
+    )
+    invitation = result.scalar_one()
+    invitation.expires_at = datetime.now(UTC) - timedelta(hours=1)
+    await db_session.commit()
+
+    again = await client.post(
+        "/api/v1/team/invitations",
+        json={"email": "reinvite@example.com", "role": "viewer"},
+        headers=_headers(owner_token, tenant_id),
+    )
+    assert again.status_code == 201, again.text
+
+
+async def test_accept_invitation_rejects_untrusted_origin(
+    client: AsyncClient,
+    plans_fixture: list[Plan],
+) -> None:
+    owner_token, tenant_id = await _register(client, "owner-origin@example.com", "Empresa Origin")
+
+    created = await client.post(
+        "/api/v1/team/invitations",
+        json={"email": "origin@example.com", "role": "viewer"},
+        headers=_headers(owner_token, tenant_id),
+    )
+    raw_token = created.json()["invitation_url"].split("/")[-1]
+
+    accept = await client.post(
+        f"/api/v1/public/invitations/{raw_token}/accept",
+        json={"full_name": "Origin", "password": "super-secret-123"},
+        headers={"Origin": "https://evil.example"},
+    )
+    assert accept.status_code == 403
 
 
 async def test_user_limit_blocks_invitation(

@@ -15,6 +15,11 @@
 
 **Resumen:** 10 hechos, 3 en curso, 6 pendientes y 1 bloqueado (sobre 20 criterios).
 
+Actualización 2026-11-11: se cerraron los hallazgos de la auditoría de seguridad
+(revocación de sesión de portal, consumo atómico, reenvío idempotente,
+invitaciones vencidas, escape HTML, `Origin` y `Referrer-Policy`, rate limit con
+IP de proxy). El criterio 19 sigue en curso solo por importación y onboarding.
+
 ## 1. Checklist de criterios
 
 | # | Criterio | Estado | Evidencia verificada | Dependencia externa / nota |
@@ -37,7 +42,7 @@
 | 16 | La aplicación se instala en Android real | Bloqueado | No hay evidencia de instalación en dispositivo físico. | Dispositivo Android físico y APK/AAB de prueba. |
 | 17 | El flujo técnico principal funciona | En curso | PWA `/tech` probada en navegador contra Vercel + Neon (`PROJECT_STATUS.md`). App Expo sin prueba en dispositivo. | Dispositivo físico para cerrar la parte móvil. |
 | 18 | Los backups tienen una restauración comprobada | Pendiente | Existen `.github/workflows/backup.yml`, `scripts/backup.ps1`, `scripts/restore.ps1` y `docs/BACKUP_RESTORE.md`. No hay restauración probada. | Almacenamiento externo independiente y base de staging. |
-| 19 | Las pruebas de seguridad correspondientes pasan | En curso | 123 pruebas pytest; tests de invitaciones, portal, revocación y aislamiento. Faltan importación y onboarding. | Se completa al implementar importación/onboarding. |
+| 19 | Las pruebas de seguridad correspondientes pasan | En curso | 127 pruebas pytest; tests de invitaciones, portal, revocación de sesión, aislamiento y límites. Faltan importación y onboarding. | Se completa al implementar importación/onboarding. |
 | 20 | La documentación permite repetir los procesos | Hecho | `docs/EMAIL_RESEND.md`, `docs/ANDROID_RELEASE.md`, `docs/BACKUP_RESTORE.md`, `docs/TEAM_API.md`, `docs/PILOT_READINESS.md` | Mantenerla actualizada. |
 
 ## 2. Estado de identidad

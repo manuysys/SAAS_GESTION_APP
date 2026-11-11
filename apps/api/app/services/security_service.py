@@ -29,9 +29,15 @@ class LockoutError(HTTPException):
 
 
 def _client_identifier(request: Request) -> str:
+    # En Vercel, `x-real-ip` lo agrega la plataforma. Si solo hay
+    # `x-forwarded-for`, se usa el último hop (el más cercano al proxy) y no el
+    # primero, que el cliente puede falsificar.
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip.strip()
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        return forwarded.split(",")[-1].strip()
     if request.client is not None:
         return request.client.host
     return "unknown"

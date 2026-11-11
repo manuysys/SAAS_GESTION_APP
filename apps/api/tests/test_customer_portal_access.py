@@ -99,6 +99,42 @@ async def test_revoke_portal_access_invalidates_token(
     assert after_revoke.status_code == 401
 
 
+async def test_revoke_invalidates_an_open_portal_session(
+    client: AsyncClient,
+) -> None:
+    token, tenant_id = await _register(client, "owner-session@example.com", "Empresa Session")
+    customer = await _create_customer(client, token, tenant_id)
+
+    created = await client.post(
+        f"/api/v1/customers/{customer['id']}/portal-access",
+        json={"send_email": False},
+        headers=_headers(token, tenant_id),
+    )
+    assert created.status_code == 200
+    access_url = created.json()["access_url"]
+    raw_token = access_url.split("token=")[-1]
+    tenant_slug = access_url.split("/portal/")[-1].split("?")[0]
+
+    verify = await client.post(
+        f"/api/v1/portal/{tenant_slug}/auth/verify",
+        json={"token": raw_token},
+    )
+    assert verify.status_code == 200, verify.text
+    portal_headers = {"Authorization": f"Bearer {verify.json()['access_token']}"}
+
+    before = await client.get(f"/api/v1/portal/{tenant_slug}/me", headers=portal_headers)
+    assert before.status_code == 200
+
+    revoked = await client.post(
+        f"/api/v1/customers/{customer['id']}/portal-access/revoke",
+        headers=_headers(token, tenant_id),
+    )
+    assert revoked.status_code == 204
+
+    after = await client.get(f"/api/v1/portal/{tenant_slug}/me", headers=portal_headers)
+    assert after.status_code == 401
+
+
 async def test_portal_access_is_customer_scoped(
     client: AsyncClient,
 ) -> None:

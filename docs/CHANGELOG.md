@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-11-11 — Endurecimiento de seguridad del portal e invitaciones
+
+- Portal del cliente con versión de sesión (`customers.portal_access_version`):
+  revocar o regenerar un acceso invalida los JWT ya emitidos.
+- Consumo atómico del token de portal para impedir dos verificaciones
+  concurrentes con el mismo enlace.
+- Revocación de tokens pendientes al generar un enlace nuevo.
+- Reenvío de invitaciones con idempotencia por token; cada reenvío envía un
+  correo nuevo y las invitaciones vencidas liberan cupo.
+- Escape HTML de nombres y URLs en las plantillas de email.
+- Validación de `Origin` al aceptar invitaciones y `Referrer-Policy:
+  no-referrer` en `/portal/[slug]`.
+- Rate limiting con `X-Real-IP` y último hop de `X-Forwarded-For`.
+- Login demo del portal restringido al slug literal `servicios-demo`.
+- Migración `c3d4e5f6a7b8` aplicada en local y Neon.
+- 127 pruebas pytest.
+
 ## 2026-11-10 — DOVEXO, equipo, portal seguro y AAB firmado
 
 - Identidad: ARVOKTA como empresa y DOVEXO como producto; web, PWA y Android

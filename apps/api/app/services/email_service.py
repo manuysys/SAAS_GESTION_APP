@@ -9,6 +9,7 @@ Nunca se debe llamar directamente a Resend desde endpoints; todo pasa por acá.
 from __future__ import annotations
 
 import hashlib
+import html
 import secrets
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -64,7 +65,11 @@ def _invitation_html(
     expires_hours: int,
     recipient_name: str | None = None,
 ) -> str:
-    greeting = f"Hola, {recipient_name}" if recipient_name else "Hola"
+    safe_recipient = html.escape(recipient_name) if recipient_name else None
+    safe_tenant = html.escape(tenant_name)
+    safe_role = html.escape(role_label)
+    safe_url = html.escape(invitation_url, quote=True)
+    greeting = f"Hola, {safe_recipient}" if safe_recipient else "Hola"
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -76,17 +81,17 @@ def _invitation_html(
 <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px; padding:32px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
 <h1 style="color:#111827; font-size:24px; margin-bottom:16px;">{greeting}</h1>
 <p style="color:#374151; font-size:16px; line-height:1.6;">
-{tenant_name} te invita a unirte a <strong>{_brand_name()}</strong> como <strong>{role_label}</strong>.
+{safe_tenant} te invita a unirte a <strong>{_brand_name()}</strong> como <strong>{safe_role}</strong>.
 </p>
 <p style="color:#374151; font-size:16px; line-height:1.6;">
 Hacé clic en el botón para aceptar la invitación. El enlace vence en {expires_hours} horas.
 </p>
 <div style="margin:32px 0; text-align:center;">
-<a href="{invitation_url}" style="background:#0F766E; color:#ffffff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; display:inline-block;">Aceptar invitación</a>
+<a href="{safe_url}" style="background:#0F766E; color:#ffffff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; display:inline-block;">Aceptar invitación</a>
 </div>
 <p style="color:#6B7280; font-size:14px; line-height:1.5;">
 Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br>
-<a href="{invitation_url}" style="color:#0F766E;">{invitation_url}</a>
+<a href="{safe_url}" style="color:#0F766E;">{safe_url}</a>
 </p>
 <p style="color:#9CA3AF; font-size:12px; margin-top:32px; border-top:1px solid #E5E7EB; padding-top:16px;">
 {_company_name()} · {_brand_name()} · No respondas a este correo.
@@ -121,6 +126,9 @@ def _portal_access_html(
     expires_hours: int,
     customer_name: str,
 ) -> str:
+    safe_tenant = html.escape(tenant_name)
+    safe_customer = html.escape(customer_name)
+    safe_url = html.escape(access_url, quote=True)
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -130,17 +138,17 @@ def _portal_access_html(
 </head>
 <body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#f4f4f5; padding:24px;">
 <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:12px; padding:32px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-<h1 style="color:#111827; font-size:24px; margin-bottom:16px;">Hola, {customer_name}</h1>
+<h1 style="color:#111827; font-size:24px; margin-bottom:16px;">Hola, {safe_customer}</h1>
 <p style="color:#374151; font-size:16px; line-height:1.6;">
-{tenant_name} te envió un acceso seguro para consultar tus solicitudes, órdenes, presupuestos y pagos en <strong>{_brand_name()}</strong>.
+{safe_tenant} te envió un acceso seguro para consultar tus solicitudes, órdenes, presupuestos y pagos en <strong>{_brand_name()}</strong>.
 </p>
 <div style="margin:32px 0; text-align:center;">
-<a href="{access_url}" style="background:#0F766E; color:#ffffff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; display:inline-block;">Ingresar al portal</a>
+<a href="{safe_url}" style="background:#0F766E; color:#ffffff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; display:inline-block;">Ingresar al portal</a>
 </div>
 <p style="color:#6B7280; font-size:14px; line-height:1.5;">
 El enlace es de uso personal y vence en {expires_hours} horas. No lo compartas.<br>
 Si el botón no funciona, copiá y pegá este enlace:<br>
-<a href="{access_url}" style="color:#0F766E;">{access_url}</a>
+<a href="{safe_url}" style="color:#0F766E;">{safe_url}</a>
 </p>
 <p style="color:#9CA3AF; font-size:12px; margin-top:32px; border-top:1px solid #E5E7EB; padding-top:16px;">
 {_company_name()} · {_brand_name()} · No respondas a este correo.

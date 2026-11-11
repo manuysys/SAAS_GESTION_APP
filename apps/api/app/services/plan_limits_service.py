@@ -4,6 +4,7 @@ El objetivo es no prometer en la landing más de lo que el backend permite.
 Se aplican límites de órdenes por mes, usuarios totales y técnicos.
 """
 
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -64,6 +65,7 @@ async def _count_active_technicians(db: AsyncSession, tenant_id: UUID) -> int:
 
 
 async def _count_pending_invitations(db: AsyncSession, tenant_id: UUID) -> int:
+    now = datetime.now(UTC)
     result = await db.scalar(
         select(func.count())
         .select_from(Invitation)
@@ -71,12 +73,14 @@ async def _count_pending_invitations(db: AsyncSession, tenant_id: UUID) -> int:
             Invitation.tenant_id == tenant_id,
             Invitation.accepted_at.is_(None),
             Invitation.revoked_at.is_(None),
+            Invitation.expires_at > now,
         )
     )
     return int(result or 0)
 
 
 async def _count_pending_technician_invitations(db: AsyncSession, tenant_id: UUID) -> int:
+    now = datetime.now(UTC)
     result = await db.scalar(
         select(func.count())
         .select_from(Invitation)
@@ -85,6 +89,7 @@ async def _count_pending_technician_invitations(db: AsyncSession, tenant_id: UUI
             Invitation.role == "technician",
             Invitation.accepted_at.is_(None),
             Invitation.revoked_at.is_(None),
+            Invitation.expires_at > now,
         )
     )
     return int(result or 0)

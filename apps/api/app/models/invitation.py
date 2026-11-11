@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Index, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,6 +13,10 @@ from app.models.base import Base, TimestampMixin, UUIDMixin
 class Invitation(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "invitations"
     __table_args__ = (
+        CheckConstraint(
+            "role IN ('admin', 'dispatcher', 'technician', 'viewer')",
+            name="ck_invitations_role",
+        ),
         Index(
             "ix_invitations_tenant_email_pending",
             "tenant_id",

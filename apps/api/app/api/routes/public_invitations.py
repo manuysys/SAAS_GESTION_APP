@@ -5,6 +5,7 @@ from app.api.deps import (
     bearer_scheme,
     get_client_ip,
     get_current_user,
+    validate_cookie_origin,
 )
 from app.api.routes.auth import _set_refresh_cookie
 from app.core.db import get_db
@@ -44,6 +45,7 @@ async def accept_public_invitation(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> MobileAuthResponse:
+    validate_cookie_origin(request)
     await security_service.check_rate_limit(
         db,
         request,

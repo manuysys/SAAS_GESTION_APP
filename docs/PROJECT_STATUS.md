@@ -46,7 +46,8 @@ propio está pendiente.
   `email_deliveries`, `invitations` y `portal_settings` en `tenants`.
 - [x] Migraciones: `84e62c6788cb`, `ba3b1d3acd4d`, `50e8c050aada`,
   `de0e021aa0ca`, `51fc582e7593`, `5ffb8399d836`, `c0cc7ae032ee`,
-  `76aba18b0e16`, `a1b2c3d4e5f6` y `b2c3d4e5f6a7` (aplicadas en Neon).
+  `76aba18b0e16`, `a1b2c3d4e5f6`, `b2c3d4e5f6a7` y `c3d4e5f6a7b8` (aplicadas en
+  Neon).
 - [x] Auth: registro, login, refresh rotativo, logout, `/me`.
 - [x] Argon2id, JWT de acceso, cookies `HttpOnly`.
 - [x] Multi-tenancy por `X-Tenant-ID` validado contra membresía.
@@ -70,6 +71,16 @@ propio está pendiente.
   envío por email o enlace copiable, token hasheado, revocación, resumen,
   solicitudes, órdenes, turnos, presupuestos, pagos y aprobación/rechazo.
 - [x] `dev_token` deshabilitado en producción.
+- [x] Revocación de sesión de portal por versión: revocar o regenerar el acceso
+  invalida los JWT de portal ya emitidos.
+- [x] Consumo atómico del token de portal (un solo uso ante verificaciones
+  concurrentes).
+- [x] Escape HTML de nombres y enlaces en emails transaccionales.
+- [x] Reenvío de invitación con idempotencia por token; invitaciones vencidas
+  liberan cupo.
+- [x] Validación de `Origin` al aceptar invitaciones y `Referrer-Policy:
+  no-referrer` en el portal.
+- [x] Rate limiting con `X-Real-IP` y último hop de `X-Forwarded-For`.
 - [x] Direcciones de cliente expuestas al técnico.
 - [x] Push con Expo para asignación y cambio de estado, sin revertir la
   operación si falla el envío.
@@ -96,7 +107,7 @@ propio está pendiente.
 - [x] `/docs`, `/redoc` y `/openapi.json` ocultos en producción.
 - [x] Cabeceras de seguridad HTTP.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 123 pruebas pytest.
+- [x] 127 pruebas pytest.
 
 ### Frontend
 
@@ -151,7 +162,7 @@ propio está pendiente.
 - [x] Tokens en `expo-secure-store`; refresh rotativo persistido.
 - [x] `pnpm exec tsc --noEmit`, `expo export --platform android` y
   `expo-doctor` 20/20.
-- [x] APK release arm64 generado en GitHub Actions (release `mobile-apk-4`,
+- [x] APK release arm64 generado en GitHub Actions (release `mobile-apk-5`,
   30.8 MB, identidad DOVEXO).
 - [x] AAB firmado con keystore de release generado y verificado en GitHub
   Actions (artifact `dovexo-android-aab`, 36 MB).
@@ -164,14 +175,14 @@ propio está pendiente.
 ruff check          -> All checks passed
 ruff format --check -> 143 files already formatted
 basedpyright        -> 0 errors, 0 warnings, 0 notes
-pytest              -> 123 passed
+pytest              -> 127 passed
 pnpm lint           -> sin errores
 pnpm typecheck      -> sin errores
 pnpm test           -> 130 passed
 pnpm build          -> 27 rutas generadas
 expo-doctor         -> 20/20 checks passed
 scripts/verify.ps1  -> Todo OK
-Android APK         -> mobile-apk-4 (DOVEXO, debug)
+Android APK         -> mobile-apk-5 (DOVEXO, debug)
 Android AAB         -> artifact dovexo-android-aab (release, 36 MB)
 ```
 
@@ -207,13 +218,17 @@ GET  /api/v1/team (demo)                                    -> 200, 2 miembros
 POST /api/v1/team/invitations (demo)                        -> 201, email_status=console
 POST /api/v1/customers/{id}/portal-access (demo)            -> 200, email_status=not_sent
 POST /api/v1/portal/servicios-demo/auth/verify              -> 200, Carlos Gomez
+GET  /api/v1/portal/servicios-demo/me (JWT portal)          -> 200, Carlos Gomez
+POST /api/v1/customers/{id}/portal-access/revoke (demo)     -> 204
+GET  /api/v1/portal/servicios-demo/me (mismo JWT)           -> 401, sesión revocada
+GET  https://saas-gestion-web.vercel.app/portal/servicios-demo -> 200, meta referrer no-referrer
 POST /api/v1/portal/servicios-demo/auth/request             -> 200, dev_token ausente
 ```
 
 El refresh de sesión cross-site se verificó recargando el dashboard después del
-login. El asistente devolvió `QT-2026-0002` con datos reales de Neon. La
-migración `76aba18b0e16` quedó aplicada en Neon y la API se redesplegó el
-2026-11-10.
+login. El asistente devolvió `QT-2026-0002` con datos reales de Neon. Las
+migraciones `b2c3d4e5f6a7` y `c3d4e5f6a7b8` quedaron aplicadas en Neon y la API
+se redesplegó el 2026-11-11.
 
 ## Demo pública
 
@@ -246,7 +261,7 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 
 ## Próximo paso concreto
 
-1. Probar el APK `mobile-apk-4` en un dispositivo Android real y corregir lo que
+1. Probar el APK `mobile-apk-5` en un dispositivo Android real y corregir lo que
    falle.
 2. Subir el AAB firmado a Google Play Console y crear la prueba interna.
 3. Comprar y verificar un dominio; configurar Resend y `EMAIL_FROM` para enviar
@@ -270,7 +285,7 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 - La suscripción se crea en modo `trialing` de 14 días, pero todavía no se cobra.
 - Los cold starts de Vercel pueden agregar latencia a la primera request.
 - Falta RLS, 2FA y recuperación de contraseña con email.
-- El APK `mobile-apk-4` usa firma de debug; el AAB firmado con release existe
+- El APK `mobile-apk-5` usa firma de debug; el AAB firmado con release existe
   como artifact, pero todavía no se subió a Play.
 - Resend está implementado, pero sin dominio verificado el proveedor productivo
   no puede entregar. En producción se usa `console` y el enlace se copia a mano.
