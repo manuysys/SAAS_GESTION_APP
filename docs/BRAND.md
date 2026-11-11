@@ -1,46 +1,80 @@
-# Marca provisional — Arreglo
+# Marca — ARVOKTA / DOVEXO
 
-**Estado:** provisional, pendiente de validación de dominio y marca.
-**Fecha:** 2026-11-09
+**Estado:** nombre de producto aprobado (DOVEXO); dominio pendiente.
+**Fecha:** 2026-11-10
+**Decisión vigente:** [ADR-016](DECISIONS.md#adr-016--arvokta-empresa-dovexo-producto). Reemplaza a la marca provisional ARREGLO ([ADR-015](DECISIONS.md#adr-015--marca-provisional-arreglo), obsoleta en el nombre).
 
-## Nombre
+## Empresa y producto
 
-**Arreglo** — `arreglo.com.ar` (a confirmar en NIC.ar).
-
-Motivo:
-
-- Palabra natural del español argentino, fácil de decir y recordar.
-- Doble sentido: **arreglo** = reparación y **arreglo** = orden/estructura.
-- Habla el idioma del cliente (empresas de servicios técnicos), no el de la
-  industria del software.
-- Permite una marca sobria, sin tecnicismos ni anglicismos.
-
-Riesgo: es una palabra genérica, por lo que la protección marcaria puede ser
-limitada. Antes de invertir en identidad definitiva, hacer búsqueda de marca y
-registrar el dominio.
-
-### Alternativas evaluadas
-
-| Nombre | Pro | Contra |
+| Concepto | Nombre | Uso |
 |---|---|---|
-| Tecniuno | Distintivo, dominios `.com.ar` y `.app` disponibles | Se parece a Tecno Uno/TechUno |
-| Base Técnica | Conservador, B2B, dominios disponibles | Genérico, poca personalidad |
-| Legajo | Distintivo, `.app` disponible | Suena administrativo/rrhh |
+| Empresa | **ARVOKTA** | Titular, contratos, facturación, Play Console (cuenta del desarrollador), pie de página legal. |
+| Producto | **DOVEXO** | UI, emails, PDF, landing, app móvil, documentación para clientes. |
+
+Ejemplo de uso:
+
+| Contexto | Texto correcto |
+|---|---|
+| Pie de la landing | "DOVEXO es un producto de ARVOKTA." |
+| Remitente de email | `DOVEXO <no-reply@dominio-verificado>` |
+| Título de la app Android | "DOVEXO" |
+| Términos y privacidad | Titular: ARVOKTA. Servicio: DOVEXO. |
+
+## Estado del dominio
+
+- Dominio de DOVEXO: **pendiente**. No se asume ningún dominio hasta registrarlo.
+- Búsqueda de marca y registro de la marca: **pendiente**.
+- Hasta verificar el dominio, no se envían emails productivos (ver `KNOWN_ISSUES.md`).
+
+## Identificadores Android
+
+| Campo | Valor objetivo | Estado actual en repositorio |
+|---|---|---|
+| `applicationId` / package | `com.dovexo.mobile` | `com.arreglo.mobile` (`apps/mobile/app.json`) |
+| Scheme | `dovexo` | `arreglo` |
+| Slug | `dovexo` | `arreglo` |
+
+El cambio de `applicationId` debe hacerse antes de generar la keystore de release y de la primera subida a Play. Después no se puede cambiar sin crear una app nueva.
+
+## Nombre: reglas de centralización
+
+1. El nombre comercial vive en un solo lugar del frontend: `apps/web/src/lib/brand.ts` (`brand.name`, `brand.legalName`). Hoy sigue con el valor anterior y se cambiará en un cambio de código aparte.
+2. La app móvil toma nombre, slug y scheme de `apps/mobile/app.json`. No hardcodear el nombre en pantallas.
+3. Los emails usan una sola constante de remitente, configurada con la variable `EMAIL_FROM`.
+4. La documentación usa "DOVEXO" para el producto y "ARVOKTA" para la empresa.
+5. No usar el nombre de marca en identificadores de código, bases de datos ni URLs.
+
+## Qué NO se renombra
+
+| Elemento | Motivo |
+|---|---|
+| Rutas web y de API (`/api/v1/...`, `/q/[token]`, `/tech`, `/portal/...`) | Rompe enlaces ya entregados y clientes móviles instalados. |
+| Nombres de tablas, columnas y migraciones | Cambiarlos exige migraciones sin beneficio para el usuario. |
+| Slug de tenant demo `servicios-demo` y cuentas demo | Son datos de prueba referenciados en docs y pruebas. |
+| Proyectos de Vercel y repositorio (`saas-gestion-web`, `saas-gestion-api`, `SAAS_GESTION_APP`) | Cambiarlos rompe despliegues y CI. |
+| Nombre del paquete Python y variables de entorno | Son internos. |
+| `applicationId` anterior `com.arreglo.mobile` | Solo existe en un APK de prueba firmado con debug. Se reemplaza antes de Play, no después (ADR-016). |
 
 ## Tagline
 
-- Principal: **“El sistema de tu empresa de servicios técnicos.”**
-- Hero: **“Del primer llamado al último cobro, todo en orden.”**
-- Alternativa: **“Tu operación técnica, en un solo lugar.”**
+Textos de marca anteriores (`ARREGLO`) quedan **sin validar** para DOVEXO:
+
+- Principal: "El sistema de tu empresa de servicios técnicos."
+- Hero: "Del primer llamado al último cobro, todo en orden."
+- Alternativa: "Tu operación técnica, en un solo lugar."
+
+Revalidar con el nombre nuevo antes de usarlos en landing o Play. No inventar testimonios ni métricas.
 
 ## Voz
 
 - Español argentino, directo, sin jerga de startup.
 - Frases cortas. Beneficio concreto antes que tecnología.
-- No prometer “revolucionar” ni “potenciar con IA”. Decir qué hace y para qué.
+- No prometer "revolucionar" ni "potenciar con IA".
 - Sin testimonios, logos ni métricas inventadas.
 
 ## Paleta
+
+Sin cambios respecto de la paleta anterior (ADR-015).
 
 | Token | Hex | Uso |
 |---|---|---|
@@ -51,8 +85,7 @@ registrar el dominio.
 | `mist` | `#E7E2D8` | Bordes, fondos secundarios |
 | `slate` | `#5B6B7A` | Texto secundario |
 
-Sin gradientes genéricos. Usar superficies planas, líneas finas, grillas y
-texturas sutiles de “plano técnico”.
+Sin gradientes genéricos. Superficies planas, líneas finas y grillas sutiles.
 
 ## Tipografía
 
@@ -60,33 +93,37 @@ texturas sutiles de “plano técnico”.
 - Texto y UI: **Geist** (`font-sans`).
 - Números y códigos: **Geist Mono** (`font-mono`).
 
-## Logo
+## Logo y monograma
 
-Dirección recomendada:
+Estado: **sin diseño aprobado para DOVEXO**.
 
-- Monograma **A** construido con dos trazos que forman un check o una llave.
-- Versión principal: isotipo + wordmark “Arreglo”.
-- Versión reducida: solo isotipo para favicon y PWA.
-- Colores: ink sobre paper, paper sobre ink, y acento teal.
-
-Evitar: engranajes, llaves inglesas cruzadas, casas, cohetes, cerebros con
-circuitos y degradados violetas.
-
-### Prompt para generar el logo
-
-> Minimal geometric monogram of the letter “A”, built from two clean strokes
-> that suggest a check mark or a wrench, flat vector style, deep navy #0B1F33
-> with a teal #0F766E accent, white background, no gradients, no shadows, no
-> text, centered, generous padding, professional B2B SaaS logo for a technical
-> services management platform, crisp edges, SVG-friendly, 1:1.
-
-Generar también una versión horizontal con el wordmark “Arreglo” en Space
-Grotesk semibold, y una versión de una sola tinta para favicon.
+- Dirección: monograma **D** construido con trazos geométricos simples, en ink sobre paper o paper sobre ink, con acento teal.
+- Versión reducida (solo monograma) para favicon, PWA e ícono de Android.
+- Evitar: engranajes, llaves inglesas cruzadas, casas, cohetes, cerebros con circuitos y degradados violetas.
+- El monograma anterior ("A") queda descartado para DOVEXO.
+- No invertir en piezas definitivas hasta validar marca y dominio.
 
 ## Aplicación
 
-- Landing: fondo paper, bloques ink, acentos teal/amber.
+- Landing: fondo paper, bloques ink, acentos teal y amber.
 - Panel: fondo paper, tarjetas blancas, bordes mist, acciones teal.
-- PWA técnico: alto contraste, botones grandes, una acción principal por
-  pantalla.
-- PDF de presupuesto: encabezado con wordmark, datos claros, sin adornos.
+- PWA técnico y app móvil: alto contraste, botones grandes, una acción principal por pantalla.
+- PDF de presupuesto: encabezado con nombre del producto, datos claros, sin adornos.
+
+## Dominios
+
+Verificación RDAP del 2026-11-10:
+
+- `dovexo.com`: registrado por un tercero. No usar como dominio principal.
+- `dovexo.com.ar`: no aparece registrado en RDAP. Confirmar disponibilidad en NIC.ar antes de comprar.
+- `arvokta.com` y `arvokta.com.ar`: no aparecen registrados en RDAP. Confirmar en NIC.ar.
+
+Recomendación: usar **ARVOKTA** como dominio corporativo y **DOVEXO** como marca de producto. No comprar ni configurar Resend hasta confirmar disponibilidad y titularidad.
+
+## Pendientes
+
+- [ ] Búsqueda de marca DOVEXO.
+- [ ] Registro del dominio y confirmación en NIC.ar.
+- [ ] Cambio de `brand.ts` y `app.json` (código, fuera de este documento).
+- [ ] Diseño del monograma D.
+- [ ] Revalidar taglines y textos de la landing.

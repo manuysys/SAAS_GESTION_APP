@@ -80,3 +80,63 @@
 - [ ] Inventario y mantenimiento preventivo.
 - [ ] Rutas, GPS y firma digital.
 - [ ] Integraciones y reportes avanzados.
+
+## Hito 9 — Pilot-ready
+
+Objetivo: tres empresas piloto (mismo rubro) usan el producto sin que el
+fundador toque la base de datos. Criterios completos en
+[`PILOT_READINESS.md`](PILOT_READINESS.md).
+
+**Email (Resend)**
+
+- [ ] Módulo de email único con proveedor `console` y `resend`.
+- [ ] Tabla `email_deliveries` con idempotencia por clave.
+- [ ] Plantillas HTML y texto plano.
+- [ ] Dominio DOVEXO verificado con SPF, DKIM y DMARC. *Bloqueado: dominio y cuenta Resend.*
+- [ ] Envío real de prueba controlada. *Bloqueado: `RESEND_API_KEY`.*
+
+**Invitaciones de técnicos**
+
+- [ ] Tabla `invitations` con hash SHA-256 del token.
+- [ ] Endpoints de equipo y de aceptación pública (`TEAM_API.md`).
+- [ ] Pantalla Equipo con estados activo, pendiente, vencida y revocada.
+- [ ] Límites `max_users` y `max_technicians` con lock.
+
+**Acceso al portal del cliente**
+
+- [ ] Generación de acceso desde la ficha del cliente, con enlace copiable.
+- [ ] Expiración, revocación y uso único.
+- [ ] `dev_token` fuera de producción.
+
+**Importador**
+
+- [ ] Importación de clientes desde CSV.
+- [ ] Importación de clientes desde XLSX.
+- [ ] Vista previa, errores descargables y detección de duplicados.
+- [ ] Importación de órdenes asociadas a clientes existentes.
+
+**Onboarding**
+
+- [ ] Asistente de cuatro pasos (empresa, servicios y horarios, equipo, primeros datos).
+- [ ] Progreso guardado y reanudable.
+- [ ] Checklist de inicio en el dashboard.
+
+**Demo**
+
+- [ ] Seed versionado y reproducible del tenant demo.
+- [ ] Reset que toca solo el tenant demo.
+- [ ] Demo de solo lectura o reset programado.
+
+**Android**
+
+- [ ] Perfil release y keystore fuera de Git. *Bloqueado: decisión de `applicationId` y keystore.*
+- [ ] Renombre a `com.dovexo.mobile` antes de la primera subida.
+- [ ] AAB firmado y prueba interna en Google Play. *Bloqueado: Play Console.*
+- [ ] Prueba en al menos un Android físico. *Bloqueado: dispositivo.*
+
+**Backups y monitoreo**
+
+- [x] Workflow de backup diario configurado en el repositorio (`.github/workflows/backup.yml`). Su ejecución y resultado no están verificados en este documento.
+- [ ] Almacenamiento externo independiente y cifrado. *Bloqueado: proveedor a elegir.*
+- [ ] Restauración probada en staging, con fecha registrada.
+- [ ] Alertas de fallos críticos (backend, base, emails, jobs).

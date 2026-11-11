@@ -217,7 +217,7 @@ limiting compartido.
 ## ADR-015 — Marca provisional Arreglo
 
 **Fecha:** 2026-11-09
-**Estado:** provisional
+**Estado:** obsoleta en el nombre de producto (reemplazada por ADR-016). La paleta y la tipografía siguen vigentes.
 
 **Contexto:** el producto necesita una marca para la landing y la comunicación,
 pero no hay nombre definitivo ni logo.
@@ -230,3 +230,26 @@ definitiva queda sujeta a búsqueda de marca y registro de dominio.
 **Consecuencias:** la landing y la documentación usan Arreglo; el nombre se
 puede cambiar centralizándolo en `apps/web/src/lib/brand.ts` y en la
 documentación. No invertir en piezas definitivas hasta validar marca/dominio.
+
+## ADR-016 — ARVOKTA empresa, DOVEXO producto
+
+**Fecha:** 2026-11-10
+**Estado:** aceptada para el nombre de producto. Dominio pendiente. Reemplaza el nombre de ADR-015.
+
+**Contexto:** ARREGLO fue una marca provisional sin registro de marca ni dominio confirmado. El proyecto necesita separar la empresa titular del producto comercial, para contratos, Play Console, emails y UI. `PROXIMOS_PASOS.txt` pide centralizar el nombre y no hacer reemplazos masivos que rompan rutas o identificadores.
+
+**Decisión:**
+
+- **ARVOKTA** es la empresa (titular legal y cuenta de desarrollador).
+- **DOVEXO** es el nombre comercial del producto para UI, emails, PDF, landing, documentación y app móvil.
+- El dominio de DOVEXO está **pendiente**. No se usa un dominio en `EMAIL_FROM` productivo hasta verificarlo en Resend.
+- Android: `applicationId` `com.dovexo.mobile`, scheme `dovexo`, slug `dovexo`. El cambio debe hacerse antes de generar la keystore de release y de la primera subida a Play, porque el `applicationId` no se puede cambiar después.
+- **No se renombran** rutas (`/api/v1/...`, `/q/[token]`, `/tech`, `/portal/...`), tablas, migraciones, slug del tenant demo `servicios-demo`, nombres de proyectos Vercel y repositorio, paquete Python ni variables de entorno.
+- ARREGLO queda como nombre histórico. `apps/web/src/lib/brand.ts` y `apps/mobile/app.json` siguen con el valor anterior hasta un cambio de código aparte.
+
+**Consecuencias:**
+
+- Los identificadores internos quedan con nombres antiguos (`arreglo`, `saas-gestion`). Es deuda visible y aceptada, no un error.
+- Hay una contradicción documental: `PROXIMOS_PASOS.txt`, sección 2, dice que DOVEXO "no está aprobado". Este ADR lo registra como aprobado para el nombre de producto a partir de la decisión del 2026-11-10. Quien emitió el documento fuente debe actualizarlo. Hasta entonces, no usar DOVEXO en documentos legales ni en la ficha de Play.
+- Búsqueda de marca y registro del dominio siguen pendientes. Riesgo: DOVEXO puede tener conflictos de marca no verificados.
+- Antes de la primera subida a Play no se puede cambiar el `applicationId` sin crear una app nueva.

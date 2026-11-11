@@ -1,0 +1,759 @@
+# ARVOKTA — SPRINT DE PRODUCTIZACIÓN Y PREPARACIÓN PARA PILOTOS REALES
+
+## CONTEXTO
+
+Estamos desarrollando ARVOKTA, una empresa tecnológica cuyo primer producto es una plataforma SaaS de gestión para empresas de servicios técnicos.
+
+El producto ya cuenta con:
+
+### Backend
+- FastAPI.
+- PostgreSQL.
+- SQLAlchemy.
+- Alembic.
+- Autenticación propia.
+- Argon2id.
+- JWT.
+- Refresh tokens rotativos.
+- Cookies HttpOnly.
+- Multi-tenancy mediante tenant_id.
+- Clientes.
+- Solicitudes.
+- Órdenes.
+- Agenda.
+- Pagos.
+- Presupuestos PDF.
+- Aprobación pública con tokens revocables.
+- Dashboard.
+- Automatizaciones.
+- Notificaciones in-app.
+- IA con Groq y fallback determinista.
+- Planes y suscripciones.
+- Trial de 14 días.
+- Límite mensual de órdenes.
+- Portal del cliente.
+- Autenticación móvil.
+- Preparación de push.
+- Idempotencia offline.
+- Rate limiting.
+- Lockout.
+- Auditoría.
+- Validación de Origin.
+- Headers de seguridad.
+
+Estado reportado:
+- 99 pruebas pytest.
+
+### Frontend
+- Next.js 16.
+- React 19.
+- TypeScript estricto.
+- Tailwind.
+- Dashboard administrativo.
+- Clientes.
+- Solicitudes.
+- Órdenes.
+- Presupuestos.
+- Agenda.
+- Pagos.
+- Automatizaciones.
+- Asistente IA.
+- Facturación.
+- WhatsApp.
+- Administración global.
+- PWA de técnicos.
+
+Estado reportado:
+- 95 pruebas Vitest.
+- Build exitoso.
+
+### Aplicación móvil
+- Expo.
+- React Native.
+- Android primero.
+- Login.
+- Trabajos.
+- Filtros.
+- Detalles.
+- Transiciones.
+- Llamadas.
+- Direcciones.
+- Notas.
+- Materiales.
+- Fotografías.
+- Historial.
+- Offline.
+- Portal del cliente.
+
+APK actual:
+https://github.com/manuysys/SAAS_GESTION_APP/releases/tag/mobile-apk-3
+
+IMPORTANTE: todavía no está comprobado en un dispositivo físico. El APK publicado es de debug.
+
+### Infraestructura
+Frontend:
+https://saas-gestion-web.vercel.app
+
+API:
+https://saas-gestion-api.vercel.app
+
+Base de datos:
+PostgreSQL en Neon.
+
+CI:
+GitHub Actions para backend, frontend, mobile y seguridad.
+
+Estos estados son antecedentes proporcionados por el fundador. Debes verificarlos en el repositorio antes de afirmar que siguen vigentes.
+
+# 1. OBJETIVO
+
+Preparar el producto para que tres empresas piloto puedan utilizarlo sin que el fundador tenga que modificar directamente la base de datos.
+
+La definición de éxito es:
+
+Una empresa puede registrarse, configurar su negocio, invitar empleados, cargar clientes, gestionar órdenes, enviar presupuestos, permitir que el cliente los apruebe, registrar pagos y utilizar la aplicación móvil.
+
+Toda la operativa debe realizarse desde las interfaces del producto.
+
+No empezar una reescritura.
+
+No agregar funcionalidades que no contribuyan a este objetivo.
+
+No sacrificar seguridad por velocidad.
+
+# 2. IDENTIDAD
+
+Empresa: ARVOKTA.
+
+Producto: DOVEXO (aprobado como nombre comercial el 2026-11-10; dominio y registro marcario pendientes).
+
+ARREGLO es una denominación histórica utilizada por una primera implementación y NO es el nombre comercial actual.
+
+DOVEXO fue un candidato y quedó aprobado por decisión del fundador. Antes de usarlo en documentos legales o en Google Play falta verificar disponibilidad marcaria y registrar el dominio.
+
+Centralizar el nombre del producto, logotipo, colores y metadatos comerciales.
+
+No hacer reemplazos masivos que puedan romper rutas, APIs o identificadores internos.
+
+Preparar la aplicación para cambiar de identidad sin afectar su funcionamiento.
+
+# 3. DECISIONES DEL FUNDADOR
+
+Aplicar estas decisiones como valores predeterminados del proyecto:
+
+- Distribución Android: Google Play, comenzando por prueba interna.
+- Email transaccional: Resend.
+- Cobros iniciales del SaaS: transferencia bancaria manual.
+- Pasarela de pagos: Mercado Pago posteriormente.
+- WhatsApp: integración posterior, no bloquear el piloto por falta de credenciales.
+- Empresas piloto: tres negocios inicialmente, preferentemente del mismo rubro.
+- Mercado inicial: servicios técnicos a domicilio.
+- Arquitectura: conservar la implementación existente.
+
+Si falta una cuenta, credencial o permiso externo, implementar la parte técnica posible y documentar el bloqueo.
+
+# 4. PRIORIDAD P0: EMAIL TRANSACCIONAL CON RESEND
+
+Investigar la arquitectura actual de notificaciones y autenticación.
+
+Integrar Resend en el backend FastAPI.
+
+Documentación oficial:
+https://resend.com/docs
+
+Referencias de integración:
+https://resend.com/fastapi
+https://resend.com/python
+
+Crear un módulo de email reutilizable.
+
+No llamar directamente a Resend desde distintos endpoints con código duplicado.
+
+Implementar plantillas para:
+
+- Invitaciones de empleados.
+- Acceso al portal de clientes.
+- Recuperación de contraseña.
+- Verificación de email.
+- Notificaciones transaccionales necesarias.
+
+Requisitos:
+
+1. Utilizar RESEND_API_KEY como secreto.
+2. No exponer la clave al frontend.
+3. Configurar el remitente desde variables de entorno.
+4. Utilizar plantillas HTML y texto plano.
+5. Registrar identificadores de proveedor.
+6. Registrar estados de envío.
+7. Manejar errores.
+8. Implementar reintentos seguros.
+9. Usar idempotencia donde corresponda.
+10. No duplicar emails por reintentos de operaciones.
+11. Diferenciar email solicitado, aceptado por el proveedor y entregado.
+12. Registrar fallos sin almacenar secretos.
+
+Preparar configuración de dominio.
+
+Variables de entorno de ejemplo:
+
+RESEND_API_KEY=
+EMAIL_FROM=
+APP_PUBLIC_URL=
+
+No inventar valores reales.
+
+El dominio debe contar con configuración DNS adecuada.
+
+Comprobar SPF, DKIM y DMARC.
+
+Mientras no exista un dominio verificado, permitir pruebas controladas, pero no considerar completa la entrega productiva.
+
+# 5. PRIORIDAD P0: INVITACIÓN DE TÉCNICOS
+
+Esta funcionalidad es fundamental para el autoservicio.
+
+Actualmente los técnicos de demostración se crearon mediante SQL.
+
+Eliminar esa dependencia de procesos manuales.
+
+## Flujo
+
+1. El dueño ingresa al panel.
+2. Abre la sección Equipo.
+3. Selecciona Invitar técnico.
+4. Completa nombre y correo.
+5. Selecciona rol permitido.
+6. Confirma.
+7. El backend crea una invitación.
+8. Se envía un correo.
+9. El empleado abre el enlace.
+10. Acepta la invitación.
+11. Inicia sesión o crea su cuenta.
+12. Se crea la membresía en la empresa.
+13. Aparece automáticamente en el equipo.
+
+## Requisitos técnicos
+
+Crear o reutilizar una entidad de invitación.
+
+Campos mínimos:
+
+- id.
+- tenant_id.
+- email_normalized.
+- role.
+- invited_by.
+- token_hash.
+- expires_at.
+- accepted_at.
+- revoked_at.
+- created_at.
+
+Usar tokens aleatorios de alta entropía.
+
+Guardar hashes, nunca tokens en texto plano.
+
+Establecer expiración configurable; usar siete días como valor inicial razonable.
+
+Permitir:
+
+- Reenviar invitación.
+- Revocar.
+- Consultar estado.
+- Volver a invitar.
+- Detectar invitaciones vencidas.
+- Detectar correos incorrectos.
+
+Una invitación solo se puede utilizar una vez.
+
+El email verificado de la persona que acepta debe coincidir con el destinatario de la invitación.
+
+Si el usuario ya tiene cuenta, permitir asociarlo a otra empresa sin duplicar su identidad.
+
+No permitir que un técnico pueda invitar propietarios ni administradores.
+
+La empresa controla qué roles puede asignar.
+
+Validar los límites de usuarios y técnicos antes de invitar.
+
+Evitar race conditions cuando dos administradores intentan ocupar el último asiento simultáneamente.
+
+## Frontend
+
+Crear una sección de administración del equipo.
+
+Mostrar:
+
+- Nombre.
+- Email.
+- Rol.
+- Estado.
+- Fecha de invitación.
+- Último acceso, si existe.
+
+Estados:
+
+- Activo.
+- Invitación pendiente.
+- Vencida.
+- Revocada.
+
+Agregar formulario de invitación, reenvío y revocación.
+
+Utilizar mensajes claros.
+
+No mostrar errores internos del backend al usuario.
+
+# 6. PRIORIDAD P0: ACCESO AL PORTAL DEL CLIENTE
+
+Actualmente el magic link funciona en la demo mediante dev_token, pero no existe entrega real de acceso.
+
+Eliminar completamente dev_token de producción.
+
+Crear una solución segura de acceso.
+
+## Flujo
+
+Desde la ficha de cliente:
+
+1. Administrador selecciona habilitar portal.
+2. Verifica el correo o contacto registrado.
+3. Genera acceso.
+4. Puede enviar por email.
+5. También puede copiar el enlace manualmente.
+6. El cliente abre el enlace.
+7. Se valida el token.
+8. Se crea una sesión o mecanismo de acceso seguro.
+9. El cliente consulta solamente su información.
+
+## Requisitos
+
+- Tokens aleatorios.
+- Almacenamiento mediante hash.
+- Expiración.
+- Revocación.
+- Uso único para el enlace de acceso.
+- Validación del cliente.
+- Rate limiting.
+- Auditoría.
+- Prevención de enumeración.
+- Protección contra brute force.
+
+Preferir que el acceso quede vinculado a una cuenta de cliente y no a un enlace público permanente.
+
+Si se utiliza una sesión autenticada, permitir acceso posterior sin tener que solicitar un nuevo enlace en cada visita.
+
+## Acciones del cliente
+
+Permitir únicamente:
+
+- Consultar solicitudes.
+- Consultar órdenes.
+- Consultar turnos.
+- Consultar presupuestos.
+- Aprobar o rechazar presupuestos.
+- Consultar pagos.
+- Consultar información propia.
+
+El cliente nunca puede consultar información de otros clientes.
+
+No darle permisos administrativos.
+
+## Link manual
+
+El administrador debe poder copiar el enlace generado.
+
+El link manual debe tener exactamente las mismas protecciones del enlace enviado por correo.
+
+No guardar ni mostrar el token en logs.
+
+No permitir que el frontend invente o genere tokens.
+
+# 7. PRIORIDAD P0: IMPORTADOR CSV Y EXCEL
+
+Crear un importador accesible desde el panel.
+
+Primera versión:
+
+- CSV.
+- XLSX.
+
+Permitir importar clientes.
+
+Después incorporar órdenes asociadas a clientes.
+
+## Flujo
+
+1. Descargar plantilla de ejemplo.
+2. Seleccionar archivo.
+3. Cargar archivo.
+4. Leer encabezados.
+5. Permitir mapear columnas.
+6. Mostrar vista previa.
+7. Validar información.
+8. Mostrar errores.
+9. Detectar duplicados.
+10. Confirmar importación.
+11. Ejecutar importación.
+12. Mostrar resultado.
+
+El importador debe trabajar siempre dentro del tenant autenticado.
+
+No permitir asignar tenant_id desde el archivo.
+
+## Validaciones
+
+- Teléfono.
+- Email.
+- Campos obligatorios.
+- Tamaños.
+- Duplicados.
+- Caracteres inválidos.
+- Cantidad máxima de registros.
+- Direcciones.
+- Relaciones.
+
+No descartar silenciosamente registros incorrectos.
+
+Permitir descargar un reporte de errores.
+
+No crear duplicados cuando se importa dos veces un mismo archivo.
+
+Antes de importar órdenes, verificar que sus clientes de referencia existan.
+
+La carga debe ser transaccional o utilizar un esquema de importación controlado que permita identificar claramente los registros aceptados y rechazados.
+
+# 8. PRIORIDAD P0: ONBOARDING
+
+Implementar un asistente de cuatro pasos.
+
+## Paso 1: empresa
+
+- Nombre.
+- Actividad.
+- Teléfono.
+- Email.
+- Dirección.
+- Datos básicos.
+
+## Paso 2: servicios y horarios
+
+- Servicios ofrecidos.
+- Horarios.
+- Días de atención.
+- Duración estimada.
+- Configuración básica de agenda.
+
+## Paso 3: equipo
+
+- Invitar técnicos.
+- Agregar empleados.
+- Asignar roles.
+
+Permitir saltar este paso cuando sea un técnico independiente.
+
+## Paso 4: primeros datos
+
+- Importar clientes.
+- Registrar un cliente.
+- Crear primer trabajo.
+
+El onboarding debe ser:
+
+- Guiado.
+- Rápido.
+- Responsive.
+- Guardar progreso.
+- Reanudable.
+- Fácil de abandonar.
+- No bloquear la aplicación por datos opcionales.
+
+Después del onboarding, mostrar un checklist de inicio en el dashboard.
+
+Marcar los pasos como completados cuando se comprueben en el backend.
+
+# 9. PRIORIDAD P0: DEMO SEGURA Y REINICIABLE
+
+La demo actual puede ser modificada por usuarios externos.
+
+Resolver este problema.
+
+Crear un tenant de demostración separado.
+
+Los datos de demo nunca deben mezclarse con tenants reales.
+
+Opciones a evaluar:
+
+- Demo pública de solo lectura.
+- Datos restaurados automáticamente.
+- Cuentas de demo aisladas.
+- Sandbox independiente por usuario, si resulta viable.
+
+Primera implementación recomendada:
+
+- Demo pública de solo lectura.
+- Endpoint de reset protegido y exclusivo de administración.
+- Datos semilla versionados.
+- Script reproducible de restauración.
+- Identificación clara de registros ficticios.
+
+Nunca ejecutar un reset global de la base de datos.
+
+Nunca utilizar datos de clientes reales en la demo.
+
+# 10. PRIORIDAD P0: APLICACIÓN ANDROID
+
+El APK actual es debug y todavía no está probado en un dispositivo real.
+
+No declararlo listo para distribución.
+
+## Primera etapa
+
+Preparar perfil release.
+
+Generar las credenciales de firma de manera segura.
+
+No guardar el keystore ni sus contraseñas en Git.
+
+Guardar un backup seguro del keystore.
+
+Mantener estable el applicationId y el certificado para futuras actualizaciones.
+
+Utilizar Android App Bundle (AAB) para Google Play.
+
+Documentación oficial:
+https://developer.android.com/studio/publish/app-signing
+https://support.google.com/googleplay/android-developer/answer/9845334
+
+Configurar una prueba interna en Google Play.
+
+## Pruebas físicas
+
+Utilizar al menos un teléfono Android real.
+
+Comprobar:
+
+- Instalación.
+- Actualización.
+- Login.
+- Refresh de sesión.
+- Consulta de trabajos.
+- Filtros.
+- Detalle.
+- Cambio de estados.
+- Llamadas.
+- Navegación.
+- Fotografías.
+- Permisos de cámara.
+- Materiales.
+- Offline.
+- Sincronización.
+- Reintentos.
+- Idempotencia.
+- Logout.
+- Expiración de credenciales.
+
+Registrar los resultados de cada prueba.
+
+No afirmar que push funciona hasta probarlo.
+
+## Push
+
+Completar configuración de:
+
+- EAS projectId.
+- Firebase Cloud Messaging.
+- Credenciales.
+- Registro del dispositivo.
+- Token.
+- Envío.
+- Recepción.
+- Deep links.
+
+Esta tarea puede continuar después de validar el circuito operativo básico.
+
+# 11. PRIORIDAD P0: BACKUPS Y MONITOREO
+
+Neon Free no debe ser considerado el único mecanismo de protección de información de clientes.
+
+Implementar una estrategia de respaldo.
+
+Analizar:
+
+- pg_dump.
+- Backups externos.
+- Almacenamiento independiente.
+- Cifrado.
+- Retención.
+- Restauración.
+- Monitoreo.
+
+Crear backups periódicos externos.
+
+No guardar todos los backups en la misma infraestructura principal.
+
+Probar restauración sobre una base de staging, nunca sobre producción durante una prueba.
+
+Documentar:
+
+- Frecuencia.
+- Retención.
+- Ubicación.
+- Cifrado.
+- Procedimiento de restauración.
+- Última restauración probada.
+
+Implementar monitoreo de:
+
+- Backend.
+- Frontend.
+- Base de datos.
+- Errores.
+- Jobs.
+- Emails.
+- Integraciones.
+
+Configurar alertas para fallos críticos.
+
+# 12. PRIORIDAD P1: OPERACIÓN COMERCIAL
+
+Una vez cerrado el circuito P0, completar:
+
+- Recuperación de contraseña.
+- Límites de usuarios.
+- Límites de técnicos.
+- Entitlements.
+- Gestión del trial.
+- Registro manual de pagos.
+- Estados de suscripción.
+- Documentación de soporte.
+- Exportación de información.
+- Configuración de empresa.
+- Dominio personalizado.
+- Privacidad.
+- Términos.
+
+No implementar Mercado Pago todavía.
+
+No activar WhatsApp en producción hasta disponer de credenciales y probar la integración de punta a punta.
+
+# 13. SEGURIDAD
+
+Revisar especialmente:
+
+- Aislamiento de tenants.
+- Invitaciones.
+- Magic links.
+- Acceso del cliente.
+- Acceso móvil.
+- Refresh tokens.
+- Enlaces públicos.
+- Archivos.
+- Importaciones.
+- Demo.
+
+Crear pruebas para impedir:
+
+- Aceptar invitaciones revocadas.
+- Reutilizar tokens.
+- Aceptar invitaciones de otro email.
+- Acceder a otras empresas.
+- Consultar otros clientes.
+- Repetir aprobaciones.
+- Ejecutar imports con tenant ajeno.
+- Usar dev_token en producción.
+
+No confiar en validaciones frontend.
+
+Todas las reglas deben verificarse en backend.
+
+# 14. CRITERIOS DE ACEPTACIÓN
+
+Considerar terminado el sprint cuando:
+
+1. El propietario puede invitar técnicos desde la web.
+2. El técnico recibe una invitación real.
+3. Puede aceptarla.
+4. Aparece en el equipo.
+5. Los límites del plan son respetados.
+6. El propietario puede habilitar acceso al portal de clientes.
+7. Puede enviar o copiar un enlace seguro.
+8. El cliente puede ingresar.
+9. El cliente ve exclusivamente sus datos.
+10. El administrador puede importar clientes desde CSV.
+11. Puede importar clientes desde XLSX.
+12. El importador muestra errores y duplicados.
+13. El onboarding permite configurar una empresa sin intervención técnica.
+14. La demo puede restaurarse.
+15. La aplicación tiene un build firmado.
+16. La aplicación se instala en Android real.
+17. El flujo técnico principal funciona.
+18. Los backups tienen una restauración comprobada.
+19. Las pruebas de seguridad correspondientes pasan.
+20. La documentación permite repetir los procesos.
+
+# 15. METODOLOGÍA
+
+No desarrollar todo simultáneamente.
+
+Trabajar en bloques funcionales.
+
+Primero auditar.
+
+Después implementar.
+
+Después probar.
+
+Después documentar.
+
+No eliminar funcionalidades existentes.
+
+No duplicar módulos.
+
+No modificar producción sin revisión.
+
+No ejecutar migraciones destructivas.
+
+Utilizar Git y mantener commits lógicos.
+
+Actualizar:
+
+- docs/PROJECT_STATUS.md
+- docs/ROADMAP.md
+- docs/KNOWN_ISSUES.md
+- docs/SECURITY_AUDIT.md
+- docs/PILOT_READINESS.md
+
+# 16. INFORME FINAL
+
+Cuando termines, presentar:
+
+- Funcionalidades implementadas.
+- Funcionalidades verificadas.
+- Pruebas ejecutadas.
+- Resultados.
+- Problemas pendientes.
+- Credenciales necesarias.
+- Configuraciones externas pendientes.
+- Instrucciones de ejecución.
+- Próximo bloque de trabajo.
+
+No afirmar que el producto es autoservicio si todavía requiere manipulación manual de datos.
+
+No afirmar que la app está lista para producción si no se probó en dispositivo.
+
+No afirmar que los emails llegan si solamente se probó que la API aceptó la solicitud.
+
+No afirmar que un backup funciona si no se restauró.
+
+# INSTRUCCIÓN FINAL
+
+La prioridad es convertir el producto existente en un SaaS pilot-ready.
+
+No necesitamos otro dashboard ni más funcionalidades de IA.
+
+Necesitamos que una empresa pueda registrarse, incorporar su equipo, cargar sus datos y trabajar sin asistencia técnica del fundador.
+
+Empezá inspeccionando el repositorio actual y continuá con la primera funcionalidad pendiente: email transaccional e invitaciones de técnicos.
+
+No reinicies el proyecto. No reescribas lo que funciona. Construí sobre la base existente.

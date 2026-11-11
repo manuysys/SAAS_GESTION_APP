@@ -49,7 +49,7 @@
   `PLATFORM_ADMIN_EMAILS`. No hay interfaz para administrar platform admins.
 - **Sin entrevistas a clientes.** La investigación competitiva está hecha, pero
   no hay validación con clientes reales.
-- **Sin nombre comercial aprobado.** TIVORA fue descartado preliminarmente.
+- **Nombre comercial: resuelto parcialmente (2026-11-10).** DOVEXO está aprobado como producto (ADR-016), pero el dominio, la búsqueda de marca y el cambio de código siguen pendientes. Ver la sección "Identidad, dominio y distribución".
 
 ## App móvil y portal
 
@@ -77,3 +77,34 @@
 - Costos variables de IA y WhatsApp sin cuotas comerciales validadas.
 - Migración de adjuntos a almacenamiento S3-compatible.
 - Protección de datos personales y revisión legal Ley 25.326.
+
+## Identidad, dominio y distribución (2026-11-10)
+
+- **Dominio de DOVEXO no registrado ni verificado.** No hay dominio para el
+  remitente de email, la landing ni los enlaces de invitación. Acción: búsqueda de
+  marca, registro en NIC.ar y configuración DNS. Ver [`BRAND.md`](BRAND.md).
+- **Resend sin cuenta ni dominio verificado.** No hay `RESEND_API_KEY` configurada
+  y el módulo de email no existe en el código. Ninguna afirmación de "email entregado"
+  es válida. Bloquea invitaciones reales y enlaces de acceso al portal por email.
+- **Nombre en el código anterior a ADR-016.** `apps/web/src/lib/brand.ts` y
+  `apps/mobile/app.json` siguen con "Arreglo". Cambiar sin romper rutas ni
+  identificadores requiere un cambio de código aparte.
+- **`applicationId` anterior en Android.** `apps/mobile/app.json` usa
+  `com.arreglo.mobile`. Debe cambiarse a `com.dovexo.mobile` antes de generar la
+  keystore de release, porque después no se puede modificar en Play.
+- **Sin keystore de release.** No hay firma de producción. El APK publicado usa la
+  firma de debug y no es publicable.
+- **Sin cuenta de Google Play Console.** No hay ficha, política de privacidad ni
+  data safety. Bloquea la prueba interna.
+- **Sin prueba en Android físico.** Criterios 16 y 17 de `PROXIMOS_PASOS.txt`
+  siguen abiertos. Ver [`PILOT_READINESS.md`](PILOT_READINESS.md).
+- **Discrepancia en el documento fuente.** `PROXIMOS_PASOS.txt`, sección 2, dice
+  que DOVEXO no está aprobado. ADR-016 lo registra como aprobado. Hay que
+  actualizar el documento fuente o revertir la decisión.
+- **Restauración de backups no probada.** Existe el workflow `backup.yml` y los
+  scripts `backup.ps1` y `restore.ps1`, pero no hay un registro de restauración en
+  staging. `docs/BACKUP_RESTORE.md` no existe todavía.
+- **Documentos de referencia pendientes.** No existen `docs/EMAIL_RESEND.md`,
+  `docs/ANDROID_RELEASE.md` ni `docs/BACKUP_RESTORE.md`. Hasta crearlos, los
+  procedimientos de email, release y restauración solo se pueden repetir a partir
+  del código y de los scripts existentes.

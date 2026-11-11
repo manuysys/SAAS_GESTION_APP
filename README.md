@@ -1,16 +1,16 @@
-# SaaS Gestión
+# DOVEXO
 
-> **Marca provisional:** **Arreglo**. La identidad definitiva está pendiente de
-> validación de dominio y marca. Ver [`docs/BRAND.md`](docs/BRAND.md).
+> **Empresa:** **ARVOKTA**. **Producto:** **DOVEXO**. El dominio propio y el
+> registro marcario están pendientes. Ver [`docs/BRAND.md`](docs/BRAND.md).
 
 Plataforma SaaS B2B de gestión, automatización e inteligencia para empresas de
 servicios técnicos: CRM, solicitudes, órdenes de trabajo, presupuestos, agenda,
 pagos, comunicaciones y automatizaciones en un solo lugar.
 
 > **Estado:** aplicación funcional de punta a punta en local y demo pública
-> temporal en Vercel. Incluye PWA para técnicos, automatizaciones,
-> notificaciones, asistente de IA determinista, suscripciones, panel global y
-> esqueleto de WhatsApp oficial. La fuente de verdad del avance es
+> temporal en Vercel. Incluye PWA para técnicos, app Android, automatizaciones,
+> notificaciones, asistente de IA con Groq, suscripciones, panel global y
+> configuración de WhatsApp oficial. La fuente de verdad del avance es
 > [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 ## Stack

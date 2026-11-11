@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-10 — DOVEXO y preparación de pilotos
+
+Solo cambios documentales. No hay código nuevo en esta entrada.
+
+- Identidad: ARVOKTA como empresa y DOVEXO como producto (ADR-016). ADR-015
+  (ARREGLO) queda obsoleta en el nombre.
+- `docs/BRAND.md` actualizado: nombre aprobado, dominio pendiente, reglas de
+  centralización y lista de identificadores que no se renombran.
+- `docs/PILOT_READINESS.md` nuevo: 20 criterios de `PROXIMOS_PASOS.txt`, con
+  estado real (0 hechos, 6 en curso, 11 pendientes, 3 bloqueados) y bloqueos externos.
+- `docs/ROADMAP.md`: Hito 9 "Pilot-ready". Solo está marcado como hecho el workflow
+  de backup existente en el repositorio.
+- `docs/KNOWN_ISSUES.md`: bloqueos de dominio, Resend, Play Console, keystore,
+  `applicationId`, dispositivo y restauración de backups.
+- Pendiente (no implementado): módulo de email, invitaciones de técnicos, acceso
+  al portal sin `dev_token`, importador CSV y XLSX, onboarding, reset de demo,
+  build firmado y prueba en dispositivo, restauración de backup verificada.
+
 ## 2026-11-10 — App móvil Android, portal del cliente y dashboard operativo
 
 - App Expo / React Native (SDK 58) para Android en `apps/mobile`, con dos
