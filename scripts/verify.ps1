@@ -55,8 +55,30 @@ if (Test-Path (Join-Path $api 'pyproject.toml')) {
     if ($LASTEXITCODE -ne 0) { $failures += 'ruff-format' }
     uv run basedpyright
     if ($LASTEXITCODE -ne 0) { $failures += 'basedpyright' }
-    uv run pytest -q
-    if ($LASTEXITCODE -ne 0) { $failures += 'pytest' }
+    # La suite completa puede colgarse en Windows por una conexion asyncpg que
+    # queda abierta entre tests. Se ejecuta en dos procesos para mantener la
+    # misma cobertura sin el deadlock del runner.
+    $pytestChunks = @(
+        @(
+            'tests/test_ai.py', 'tests/test_appointments.py', 'tests/test_auth.py',
+            'tests/test_automations.py', 'tests/test_billing.py',
+            'tests/test_customer_portal_access.py', 'tests/test_customers.py',
+            'tests/test_dashboard.py', 'tests/test_email_service.py',
+            'tests/test_health.py', 'tests/test_invitations.py'
+        ),
+        @(
+            'tests/test_mobile_auth.py', 'tests/test_payments.py', 'tests/test_portal.py',
+            'tests/test_push.py', 'tests/test_quotes.py', 'tests/test_security.py',
+            'tests/test_technician.py', 'tests/test_whatsapp.py', 'tests/test_work_orders.py'
+        )
+    )
+    foreach ($chunk in $pytestChunks) {
+        uv run pytest -q @chunk
+        if ($LASTEXITCODE -ne 0) {
+            $failures += 'pytest'
+            break
+        }
+    }
     Pop-Location
 } else {
     Write-Host "[SKIP] apps/api aun no existe"

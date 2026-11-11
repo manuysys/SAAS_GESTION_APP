@@ -92,7 +92,7 @@
   después de la primera subida a Play.
 - **Keystore de release generada; AAB no subido a Play.** El workflow
   `android-release.yml` generó y verificó `dovexo-android-aab`. El APK
-  `mobile-apk-4` sigue firmado con debug y no es publicable. Falta el backup
+  `mobile-apk-5` sigue firmado con debug y no es publicable. Falta el backup
   seguro de la keystore y la cuenta de Play Console.
 - **Sin cuenta de Google Play Console.** No hay ficha, política de privacidad ni
   data safety. Bloquea la prueba interna.
@@ -106,3 +106,7 @@
 - **Documentación de referencia creada.** `docs/EMAIL_RESEND.md`,
   `docs/ANDROID_RELEASE.md`, `docs/BACKUP_RESTORE.md` y `docs/TEAM_API.md` ya
   existen. Mantenerlos actualizados cuando cambie el proceso.
+- **Pytest completo puede colgarse en Windows.** La suite entera en un solo
+  proceso se quedó esperando una conexión asyncpg después de
+  `test_invitations.py`. `scripts/verify.ps1` ejecuta los mismos 127 tests en dos
+  procesos (71 + 56) y así termina de forma estable. No se perdió cobertura.
