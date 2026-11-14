@@ -108,23 +108,24 @@ fundador toque la base de datos. Criterios completos en
 - [x] Expiración, revocación y uso único.
 - [x] `dev_token` fuera de producción.
 
-**Importador** (2026-11-11, código y tests; verificación en producción pendiente)
+**Importador** (2026-11-11, código y tests; verificado en producción)
 
-- [x] Importación de clientes desde CSV.
-- [x] Importación de clientes desde XLSX. *Pendiente: agregar `openpyxl` y `defusedxml` a `apps/api/requirements.txt` para Vercel.*
+- [x] Importación de clientes desde CSV y XLSX (preview 200 con archivo real en Vercel).
 - [x] Vista previa, errores descargables y detección de duplicados.
+- [x] Commit idempotente y neutralización de fórmulas solo en `errors.csv`.
 - [ ] Importación de órdenes asociadas a clientes existentes.
 
-**Onboarding** (2026-11-11, código y tests; prueba E2E pendiente)
+**Onboarding** (2026-11-11, código y tests; verificado en producción, prueba E2E pendiente)
 
 - [x] Asistente de cuatro pasos (empresa, servicios y horarios, equipo, primeros datos).
 - [x] Progreso guardado y reanudable.
 - [x] Checklist de inicio en el dashboard.
+- [ ] Prueba E2E en navegador contra Vercel + Neon.
 
-**Demo** (2026-11-11, código y tests; verificación en producción pendiente)
+**Demo** (2026-11-11, código y tests; verificado en producción)
 
 - [x] Seed versionado y reproducible del tenant demo.
-- [x] Reset que toca solo el tenant demo (solo platform admin).
+- [x] Reset que toca solo el tenant demo (solo platform admin, verificado con founder@).
 - [ ] Demo de solo lectura o reset programado.
 
 **Android**
