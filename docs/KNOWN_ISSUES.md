@@ -113,20 +113,19 @@
 
 ## Pilot-ready: importador, onboarding y reset de demo (2026-11-11)
 
-- **XLSX no funciona en Vercel todavía.** `openpyxl` y `defusedxml` están en
-  `apps/api/pyproject.toml` pero no en `apps/api/requirements.txt`. Según el código,
-  el preview XLSX responde 422 "Librería XLSX no disponible" en el deploy. Acción:
-  agregar ambas dependencias al `requirements.txt`, redesplegar y probar un XLSX real.
-  Criterio afectado: 11 de [`PILOT_READINESS.md`](PILOT_READINESS.md).
+- **XLSX en Vercel: resuelto.** `openpyxl` y `defusedxml` están en
+  `apps/api/requirements.txt` y se desplegaron. Un preview XLSX real respondió 200
+  en producción (sin 422). Criterio 11 de [`PILOT_READINESS.md`](PILOT_READINESS.md)
+  cerrado.
 - **Reset de demo solo para platform admin.** `POST /api/v1/admin/demo/reset` exige
   `is_platform_admin` o un email listado en `PLATFORM_ADMIN_EMAILS`.
   `demo@saasgestion.com` no es platform admin, así que no puede ejecutarlo. No hay
   botón en la UI. Para resetear la demo hace falta un usuario platform admin o agregar
   el email a `PLATFORM_ADMIN_EMAILS`, decisión que tiene que tomar el responsable.
-- **Verificación en producción pendiente.** Migraciones `d4e5f6a7b8c9` y `e5f6a7b8c9d0`,
-  los endpoints de importación, onboarding y reset, y la UI no tienen registro de
-  verificación en Vercel + Neon. `devops` lo está haciendo. Hasta entonces, ningún
-  criterio nuevo se considera verificado en producción.
+- **Verificación en producción: resuelta.** Migraciones `d4e5f6a7b8c9` y
+  `e5f6a7b8c9d0`, los endpoints de importación, onboarding y reset, y la UI fueron
+  verificadas contra Vercel + Neon (commit `3e3ff21`, todos los endpoints 200).
+  Registrado en `docs/PROJECT_STATUS.md`.
 - **Prueba E2E en navegador pendiente.** El flujo completo (preview, commit, errores,
   onboarding de cuatro pasos y checklist del dashboard) no se recorrió en navegador
   contra producción.

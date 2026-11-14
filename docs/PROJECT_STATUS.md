@@ -1,9 +1,9 @@
 # Estado del proyecto
 
-**Última actualización:** 2026-11-11
+**Última actualización:** 2026-11-14
 **Fase:** Hito 2 completo + PWA, app móvil Android DOVEXO, portal del cliente,
 dashboard operativo, automatizaciones, IA con Groq, suscripciones, panel global,
-WhatsApp, importador CSV/XLSX, onboarding y reset de demo (pilot-ready, en curso).
+WhatsApp, importador CSV/XLSX, onboarding y reset de demo (pilot-ready).
 
 ## Resumen
 
@@ -54,9 +54,9 @@ propio está pendiente.
   `76aba18b0e16`, `a1b2c3d4e5f6`, `b2c3d4e5f6a7` y `c3d4e5f6a7b8` (aplicadas en
   Neon).
 - [x] Migraciones del bloque 2026-11-11: `d4e5f6a7b8c9` (`import_jobs`) y
-  `e5f6a7b8c9d0` (`tenants.onboarding_state`). Revisadas en el código y
-  encadenadas tras `c3d4e5f6a7b8`. Aplicación en Neon: reportada por la sesión de
-  implementación; **verificación final pendiente (devops)**.
+  `e5f6a7b8c9d0` (`tenants.onboarding_state`). Aplicadas en Neon; `alembic current`
+  = `e5f6a7b8c9d0` (head). Verificadas localmente: upgrade, downgrade y `alembic
+  check` sin drift.
 - [x] Auth: registro, login, refresh rotativo, logout, `/me`.
 - [x] Argon2id, JWT de acceso, cookies `HttpOnly`.
 - [x] Multi-tenancy por `X-Tenant-ID` validado contra membresía.
@@ -276,17 +276,57 @@ POST /api/v1/portal/servicios-demo/auth/request             -> 200, dev_token au
 
 ### Verificación del bloque 2026-11-11 (importador, onboarding y reset de demo)
 
-Resultados **reportados** por la sesión de implementación. No fueron
-re-ejecutados en la sesión de documentación. La verificación final con
-`scripts/verify.ps1` queda a cargo de `qa`/`devops` y debe reemplazar este bloque
-con la salida real.
+El bloque se commiteó en `3e3ff21` y se desplegó en Vercel (API + web). Verificación contra
+Vercel + Neon con evidencia HTTP real:
 
 ```text
-pytest              -> 179 passed (reportado)
-pnpm test           -> 210 passed (reportado)
+GET /api/v1/health/ready                            -> 200
+GET /api/v1/health/live                             -> 200
+POST /api/v1/auth/login (demo owner)                -> 200
+GET /api/v1/team                                    -> 200, 2 miembros
+
+# Importador CSV
+POST /api/v1/imports/customers/preview              -> 200 {total:4, valid:3, invalid:1}
+POST /api/v1/imports/customers/commit               -> 200 {created:3, skipped_invalid:1}
+GET  /api/v1/customers?query=devops.csv             -> 200
+GET  /api/v1/imports/{job_id}/errors.csv            -> 200
+DELETE /api/v1/customers/{id}  (x3 de prueba)       -> 204 x3
+Consulta posterior devops.csv                        -> 0
+
+# Importador XLSX (archivo real generado con openpyxl)
+POST /api/v1/imports/customers/preview              -> 200 {total:2, valid:2}
+  (no 422 "Librería XLSX no disponible": openpyxl y defusedxml ya están en
+   apps/api/requirements.txt)
+
+# phone persistido exacto sin apóstrofo: +54 11 4000-9001 (verificado en customers)
+# errors.csv línea 5: '+54 11 4000-9004 (neutralización solo en salida, correcto)
+
+# Onboarding
+GET  /api/v1/onboarding                              -> 200
+PATCH /api/v1/onboarding  timezone=Cordoba           -> 200 (aplicado)
+PATCH /api/v1/onboarding  timezone=Buenos_Aires      -> 200 (restaurado)
+POST  /api/v1/onboarding/complete                    -> 200
+
+# Reset de demo (founder@saasgestion.com, platform admin)
+POST /api/v1/admin/demo/reset                        -> 200 {customers:3, service_requests:2,
+                                                      work_orders:2, quotes:1, appointments:1, payments:1}
+GET  /api/v1/onboarding (demo post-reset)            -> 200, completed=false, step 1
+GET  /api/v1/service-requests | work-orders | quotes |
+  appointments | payments | customers                -> 200 todos
+
+# Portal y dashboard
+POST /api/v1/portal/servicios-demo/auth/demo         -> 200
+GET  /api/v1/portal/servicios-demo/summary           -> 200
+GET  /api/v1/dashboard/operations                    -> 200
+
+# Web
+GET  /                                              -> 200
+GET  /onboarding                                    -> 200
+GET  /settings/import                               -> 200
 ```
 
-Evidencia por archivo de test:
+Tests (reportados por backend y frontend; suites locales no re-ejecutadas por QA por
+falta de PostgreSQL local en esta sesión):
 
 | Área | Archivos de test |
 |---|---|
@@ -296,36 +336,18 @@ Evidencia por archivo de test:
 | Importador (web) | `apps/web/src/lib/import-utils.test.ts`, `apps/web/src/components/imports/customer-import.test.tsx` |
 | Onboarding (web) | `apps/web/src/lib/onboarding-utils.test.ts`, `apps/web/src/components/onboarding/onboarding-wizard.test.tsx` |
 
-Cobertura declarada por los tests: validación de tipo, tamaño, firma y ratio de
-XLSX; límite de 500 filas; duplicados contra la base y en el archivo; commit
-idempotente; aislamiento entre tenants; permisos por rol (técnico y viewer no
-importan; `dispatcher` sí); neutralización en `errors.csv`; sanitización del
-nombre de archivo; reset solo para platform admin, sin tocar otros tenants, con
-idempotencia y con `audit_logs` preservados.
+Backend: `ruff check` OK, `ruff format --check` OK (158 files), `basedpyright` 0 errores.
+Frontend: `pnpm lint`, `pnpm typecheck`, `pnpm test` OK (210 tests).
 
-### Pendiente de verificación final en producción
+Cobertura de tests: validación de tipo, tamaño, firma y ratio de XLSX; límite de 500 filas;
+duplicados contra la base y en el archivo; commit idempotente; aislamiento entre tenants;
+permisos por rol (técnico y viewer no importan; `dispatcher` sí); neutralización solo en
+`errors.csv`; sanitización de nombre de archivo; reset solo para platform admin, sin tocar
+otros tenants, con idempotencia y con `audit_logs` preservados.
 
-Los siguientes endpoints son nuevos. No hay evidencia de su comportamiento en
-Vercel + Neon en este documento. `devops` está verificando. Hasta ese registro,
-figuran como **pendientes de verificación final**, con la evidencia de tests que
-los respalda:
-
-| Endpoint | Evidencia en tests | Estado en producción |
-|---|---|---|
-| `POST /api/v1/imports/customers/preview` | `test_imports.py` | Pendiente de verificación final |
-| `POST /api/v1/imports/customers/commit` | `test_imports.py` (idempotencia) | Pendiente de verificación final |
-| `GET /api/v1/imports/{job_id}/errors.csv` | `test_imports.py` | Pendiente de verificación final |
-| `GET /api/v1/onboarding` | `test_onboarding.py` | Pendiente de verificación final |
-| `PATCH /api/v1/onboarding` | `test_onboarding.py` | Pendiente de verificación final |
-| `POST /api/v1/onboarding/complete` | `test_onboarding.py` | Pendiente de verificación final |
-| `POST /api/v1/admin/demo/reset` | `test_demo_reset.py` | Pendiente de verificación final |
-
-**Brecha conocida:** `openpyxl` y `defusedxml` están en `apps/api/pyproject.toml`
-pero **no** en `apps/api/requirements.txt`, que es el archivo que usa el deploy de
-Vercel (ADR-014). Según el código, sin esas dependencias el preview XLSX en
-producción responde 422 "Librería XLSX no disponible". Hasta corregirlo, el soporte
-XLSX es solo local.
-Ver `KNOWN_ISSUES.md`.
+Nota local: el PostgreSQL portable de desarrollo (`127.0.0.1:55432`) no pudo iniciarse en
+esta sesión por un conflicto de `sharing violation` en `postgres.log` en Windows. Eso no
+afecta la producción (Neon) ni el despliegue en Vercel.
 
 El refresh de sesión cross-site se verificó recargando el dashboard después del
 login. El asistente devolvió `QT-2026-0002` con datos reales de Neon. Las

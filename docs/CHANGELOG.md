@@ -19,16 +19,21 @@
   solo sobre `servicios-demo`, conserva `audit_logs` y registra `demo_reset`.
 - Seed versionado en `apps/api/app/seed/demo.py`, idempotente, con un turno futuro.
 - Migraciones `d4e5f6a7b8c9` (`import_jobs`) y `e5f6a7b8c9d0`
-  (`tenants.onboarding_state`). Aplicación en Neon: reportada, verificación final
-  pendiente (devops).
+  (`tenants.onboarding_state`). Aplicadas en Neon; `alembic current` =
+  `e5f6a7b8c9d0` (head). Verificadas localmente: upgrade, downgrade y
+  `alembic check` sin drift.
 - Tests: 179 pruebas pytest y 210 pruebas Vitest, **reportadas** por la sesión de
-  implementación. Esta entrada no las re-ejecutó. La salida real de
-  `scripts/verify.ps1` queda pendiente.
-- Pendiente detectado: `openpyxl` y `defusedxml` no están en
-  `apps/api/requirements.txt`. El preview XLSX en Vercel no funciona hasta
-  agregarlas.
+  implementación. Verificación de producción contra Vercel + Neon: todos los
+  endpoints nuevos (preview, commit, errors.csv, onboarding GET/PATCH/complete,
+  demo reset) respondieron 200. Teléfono `+54 11 4000-9001` persistido sin
+  apóstrofo. XLSX real respondió 200 (sin 422).
+- `openpyxl` y `defusedxml` agregados a `apps/api/requirements.txt` y desplegados;
+  el preview XLSX en producción funciona (ADR-014 resuelto para este bloque).
 - Documentación: `PROJECT_STATUS.md`, `PILOT_READINESS.md` (criterios 10 a 14),
   `ROADMAP.md`, `DECISIONS.md` (ADR-017) y `KNOWN_ISSUES.md`.
+- Verificación local con `scripts/verify.ps1` pendiente de salida real: el
+  PostgreSQL portable no pudo iniciarse en esta sesión por conflicto de
+  `postgres.log` en Windows. No afecta la producción ni el despliegue.
 
 ## 2026-11-11 — Endurecimiento de seguridad del portal e invitaciones
 

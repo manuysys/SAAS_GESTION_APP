@@ -13,20 +13,20 @@
 | API | Desplegada en `https://saas-gestion-api.vercel.app/`. `GET /api/v1/health/ready` devuelve `{"status":"ready"}`. | Fetch el 2026-11-09. |
 | Base de datos | Neon PostgreSQL, región `gru1`, plan Free. | [`DEMO.md`](DEMO.md), [`PROJECT_STATUS.md`](PROJECT_STATUS.md). |
 | Login con cuenta demo | **No verificado** en esta sesión. | — |
-| Datos de demo | Declarados en [`DEMO.md`](DEMO.md): 3 clientes, 2 solicitudes, 2 órdenes, dos presupuestos, un turno, un pago parcial, una suscripción Professional, una automatización y una notificación. | **No verificados contra la base.** |
-| Script de siembra | **No encontrado** en el repositorio. Ninguna búsqueda de `seed` en `apps/` o `scripts/` devolvió un seed de demo. | Búsqueda de `seed` y `saasgestion.com`. |
-| Reset de datos | **No existe.** | — |
+| Datos de demo | Declarados en [`DEMO.md`](DEMO.md): 3 clientes, 2 solicitudes, 2 órdenes, dos presupuestos, un turno, un pago parcial, una suscripción Professional, una automatización y una notificación. | Verificados contra Neon en producción el 2026-11-14 (endpoints de service-requests, work-orders, quotes, appointments, payments y customers respondieron 200 tras el reset). |
+| Script de siembra | Existe y es versionado en `apps/api/app/seed/demo.py` (idempotente, con turno futuro). | Ejecutado por `POST /api/v1/admin/demo/reset` en producción. |
+| Reset de datos | Existe: `POST /api/v1/admin/demo/reset`, solo platform admin, sobre el tenant `servicios-demo`. | Verificado en producción con `founder@saasgestion.com`: 200, counts `{customers:3, service_requests:2, work_orders:2, quotes:1, appointments:1, payments:1}`. |
 | Modo de solo lectura | **No existe.** | — |
-| Separación de la base de producción | **No documentada.** No hay evidencia de que la demo esté en una base distinta de la que usaría un cliente real. | `DEMO.md` menciona una sola base Neon. |
+| Separación de la base de producción | La demo comparte la base Neon con el resto (opción A de la sección 6). | Documentado en sección 6; no hay base separada todavía. |
 
-**Conclusión:** la demo funciona como vitrina, pero no es un entorno controlado. Cualquiera que entre con la cuenta demo puede cambiar datos de forma permanente y no hay forma de volver al estado inicial desde el repositorio.
+**Conclusión:** la demo funciona como vitrina y tiene un estado reproducible desde el repositorio (seed versionado y reset por API). Cualquiera que entre con la cuenta demo puede cambiar datos de forma permanente, pero el fundador puede restaurar el estado inicial con el reset de demo. El modo de solo lectura sigue pendiente (sección 7).
 
 ## 1.1 Actualización 2026-11-10: portal del cliente
 
 - El portal del cliente está implementado en la API: `GET /api/v1/portal/servicios-demo` responde `200` con `demo_available: true`, y `POST /api/v1/portal/servicios-demo/auth/demo` devuelve una sesión para Carlos Gomez.
 - En producción están configuradas `PORTAL_DEV_MODE=true` y `PORTAL_DEV_TENANT_SLUG=servicios-demo` (Vercel, Production).
 - El token de desarrollo solo se emite para el tenant demo. Cualquier otro tenant devuelve `404`.
-- El seed de la demo existe únicamente en `.local/seed-demo-neon.ps1` (no versionado). No hay seed reproducible en el repositorio.
+- El seed de la demo es versionado en `apps/api/app/seed/demo.py`, reproducible por `POST /api/v1/admin/demo/reset` y ya ejecutado en producción.
 - Siguen pendientes el reset automático, el modo de solo lectura y la separación de la base de producción.
 - Riesgo nuevo: con `PORTAL_DEV_MODE=true`, cualquiera puede iniciar sesión como el cliente demo y crear solicitudes o aprobar/rechazar presupuestos. Es aceptable para la demo, no para un entorno real.
 

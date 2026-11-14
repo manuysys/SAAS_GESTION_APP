@@ -1,6 +1,6 @@
 # Preparación para pilotos
 
-**Fecha:** 2026-11-11
+**Fecha:** 2026-11-14
 **Fuente de criterios:** `PROXIMOS_PASOS.txt`, sección 14 (criterios 1 a 20).
 **Alcance:** estado real de cada criterio. No describe funcionalidad planificada como si existiera.
 
@@ -13,22 +13,21 @@
 | **Pendiente** | No hay código. Puede desarrollarse sin dependencias externas. |
 | **Bloqueado** | Falta una cuenta, credencial, dominio o dispositivo externo. Ver sección 3. |
 
-**Resumen:** 13 hechos, 5 en curso, 1 pendiente y 1 bloqueado (sobre 20 criterios).
+**Resumen:** 14 hechos, 4 en curso, 1 pendiente y 1 bloqueado (sobre 20 criterios).
 
-Actualización 2026-11-11: se cerraron los hallazgos de la auditoría de seguridad
-(revocación de sesión de portal, consumo atómico, reenvío idempotente,
-invitaciones vencidas, escape HTML, `Origin` y `Referrer-Policy`, rate limit con
-IP de proxy). Se implementaron el importador CSV/XLSX (criterios 10 a 12), el
-onboarding (13) y el reset del tenant demo (14). Quedan en curso:
+Actualización 2026-11-14: se verificó en producción contra Vercel + Neon el importador
+CSV/XLSX, el onboarding y el reset del tenant demo (commit `3e3ff21`, deploy en
+`saas-gestion-api.vercel.app` y `saas-gestion-web.vercel.app`). Todos los endpoints
+nuevos respondieron 200. Criterios 10, 11 y 14 pasan a Hecho con evidencia de
+producción. Quedan en curso:
 
-- **11 (XLSX):** `openpyxl` y `defusedxml` no están en `apps/api/requirements.txt`.
-  Sin ellos el preview XLSX falla en Vercel.
-- **13 (onboarding):** falta la prueba E2E en navegador y la verificación en producción.
-- **19 (seguridad):** falta la ejecución final de `scripts/verify.ps1` que confirme
-  la suite con importación, onboarding y reset.
+- **13 (onboarding):** falta la prueba E2E en navegador contra Vercel + Neon.
+- **19 (seguridad):** falta la ejecución final de `scripts/verify.ps1` que registre
+  la salida real de la suite local (el PostgreSQL portable no pudo iniciarse en esta
+  sesión por un conflicto de `postgres.log` en Windows).
+- Los criterios 2 y 7 siguen bloqueados por falta de dominio verificado y `RESEND_API_KEY`.
 
-Los criterios marcados como Hecho tienen código y tests en el repositorio. Ninguno
-tiene todavía verificación final en producción; ese registro lo hace `devops`.
+Los criterios marcados como Hecho tienen código y tests en el repositorio.
 
 ## 1. Checklist de criterios
 
@@ -44,15 +43,15 @@ tiene todavía verificación final en producción; ese registro lo hace `devops`
 | 8 | El cliente puede ingresar | Hecho | `/portal/[slug]?token=...`, deep link `dovexo://customer`, verificación de token; prueba de producción | Falta probarlo en un dispositivo con la app instalada. |
 | 9 | El cliente ve exclusivamente sus datos | Hecho | `tests/test_portal.py::test_portal_orders_and_quotes_are_customer_scoped`; dependencia de portal por cliente/tenant | — |
 | 10 | El administrador puede importar clientes desde CSV | Hecho | `POST /api/v1/imports/customers/preview` y `/commit`, `GET /api/v1/imports/{job_id}/errors.csv` (`apps/api/app/services/import_service.py`); `apps/api/tests/test_imports.py` (preview CSV, commit idempotente, permisos por rol); UI en `/settings/import` con `customer-import.test.tsx`. | Verificación final en producción pendiente (devops). |
-| 11 | Puede importar clientes desde XLSX | En curso | Parser XLSX con `openpyxl` y `defusedxml`; límites anti zip-bomb (1000 entradas, 20 MB descomprimidos, ratio 100); `test_imports.py` (XLSX válido, zip bomb, corte en fila 501). | `openpyxl` y `defusedxml` están en `pyproject.toml` pero no en `apps/api/requirements.txt`. Según el código, en Vercel el preview devuelve 422. Ver `KNOWN_ISSUES.md`. |
+| 11 | Puede importar clientes desde XLSX | Hecho | Parser XLSX con `openpyxl` y `defusedxml` en `apps/api/requirements.txt` (verificado en Vercel); límites anti zip-bomb (1000 entradas, 20 MB descomprimidos, ratio 100); `test_imports.py` (XLSX válido, zip bomb, corte en fila 501). Producción: preview real respondió 200. | — |
 | 12 | El importador muestra errores y duplicados | Hecho | Preview con `errors` y `duplicate` por fila; duplicados contra la base y dentro del archivo; `errors.csv` descargable con neutralización de fórmulas en la salida; tests `test_preview_duplicate_*` y `test_errors_csv_*`. | Verificación final en producción pendiente. |
-| 13 | El onboarding permite configurar una empresa sin intervención técnica | En curso | Asistente de cuatro pasos en `/onboarding` (`onboarding-wizard.tsx`); progreso en `tenants.onboarding_state`; checklist en el dashboard; `test_onboarding.py` y `onboarding-wizard.test.tsx`. | Falta prueba E2E en navegador y verificación en producción. El paso 4 usa la importación; su XLSX depende de la brecha de `requirements.txt`. |
-| 14 | La demo puede restaurarse | Hecho | `POST /api/v1/admin/demo/reset` solo para platform admin, sobre el tenant `servicios-demo`; seed versionado en `apps/api/app/seed/demo.py` con turno futuro; `apps/api/tests/test_demo_reset.py` (11 tests: permisos, aislamiento, idempotencia, `audit_logs` preservados). | Sin botón en la UI. `demo@saasgestion.com` no es platform admin, así que no puede ejecutarlo. Verificación en producción pendiente. |
+| 13 | El onboarding permite configurar una empresa sin intervención técnica | En curso | Asistente de cuatro pasos en `/onboarding` (`onboarding-wizard.tsx`); progreso en `tenants.onboarding_state`; checklist en el dashboard; `test_onboarding.py` y `onboarding-wizard.test.tsx`. Verificado en producción: GET/PATCH/POST complete respondieron 200. | Falta prueba E2E en navegador contra Vercel + Neon. El paso 4 usa la importación. |
+| 14 | La demo puede restaurarse | Hecho | `POST /api/v1/admin/demo/reset` solo para platform admin, sobre el tenant `servicios-demo`; seed versionado en `apps/api/app/seed/demo.py` con turno futuro; `apps/api/tests/test_demo_reset.py` (11 tests: permisos, aislamiento, idempotencia, `audit_logs` preservados). Verificado en producción con `founder@saasgestion.com`: 200, `appointments:1`, `onboarding` post-reset `completed=false`. | Sin botón en la UI. `demo@saasgestion.com` no es platform admin, así que no puede ejecutarlo. |
 | 15 | La aplicación tiene un build firmado | Hecho (AAB) | Keystore de release generada; workflow `android-release.yml` produjo `dovexo-android-aab` firmado y verificado | Falta subirlo a Play Console. El APK `mobile-apk-4` sigue siendo debug. |
 | 16 | La aplicación se instala en Android real | Bloqueado | No hay evidencia de instalación en dispositivo físico. | Dispositivo Android físico y APK/AAB de prueba. |
 | 17 | El flujo técnico principal funciona | En curso | PWA `/tech` probada en navegador contra Vercel + Neon (`PROJECT_STATUS.md`). App Expo sin prueba en dispositivo. | Dispositivo físico para cerrar la parte móvil. |
 | 18 | Los backups tienen una restauración comprobada | Pendiente | Existen `.github/workflows/backup.yml`, `scripts/backup.ps1`, `scripts/restore.ps1` y `docs/BACKUP_RESTORE.md`. No hay restauración probada. | Almacenamiento externo independiente y base de staging. |
-| 19 | Las pruebas de seguridad correspondientes pasan | En curso | 179 pruebas pytest reportadas, incluidas importación, onboarding y reset (`test_imports.py`, `test_onboarding.py`, `test_demo_reset.py`), además de invitaciones, portal, revocación de sesión, aislamiento y límites. | Ejecución final de `scripts/verify.ps1` pendiente (qa/devops). Pasa a Hecho cuando haya salida real. |
+| 19 | Las pruebas de seguridad correspondientes pasan | En curso | 179 pruebas pytest reportadas (incluidas importación, onboarding y reset), 210 Vitest, ruff/basedpyright OK. Tests de aislamiento, idempotencia, permisos y neutralización de fórmulas. | Ejecución final de `scripts/verify.ps1` pendiente (qa/devops); salida local no re-ejecutada en esta sesión por conflicto de PostgreSQL portable. Pasa a Hecho cuando tenga salida real. |
 | 20 | La documentación permite repetir los procesos | Hecho | `docs/EMAIL_RESEND.md`, `docs/ANDROID_RELEASE.md`, `docs/BACKUP_RESTORE.md`, `docs/TEAM_API.md`, `docs/PILOT_READINESS.md` | Mantenerla actualizada. |
 
 ## 2. Estado de identidad
@@ -85,14 +84,14 @@ Dependencias no bloqueantes del piloto según `PROXIMOS_PASOS.txt`: push (EAS pr
 ## 4. Próximo bloque de trabajo sugerido
 
 Los bloques de invitaciones, portal, importador, onboarding y reset ya tienen código
-en el repositorio. Lo que sigue, en orden:
+en el repositorio y verificación de producción. Lo que sigue, en orden:
 
-1. Agregar `openpyxl` y `defusedxml` a `apps/api/requirements.txt` y redesplegar la
-   API. Cierra la parte técnica de 11.
-2. Verificación final con `scripts/verify.ps1` y registro de la salida real. Cierra 19.
-3. Prueba E2E en navegador del importador, el onboarding y el reset contra Vercel
+1. Prueba E2E en navegador del importador, el onboarding y el reset contra Vercel
    + Neon. Cierra 13 y confirma 10, 12 y 14 en producción.
-4. Dominio, cuenta de Resend y `RESEND_API_KEY` (criterios 2 y 7; bloqueados, ver
+2. Ejecución final de `scripts/verify.ps1` con salida real. Cierra 19.
+3. Dominio, cuenta de Resend y `RESEND_API_KEY` (criterios 2 y 7; bloqueados, ver
    sección 3). El módulo de email ya existe.
+4. Instalar el APK en Android real, subir AAB a Play Console y configurar backups
+   verificados (criterios 16, 17, 18).
 
 Los bloqueos de la sección 3 se atienden en paralelo, porque no requieren código.
