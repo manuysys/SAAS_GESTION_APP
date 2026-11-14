@@ -18,12 +18,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { api, getAccessToken } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { ADMIN_ROLES } from "@/lib/navigation";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -161,6 +163,8 @@ export default function DashboardPage() {
   const role = activeTenant?.role ?? "";
   const canViewDashboard = ["owner", "admin", "dispatcher"].includes(role);
   const isTechnician = role === "technician";
+  /** La configuración inicial es solo para owner y admin (backend valida lo mismo). */
+  const canManageOnboarding = ADMIN_ROLES.includes(role);
 
   useEffect(() => {
     if (!activeTenant || canViewDashboard) return;
@@ -281,6 +285,10 @@ export default function DashboardPage() {
         <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
           No se pudo cargar el resumen. Probá recargar la página.
         </p>
+      )}
+
+      {canManageOnboarding && activeTenantId && (
+        <OnboardingChecklist tenantId={activeTenantId} />
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

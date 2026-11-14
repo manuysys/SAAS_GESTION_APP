@@ -22,6 +22,7 @@ class Tenant(UUIDMixin, TimestampMixin, Base):
     )
     currency: Mapped[str] = mapped_column(String(3), default="ARS", nullable=False)
     portal_settings: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    onboarding_state: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
 
     memberships: Mapped[list[Membership]] = relationship(
         back_populates="tenant",

@@ -15,6 +15,24 @@ describe("team navigation", () => {
   });
 });
 
+describe("import and onboarding navigation", () => {
+  it("shows Importar clientes to owner, admin and dispatcher (backend import roles)", () => {
+    expect(hrefsFor("owner")).toContain("/settings/import");
+    expect(hrefsFor("admin")).toContain("/settings/import");
+    expect(hrefsFor("dispatcher")).toContain("/settings/import");
+    expect(hrefsFor("technician")).not.toContain("/settings/import");
+    expect(hrefsFor("viewer")).not.toContain("/settings/import");
+  });
+
+  it("shows Primeros pasos only to owner and admin", () => {
+    expect(hrefsFor("owner")).toContain("/onboarding");
+    expect(hrefsFor("admin")).toContain("/onboarding");
+    expect(hrefsFor("dispatcher")).not.toContain("/onboarding");
+    expect(hrefsFor("technician")).not.toContain("/onboarding");
+    expect(hrefsFor("viewer")).not.toContain("/onboarding");
+  });
+});
+
 describe("portal access helpers", () => {
   it("requires a non-empty customer email to send by email", () => {
     expect(canSendPortalEmail("ana@example.com")).toBe(true);

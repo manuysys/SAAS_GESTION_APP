@@ -255,3 +255,43 @@ documentación. No invertir en piezas definitivas hasta validar marca/dominio.
 - Hay una contradicción documental: `PROXIMOS_PASOS.txt`, sección 2, dice que DOVEXO "no está aprobado". Este ADR lo registra como aprobado para el nombre de producto a partir de la decisión del 2026-11-10. Quien emitió el documento fuente debe actualizarlo. Hasta entonces, no usar DOVEXO en documentos legales ni en la ficha de Play.
 - Búsqueda de marca y registro del dominio siguen pendientes. Riesgo: DOVEXO puede tener conflictos de marca no verificados.
 - Antes de la primera subida a Play no se puede cambiar el `applicationId` sin crear una app nueva.
+
+## ADR-017 — Importador CSV/XLSX con vista previa y commit; neutralización solo en la salida
+
+**Fecha:** 2026-11-11
+**Estado:** aceptada
+
+**Contexto:** los pilotos necesitan cargar su cartera de clientes sin intervención
+técnica. El archivo es un dato no confiable: puede traer fórmulas para Excel,
+XLSX comprimido de forma abusiva o filas que dupliquen clientes existentes.
+
+**Decisión:**
+
+- Flujo en dos pasos. `preview` valida, detecta duplicados y persiste un
+  `import_jobs` con estado `preview`. `commit` recibe solo el `job_id`, toma el
+  lock de la fila del tenant, crea únicamente filas válidas y no duplicadas, y
+  marca el job como `applied`.
+- Idempotencia: un job `applied` devuelve el mismo `commit_result` sin crear
+  clientes nuevos.
+- Límites: 2 MB y 500 filas. XLSX con máximo 1000 entradas comprimidas, 20 MB
+  descomprimidos y ratio de compresión 100. Se valida la firma del archivo antes
+  de parsear.
+- XLSX con `openpyxl` (modo solo lectura) y `defusedxml`. CSV con la biblioteca
+  estándar.
+- Neutralización de fórmulas (prefijo `'`) **solo al generar `errors.csv`**. Los
+  valores persistidos y el preview JSON no se modifican, para no alterar el dato
+  original.
+- Roles: `owner`, `admin` y `dispatcher`.
+
+**Consecuencias:**
+
+- El dato guardado queda exacto (por ejemplo, un teléfono `+54 11...` se conserva).
+  Dentro de `errors.csv`, un campo que empieza con `+` o `-` aparece con `'` al
+  principio, por diseño.
+- `import_jobs` guarda datos personales en `rows_json` hasta el reset de demo. No
+  hay política de retención todavía; queda registrado en `KNOWN_ISSUES.md`.
+- El commit se hace en una sola transacción: si falla a mitad, no queda ningún
+  cliente creado a medias.
+- `openpyxl` y `defusedxml` deben estar en `requirements.txt` para el deploy en
+  Vercel. Hasta entonces, XLSX solo funciona en desarrollo local.
+- No se importan órdenes. Queda para una iteración posterior.

@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-11-11 — Importador CSV/XLSX, onboarding y reset de demo
+
+- Importador de clientes CSV y XLSX (`/api/v1/imports/customers/preview`,
+  `/commit` y `/{job_id}/errors.csv`) con vista previa, errores por fila,
+  duplicados contra la base y dentro del archivo, y commit idempotente.
+- Pantalla `/settings/import` con carga, vista previa, confirmación y descarga de
+  errores.
+- Límites anti zip-bomb y de payload: 2 MB y 500 filas; XLSX con 1000 entradas,
+  20 MB descomprimidos y ratio máximo 100; verificación de firma del archivo.
+- Neutralización de fórmulas (`=`, `+`, `-`, `@`, tab, CR, LF) solo en
+  `errors.csv`; los datos persistidos no se modifican (ADR-017).
+- Locks de la fila de tenant en el commit del importador y en el onboarding.
+- Onboarding de cuatro pasos (`/api/v1/onboarding`: GET, PATCH y `complete`) con
+  progreso guardado en `tenants.onboarding_state`, pantalla `/onboarding` y
+  checklist en el dashboard.
+- Reset del tenant demo (`POST /api/v1/admin/demo/reset`): solo platform admin,
+  solo sobre `servicios-demo`, conserva `audit_logs` y registra `demo_reset`.
+- Seed versionado en `apps/api/app/seed/demo.py`, idempotente, con un turno futuro.
+- Migraciones `d4e5f6a7b8c9` (`import_jobs`) y `e5f6a7b8c9d0`
+  (`tenants.onboarding_state`). Aplicación en Neon: reportada, verificación final
+  pendiente (devops).
+- Tests: 179 pruebas pytest y 210 pruebas Vitest, **reportadas** por la sesión de
+  implementación. Esta entrada no las re-ejecutó. La salida real de
+  `scripts/verify.ps1` queda pendiente.
+- Pendiente detectado: `openpyxl` y `defusedxml` no están en
+  `apps/api/requirements.txt`. El preview XLSX en Vercel no funciona hasta
+  agregarlas.
+- Documentación: `PROJECT_STATUS.md`, `PILOT_READINESS.md` (criterios 10 a 14),
+  `ROADMAP.md`, `DECISIONS.md` (ADR-017) y `KNOWN_ISSUES.md`.
+
 ## 2026-11-11 — Endurecimiento de seguridad del portal e invitaciones
 
 - Portal del cliente con versión de sesión (`customers.portal_access_version`):

@@ -55,6 +55,40 @@ uv run alembic downgrade -1   # solo en desarrollo
 
 Las migraciones se prueban en CI contra PostgreSQL limpio.
 
+### Migraciones contra Neon
+
+Alembic usa `DATABASE_URL_SYNC` con el driver `psycopg`. El URI de Neon
+(`postgresql://...`) se convierte al esquema `postgresql+psycopg://`:
+
+```powershell
+$neon = 'postgresql://usuario:clave@host/neondb?sslmode=require'
+$env:DATABASE_URL_SYNC = $neon -replace '^postgresql://','postgresql+psycopg://'
+cd apps/api
+uv run alembic current         # revisar revisión aplicada
+uv run alembic upgrade head
+uv run alembic current         # debe coincidir con el head
+```
+
+La conexión directa de Neon (sin pooler) es la que se usa para migrar.
+
+### Despliegue con Vercel CLI
+
+Desplegar **secuencialmente**, nunca en paralelo (el CLI falla al escribir
+`.vercel/project.json` si dos despliegues corren juntos):
+
+```powershell
+cd apps/api; vercel --prod --yes    # API primero
+cd ..\web;   vercel --prod --yes    # web después
+```
+
+Los despliegues toman el árbol de trabajo local, no un commit. Verificar
+después de cada uno:
+
+```powershell
+curl.exe -s -o NUL -w "%{http_code}" https://saas-gestion-api.vercel.app/api/v1/health/ready
+curl.exe -s -o NUL -w "%{http_code}" https://saas-gestion-web.vercel.app/
+```
+
 ## Respaldos
 
 - Backup diario automático de PostgreSQL.

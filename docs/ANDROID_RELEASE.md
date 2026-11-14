@@ -10,6 +10,9 @@ Estado verificado el 2026-11-10.
 - El workflow `android-release.yml` **ya se ejecutó con éxito** y generó el
   artifact `dovexo-android-aab` (36 MB), firmado con la keystore de release y
   verificado contra su huella SHA-256.
+- Última reconstrucción exitosa del AAB: commit `06bfd45`, run GitHub Actions
+  `43039859972`, 36.054.953 bytes. Incluye el deep link móvil. Los AAB de
+  ejecuciones anteriores no sirven como referencia de estado.
 - El AAB **no se subió a Google Play**: falta la cuenta de Play Console y la
   prueba interna.
 - El APK publicado (`mobile-apk-5`) está firmado con la **keystore de debug** y

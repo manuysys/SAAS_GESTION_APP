@@ -71,7 +71,7 @@
 - [x] Panel global del proveedor SaaS.
 - [ ] Enforcement completo de límites por plan.
 - [ ] Cobros con Mercado Pago y webhooks.
-- [ ] Onboarding guiado.
+- [x] Onboarding guiado (asistente de cuatro pasos; ver Hito 9).
 - [ ] Landing page, soporte y primeros clientes pagos.
 
 ## Hito 8 — Expansión
@@ -108,23 +108,23 @@ fundador toque la base de datos. Criterios completos en
 - [x] Expiración, revocación y uso único.
 - [x] `dev_token` fuera de producción.
 
-**Importador**
+**Importador** (2026-11-11, código y tests; verificación en producción pendiente)
 
-- [ ] Importación de clientes desde CSV.
-- [ ] Importación de clientes desde XLSX.
-- [ ] Vista previa, errores descargables y detección de duplicados.
+- [x] Importación de clientes desde CSV.
+- [x] Importación de clientes desde XLSX. *Pendiente: agregar `openpyxl` y `defusedxml` a `apps/api/requirements.txt` para Vercel.*
+- [x] Vista previa, errores descargables y detección de duplicados.
 - [ ] Importación de órdenes asociadas a clientes existentes.
 
-**Onboarding**
+**Onboarding** (2026-11-11, código y tests; prueba E2E pendiente)
 
-- [ ] Asistente de cuatro pasos (empresa, servicios y horarios, equipo, primeros datos).
-- [ ] Progreso guardado y reanudable.
-- [ ] Checklist de inicio en el dashboard.
+- [x] Asistente de cuatro pasos (empresa, servicios y horarios, equipo, primeros datos).
+- [x] Progreso guardado y reanudable.
+- [x] Checklist de inicio en el dashboard.
 
-**Demo**
+**Demo** (2026-11-11, código y tests; verificación en producción pendiente)
 
-- [ ] Seed versionado y reproducible del tenant demo.
-- [ ] Reset que toca solo el tenant demo.
+- [x] Seed versionado y reproducible del tenant demo.
+- [x] Reset que toca solo el tenant demo (solo platform admin).
 - [ ] Demo de solo lectura o reset programado.
 
 **Android**

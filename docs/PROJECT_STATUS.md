@@ -1,9 +1,9 @@
 # Estado del proyecto
 
-**Última actualización:** 2026-11-10
+**Última actualización:** 2026-11-11
 **Fase:** Hito 2 completo + PWA, app móvil Android DOVEXO, portal del cliente,
 dashboard operativo, automatizaciones, IA con Groq, suscripciones, panel global,
-WhatsApp y preparación para pilotos reales.
+WhatsApp, importador CSV/XLSX, onboarding y reset de demo (pilot-ready, en curso).
 
 ## Resumen
 
@@ -13,7 +13,9 @@ trabajo, presupuestos con PDF y aprobación pública, agenda, asignación de
 técnicos, pagos, dashboard operativo, PWA para técnicos, app móvil Android
 DOVEXO para técnicos y clientes, portal del cliente, invitaciones de equipo,
 automatizaciones con notificaciones, asistente de IA, planes y suscripciones,
-panel global del SaaS y configuración de WhatsApp Cloud API.
+panel global del SaaS, configuración de WhatsApp Cloud API, importador de clientes
+desde CSV y XLSX con vista previa, onboarding de cuatro pasos y reset del tenant
+demo.
 
 El frontend y la API están desplegados en Vercel. La base PostgreSQL está en
 Neon (plan Free, región `gru1`). La demo ya no depende de una máquina local ni
@@ -44,10 +46,17 @@ propio está pendiente.
   `notifications`, `ai_usage_logs`, `plans`, `subscriptions`, `whatsapp_configs`,
   `whatsapp_messages`, `customer_access_tokens`, `device_tokens`,
   `email_deliveries`, `invitations` y `portal_settings` en `tenants`.
+- [x] Modelos del bloque 2026-11-11: `import_jobs` (job de importación con
+  `tenant_id`, `status`, `summary`, `rows_json`, `errors_json`, `created_by`,
+  `applied_at`) y `onboarding_state` (columna JSONB nullable en `tenants`).
 - [x] Migraciones: `84e62c6788cb`, `ba3b1d3acd4d`, `50e8c050aada`,
   `de0e021aa0ca`, `51fc582e7593`, `5ffb8399d836`, `c0cc7ae032ee`,
   `76aba18b0e16`, `a1b2c3d4e5f6`, `b2c3d4e5f6a7` y `c3d4e5f6a7b8` (aplicadas en
   Neon).
+- [x] Migraciones del bloque 2026-11-11: `d4e5f6a7b8c9` (`import_jobs`) y
+  `e5f6a7b8c9d0` (`tenants.onboarding_state`). Revisadas en el código y
+  encadenadas tras `c3d4e5f6a7b8`. Aplicación en Neon: reportada por la sesión de
+  implementación; **verificación final pendiente (devops)**.
 - [x] Auth: registro, login, refresh rotativo, logout, `/me`.
 - [x] Argon2id, JWT de acceso, cookies `HttpOnly`.
 - [x] Multi-tenancy por `X-Tenant-ID` validado contra membresía.
@@ -107,7 +116,38 @@ propio está pendiente.
 - [x] `/docs`, `/redoc` y `/openapi.json` ocultos en producción.
 - [x] Cabeceras de seguridad HTTP.
 - [x] Health checks `/api/v1/health/live` y `/ready`.
-- [x] 127 pruebas pytest.
+- [x] Importador de clientes CSV y XLSX (`/api/v1/imports/customers/*`):
+  - Vista previa con validación por fila, duplicados contra la base y dentro del
+    archivo, y errores por línea.
+  - Commit idempotente: un job aplicado devuelve el mismo resultado sin crear
+    clientes nuevos. Solo se crean filas válidas y no duplicadas.
+  - Descarga `errors.csv` con línea, datos y error.
+  - Roles: `owner`, `admin`, `dispatcher`. Técnicos y viewers no pueden importar.
+  - Límites: 2 MB, 500 filas. XLSX: 1000 entradas comprimidas, 20 MB
+    descomprimidos y razón de compresión máxima 100 (anti zip-bomb). Se valida
+    la firma del archivo (magic bytes) antes de parsear.
+  - Neutralización de fórmulas (`=`, `+`, `-`, `@`, tab, CR, LF) **solo en el
+    `errors.csv` de salida**; los datos persistidos no se modifican.
+  - Lock de la fila de tenant en el commit para serializar importaciones.
+  - Rate limit: 30 previews y 30 commits por ventana.
+- [x] Onboarding de cuatro pasos (`/api/v1/onboarding`):
+  - `GET`, `PATCH` (merge parcial; el horario se reemplaza completo) y
+    `POST /complete`. Solo `owner` y `admin`.
+  - Progreso guardado en `tenants.onboarding_state`.
+  - Límites: 16 KB serializado, 20 servicios, precio máximo
+    `999999999999.99`, horas en formato `HH:MM`, zona horaria y moneda validadas.
+  - Lock de la fila de tenant en lectura y escritura.
+- [x] Reset del tenant demo (`POST /api/v1/admin/demo/reset`):
+  - Solo platform admin (`is_platform_admin` o email en
+    `PLATFORM_ADMIN_EMAILS`). Un usuario común recibe 403.
+  - Opera únicamente sobre el tenant con slug `servicios-demo`. No toca otros
+    tenants (test de aislamiento).
+  - Limpia datos de negocio y conserva `audit_logs`. Registra `demo_reset` con
+    IP y conteos.
+  - Seed versionado en `apps/api/app/seed/demo.py`, idempotente, con un turno
+    futuro: mañana a las 10:00 hora argentina (13:00 UTC), según `_tomorrow_at`.
+  - Rate limit: 10 resets por ventana. Lock de la fila del tenant demo.
+- [x] 179 pruebas pytest (reportadas; ver "Verificación del bloque 2026-11-11").
 
 ### Frontend
 
@@ -147,7 +187,13 @@ propio está pendiente.
 - [x] Identidad DOVEXO/ARVOKTA en landing, login, panel, PWA y páginas legales.
 - [x] Sección Equipo con invitaciones, reenvío, revocación y aceptación pública.
 - [x] Detalle de cliente con acceso al portal: enviar por email o copiar enlace.
-- [x] Vitest con 130 pruebas.
+- [x] Importador en `/settings/import`: carga de archivo, vista previa con
+  errores y duplicados, confirmación, descarga de `errors.csv` y estados de
+  error y carga.
+- [x] Onboarding en `/onboarding`: asistente de cuatro pasos (empresa, servicios
+  y horarios, equipo, primeros datos) con progreso guardado y reanudable.
+- [x] Checklist de inicio en el dashboard (`OnboardingChecklist`).
+- [x] Vitest con 210 pruebas (reportadas; ver "Verificación del bloque 2026-11-11").
 
 ### App móvil
 
@@ -169,7 +215,10 @@ propio está pendiente.
 - [ ] APK instalado y probado en un dispositivo físico.
 - [ ] AAB subido a Google Play y prueba interna.
 
-### Verificación ejecutada
+### Verificación ejecutada (histórica, 2026-11-10)
+
+Estos números son del cierre previo al bloque 2026-11-11. Para el estado actual,
+ver "Verificación del bloque 2026-11-11".
 
 ```text
 ruff check          -> All checks passed
@@ -225,6 +274,59 @@ GET  https://saas-gestion-web.vercel.app/portal/servicios-demo -> 200, meta refe
 POST /api/v1/portal/servicios-demo/auth/request             -> 200, dev_token ausente
 ```
 
+### Verificación del bloque 2026-11-11 (importador, onboarding y reset de demo)
+
+Resultados **reportados** por la sesión de implementación. No fueron
+re-ejecutados en la sesión de documentación. La verificación final con
+`scripts/verify.ps1` queda a cargo de `qa`/`devops` y debe reemplazar este bloque
+con la salida real.
+
+```text
+pytest              -> 179 passed (reportado)
+pnpm test           -> 210 passed (reportado)
+```
+
+Evidencia por archivo de test:
+
+| Área | Archivos de test |
+|---|---|
+| Importador (API) | `apps/api/tests/test_imports.py` |
+| Onboarding (API) | `apps/api/tests/test_onboarding.py` |
+| Reset de demo (API) | `apps/api/tests/test_demo_reset.py` |
+| Importador (web) | `apps/web/src/lib/import-utils.test.ts`, `apps/web/src/components/imports/customer-import.test.tsx` |
+| Onboarding (web) | `apps/web/src/lib/onboarding-utils.test.ts`, `apps/web/src/components/onboarding/onboarding-wizard.test.tsx` |
+
+Cobertura declarada por los tests: validación de tipo, tamaño, firma y ratio de
+XLSX; límite de 500 filas; duplicados contra la base y en el archivo; commit
+idempotente; aislamiento entre tenants; permisos por rol (técnico y viewer no
+importan; `dispatcher` sí); neutralización en `errors.csv`; sanitización del
+nombre de archivo; reset solo para platform admin, sin tocar otros tenants, con
+idempotencia y con `audit_logs` preservados.
+
+### Pendiente de verificación final en producción
+
+Los siguientes endpoints son nuevos. No hay evidencia de su comportamiento en
+Vercel + Neon en este documento. `devops` está verificando. Hasta ese registro,
+figuran como **pendientes de verificación final**, con la evidencia de tests que
+los respalda:
+
+| Endpoint | Evidencia en tests | Estado en producción |
+|---|---|---|
+| `POST /api/v1/imports/customers/preview` | `test_imports.py` | Pendiente de verificación final |
+| `POST /api/v1/imports/customers/commit` | `test_imports.py` (idempotencia) | Pendiente de verificación final |
+| `GET /api/v1/imports/{job_id}/errors.csv` | `test_imports.py` | Pendiente de verificación final |
+| `GET /api/v1/onboarding` | `test_onboarding.py` | Pendiente de verificación final |
+| `PATCH /api/v1/onboarding` | `test_onboarding.py` | Pendiente de verificación final |
+| `POST /api/v1/onboarding/complete` | `test_onboarding.py` | Pendiente de verificación final |
+| `POST /api/v1/admin/demo/reset` | `test_demo_reset.py` | Pendiente de verificación final |
+
+**Brecha conocida:** `openpyxl` y `defusedxml` están en `apps/api/pyproject.toml`
+pero **no** en `apps/api/requirements.txt`, que es el archivo que usa el deploy de
+Vercel (ADR-014). Según el código, sin esas dependencias el preview XLSX en
+producción responde 422 "Librería XLSX no disponible". Hasta corregirlo, el soporte
+XLSX es solo local.
+Ver `KNOWN_ISSUES.md`.
+
 El refresh de sesión cross-site se verificó recargando el dashboard después del
 login. El asistente devolvió `QT-2026-0002` con datos reales de Neon. Las
 migraciones `b2c3d4e5f6a7` y `c3d4e5f6a7b8` quedaron aplicadas en Neon y la API
@@ -254,7 +356,9 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 - [ ] Cobros reales con Mercado Pago y webhooks.
 - [ ] Enforcement completo de límites por plan en todos los endpoints.
 - [ ] Recordatorios automáticos programados (cron/worker).
-- [ ] Reset y modo de solo lectura de la demo.
+- [ ] Modo de solo lectura de la demo o reset programado (el reset manual ya existe).
+- [ ] Agregar `openpyxl` y `defusedxml` a `apps/api/requirements.txt` y verificar el preview XLSX en Vercel.
+- [ ] Prueba E2E en navegador del importador, el onboarding y el reset contra Vercel + Neon.
 - [ ] Entrevistas a clientes.
 - [ ] Dominio propio, política de privacidad y revisión legal.
 - [ ] Backups verificados y plan de restauración de Neon.
@@ -266,8 +370,11 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
 2. Subir el AAB firmado a Google Play Console y crear la prueba interna.
 3. Comprar y verificar un dominio; configurar Resend y `EMAIL_FROM` para enviar
    invitaciones y accesos reales.
-4. Implementar importador CSV/XLSX, onboarding y reset de demo.
-5. Configurar backups verificados y monitoreo de errores.
+4. Agregar `openpyxl` y `defusedxml` a `requirements.txt`, redesplegar la API y
+   verificar el preview XLSX en producción.
+5. Completar la verificación final del bloque 2026-11-11 (`scripts/verify.ps1`,
+   migraciones en Neon, endpoints nuevos) y la prueba E2E en navegador.
+6. Configurar backups verificados y monitoreo de errores.
 
 ## Limitaciones conocidas
 
@@ -293,4 +400,14 @@ Free de Neon y el plan Hobby de Vercel tienen límites de uso y cold starts.
   disponible solo para `servicios-demo`.
 - Push requiere `eas projectId` y un development build; no se probó en
   dispositivo.
-- El importador, el onboarding y el reset de demo todavía no existen.
+- El importador XLSX depende de `openpyxl` y `defusedxml`, que todavía no están en
+  `requirements.txt` (ver "Verificación del bloque 2026-11-11").
+- El reset de demo solo lo ejecuta un platform admin. `demo@saasgestion.com` no es
+  platform admin, así que no puede resetear la demo. No hay botón en la UI; el reset
+  es solo por API.
+- El importador solo crea clientes. No importa órdenes asociadas (pendiente del
+  Hito 9).
+- Los `import_jobs` guardan datos personales en `rows_json` y no tienen política de
+  retención automática ni endpoint de borrado. Solo se eliminan con el reset de la demo.
+- Las pruebas de dispositivo (Android físico) y la prueba E2E del bloque siguen
+  pendientes.

@@ -12,8 +12,11 @@ from app.api.routes import (
     billing,
     customers,
     dashboard,
+    demo,
     health,
+    imports,
     notifications,
+    onboarding,
     payments,
     portal,
     public_invitations,
@@ -65,6 +68,7 @@ app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(tenants.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
+app.include_router(imports.router, prefix="/api/v1")
 app.include_router(service_requests.router, prefix="/api/v1")
 app.include_router(work_orders.router, prefix="/api/v1")
 app.include_router(quotes.router, prefix="/api/v1")
@@ -78,8 +82,10 @@ app.include_router(technician.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(billing.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
+app.include_router(demo.router, prefix="/api/v1")
 app.include_router(automations.router, prefix="/api/v1")
 app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(onboarding.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")
 app.include_router(whatsapp.router, prefix="/api/v1")
 app.include_router(whatsapp_webhook.router, prefix="/api/v1")

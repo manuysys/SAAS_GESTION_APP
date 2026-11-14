@@ -110,3 +110,39 @@
   proceso se quedó esperando una conexión asyncpg después de
   `test_invitations.py`. `scripts/verify.ps1` ejecuta los mismos 127 tests en dos
   procesos (71 + 56) y así termina de forma estable. No se perdió cobertura.
+
+## Pilot-ready: importador, onboarding y reset de demo (2026-11-11)
+
+- **XLSX no funciona en Vercel todavía.** `openpyxl` y `defusedxml` están en
+  `apps/api/pyproject.toml` pero no en `apps/api/requirements.txt`. Según el código,
+  el preview XLSX responde 422 "Librería XLSX no disponible" en el deploy. Acción:
+  agregar ambas dependencias al `requirements.txt`, redesplegar y probar un XLSX real.
+  Criterio afectado: 11 de [`PILOT_READINESS.md`](PILOT_READINESS.md).
+- **Reset de demo solo para platform admin.** `POST /api/v1/admin/demo/reset` exige
+  `is_platform_admin` o un email listado en `PLATFORM_ADMIN_EMAILS`.
+  `demo@saasgestion.com` no es platform admin, así que no puede ejecutarlo. No hay
+  botón en la UI. Para resetear la demo hace falta un usuario platform admin o agregar
+  el email a `PLATFORM_ADMIN_EMAILS`, decisión que tiene que tomar el responsable.
+- **Verificación en producción pendiente.** Migraciones `d4e5f6a7b8c9` y `e5f6a7b8c9d0`,
+  los endpoints de importación, onboarding y reset, y la UI no tienen registro de
+  verificación en Vercel + Neon. `devops` lo está haciendo. Hasta entonces, ningún
+  criterio nuevo se considera verificado en producción.
+- **Prueba E2E en navegador pendiente.** El flujo completo (preview, commit, errores,
+  onboarding de cuatro pasos y checklist del dashboard) no se recorrió en navegador
+  contra producción.
+- **Pruebas en dispositivo siguen pendientes.** Ni el APK ni el AAB se probaron en un
+  Android físico. Criterios 16 y 17 abiertos.
+- **Datos personales en `import_jobs`.** `rows_json` y `errors_json` guardan nombre,
+  email, teléfono y dirección. No hay retención automática ni endpoint de borrado. Solo
+  el reset de demo los elimina.
+- **Neutralización de fórmulas con efecto visible.** En `errors.csv`, un campo que empieza
+  con `+` o `-` (por ejemplo, un teléfono internacional) aparece con `'` al principio.
+  Es intencional (ADR-017). El dato guardado no cambia.
+- **Límites de archivo fijos.** 2 MB y 500 filas por archivo. Un archivo más grande
+  requiere dividirlo. No hay carga por lotes.
+- **El importador no crea órdenes.** Solo clientes. Órdenes asociadas quedan pendientes
+  (Hito 9 de [`ROADMAP.md`](ROADMAP.md)).
+- **Reset de demo sin lock de escritura concurrente completo.** El lock sobre el tenant
+  demo serializa los resets, pero otros endpoints que escriben en ese tenant sin tomar el
+  lock pueden competir con él. Se acepta para el MVP (comentario en
+  `apps/api/app/services/demo_service.py`).
