@@ -189,7 +189,7 @@ jobs:
           fi
 
       - name: Upload AAB artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dovexo-android-aab
           path: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
